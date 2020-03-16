@@ -1,0 +1,28 @@
+operatingunit,indicator,primepartner,period,val,latest
+Jupiter,TX_NEW,Capricornus,FY18Q1,580,0
+Jupiter,TX_NEW,Capricornus,FY18Q2,570,0
+Jupiter,TX_NEW,Capricornus,FY18Q3,590,0
+Jupiter,TX_NEW,Capricornus,FY18Q4,540,0
+Jupiter,TX_NEW,Capricornus,FY19Q1,540,0
+Jupiter,TX_NEW,Capricornus,FY19Q2,530,0
+Jupiter,TX_NEW,Capricornus,FY19Q3,560,0
+Jupiter,TX_NEW,Capricornus,FY19Q4,550,0
+Jupiter,TX_NEW,Capricornus,FY20Q1,490,490
+Jupiter,TX_NEW,Corona Australis,FY18Q1,4150,0
+Jupiter,TX_NEW,Corona Australis,FY18Q2,4210,0
+Jupiter,TX_NEW,Corona Australis,FY18Q3,4120,0
+Jupiter,TX_NEW,Corona Australis,FY18Q4,4160,0
+Jupiter,TX_NEW,Cygnus,FY18Q1,290,0
+Jupiter,TX_NEW,Cygnus,FY18Q2,330,0
+Jupiter,TX_NEW,Cygnus,FY18Q3,280,0
+Jupiter,TX_NEW,Cygnus,FY18Q4,230,0
+Jupiter,TX_NEW,Cygnus,FY19Q1,240,0
+Jupiter,TX_NEW,Cygnus,FY19Q2,270,0
+Jupiter,TX_NEW,Cygnus,FY19Q3,260,0
+Jupiter,TX_NEW,Cygnus,FY19Q4,260,0
+Jupiter,TX_NEW,Cygnus,FY20Q1,280,280
+Jupiter,TX_NEW,Orion,FY19Q1,3720,0
+Jupiter,TX_NEW,Orion,FY19Q2,3910,0
+Jupiter,TX_NEW,Orion,FY19Q3,3770,0
+Jupiter,TX_NEW,Orion,FY19Q4,5330,0
+Jupiter,TX_NEW,Orion,FY20Q1,6130,6130
