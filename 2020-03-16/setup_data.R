@@ -27,4 +27,4 @@ df_tx <- df %>%
                             TRUE ~ 0))
 
 
-write_csv("2020-03-16/FY20Q1_Jupiter_TXNEW.csv", na = "")
+write_csv(df_tx, "2020-03-16/FY20Q1_Jupiter_TXNEW.csv", na = "")
