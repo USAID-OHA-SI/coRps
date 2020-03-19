@@ -1,6 +1,7 @@
 # coRps
 
-<img src="(https://user-images.githubusercontent.com/8933069/77067256-0ca28600-69bb-11ea-9143-e606f18ceeb1.png" alt="coRps" width="240" height="278">
+<img src="https://user-images.githubusercontent.com/8933069/77067256-0ca28600-69bb-11ea-9143-e606f18ceeb1.png" alt="coRps" width="240" height="278"/>
+
 
 ## About
 Our mission is to create an inclusive learning/sharing collaborative withing [USAID's Office of HIV/AIDS (OHA)](https://www.usaid.gov/global-health/health-areas/hiv-and-aids) where analysts can gain from others' analytic experiences, primarily in and around R. The focus is on how improving our skills collectively so we can develop and foster principles of conducting analysis and viz that will bleed over to the rest of the office.
