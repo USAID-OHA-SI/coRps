@@ -4,6 +4,7 @@ library(ICPIutilities)
 library(scales)
 library(extrafont)
 
+df_tx <- read_csv("2020-03-16/FY20Q1_Jupiter_TXNEW.csv")
 
 df_tx %>% 
   mutate(primepartner = fct_reorder(primepartner, latest, sum, .desc = TRUE)) %>% 
