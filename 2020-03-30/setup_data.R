@@ -2,6 +2,7 @@
 ## AUTHOR:   Chafetz | USAID
 ## PURPOSE:  stucture dataset for use in ggplot overview
 ## DATE:     2020-03-14
+## UPDATTED: 2020-03-30
 
 
 # DEPENDENCIES ------------------------------------------------------------
@@ -16,7 +17,7 @@ library(ICPIutilities)
   df <- read_msd(dataset_url, save_rds = FALSE)
   
 
-# MUNGE -------------------------------------------------------------------
+# MUNGE HTS --------------------------------------------------------------
 
   #filter for testing  
     df_hts <- df %>% 
@@ -38,7 +39,29 @@ library(ICPIutilities)
              is_index = str_detect(modality, "Index"))
     
 
+# MUNGE TX ----------------------------------------------------------------
+
+  #filter for testing  
+    df_tx <- df %>% 
+      filter(indicator %in% c("TX_NEW", "TX_NET_NEW", "TX_CURR"),
+             standardizeddisaggregate == "Total Numerator",
+             fiscal_year == 2020) 
+    
+  #aggregate
+    df_tx <- df_tx %>%
+      group_by(fiscal_year, operatingunit, primepartner,  indicator) %>% 
+      summarise_at(vars(cumulative), sum, na.rm = TRUE) %>% 
+      ungroup() %>% 
+      filter(cumulative != 0,
+             primepartner != "Dedup")
+    
+  #spread and create indicators
+    df_tx <- df_tx %>% 
+      spread(indicator, cumulative) %>% 
+      filter_at(vars(TX_CURR, TX_NEW), any_vars(!is.na(.)))
+    
 # EXPORT ------------------------------------------------------------------
 
-  write_csv(df_hts, "2020-03-16/FY20_MilkyWay_Testing.csv", na = "")  
+  write_csv(df_hts, "2020-03-30/FY20_MilkyWay_Testing.csv", na = "")  
+  write_csv(df_tx, "2020-03-30/FY20_MilkyWay_NewtoNetNew.csv", na = "")  
     
