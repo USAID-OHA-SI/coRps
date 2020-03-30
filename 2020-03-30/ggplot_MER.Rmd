@@ -1,0 +1,163 @@
+---
+title: "ggplot + MER"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Getting Started
+
+Today we will be diving into the some exploratory analysis with R, getting familiar with visualizing data using `ggplot2` which is part of the [tidyverse](https://www.tidyverse.org/).
+
+To get started, you'll need to install a few different packages to work in R. Unlike proprietary software like Excel, Stata, SPSS, etc. where all the functions are built into shipped software, R is open source and allows on contributers to develop and share useful code in "packages." 
+
+The main way to install software in R is to use `install.package()`. This function (built into R) allows you access and install software from [CRAN](https://cran.r-project.org/). 
+
+
+```{r install}
+install.packages("tidyverse")
+install.packages("devtools")
+install.packages("skimr")
+install.packages("scales")
+install.packages("extrafont")
+install.packages("patchwork")
+```
+
+Users can also access additional packages not available on CRAN for various reasons (still in development, small scale, etc). We will also be using a package developed for use with the PEPFAR MSD, called [ICPIutilities](https://github.com/ICPI/ICPIutilities/blob/master/README.md) and is able to be installed from GitHub (via the `devtools` package).
+
+```{r install_github}
+devtools::install_github("ICPI/ICPIutilities")
+```
+
+Let's take a look at all the packages loaded with `install.packages("tidyverse")`, which actually installs a host of packages for you to use. We can see what those are through running the code below.
+
+```{r tidyverse}
+tidyverse::tidyverse_packages()
+```
+
+Great. We have the options to utitlize these packages now that they are installed,  Every time we start up a new R session, we have load the packages we want to use, using the function, `library()`.
+
+```{r load, echo=FALSE}
+
+
+
+```
+
+
+## Loading the data
+
+You can use lots of different types of data in R like csv, txt, and json or even proprietary formats like xlsx and .dta. 
+
+Today we'll be using a csv file from our training dataset that has been filtered down to a manageable size, focusing on one indicator in one operating unit.
+
+To load the data, we will rely on a packge from the tidyverse called `readr`. One of the cool features is we can actually load data from a url and we don't need it stored locally (although, please don't store any real PEPFAR data publically).
+
+Today's dataset is available on [Github](https://github.com/USAID-OHA-SI/coRps/blob/master/2020-03-30/FY20_MilkyWay_Testing.csv). Let's load the data locally.
+
+```{r}
+url <- "https://raw.githubusercontent.com/USAID-OHA-SI/coRps/master/2020-03-30/FY20_MilkyWay_Testing.csv"
+
+
+```
+
+## Exploring the data
+
+A best practice whenever we import a new dataset is to first inspect it. So, let's take a look.
+
+```{r}
+
+#high level view
+
+#what modalities do we have?
+
+#data distribution
+  skim()
+
+```
+
+Now that we have sense of the dataset, let start exploring the data through `ggplot`. We are model our work after the structure of R for Data Science.
+
+## Aesthetics
+
+```{r}
+ 
+#dot plot
+  
+
+#aes in ggplot
+  
+  
+#what is missing?
+  
+
+#adding a shape to compare index to non index
+ 
+  
+#adding a shape and color to index/non-index
+  
+
+#color by modality
+ 
+
+#color by modality, size dot by HTS_TST
+ 
+
+#adjust transparency
+ 
+    
+#how do we make all the points blue?
+  
+
+#adjust dot size
+  
+  
+#adjust dot size and tranparency
+  
+  
+#add mean lines to plot
+ 
+
+```
+
+## Facets
+
+```{r}
+
+#facetting (wrap)
+  
+  
+#ordered facets (wrap)
+
+  
+#facet grid
+
+  
+```
+
+
+
+## Geometric objects
+
+```{r}
+#linear fit
+  
+
+
+
+```
+
+## Transformations
+```{r}
+
+```
+
+
+ 
+  
+
+
+
+
+
