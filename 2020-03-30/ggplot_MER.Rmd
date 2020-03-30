@@ -40,9 +40,12 @@ tidyverse::tidyverse_packages()
 Great. We have the options to utitlize these packages now that they are installed,  Every time we start up a new R session, we have load the packages we want to use, using the function, `library()`.
 
 ```{r load, echo=FALSE}
-
-
-
+library("tidyverse")
+library("devtools")
+library("skimr")
+library("scales")
+library("extrafont")
+library("patchwork")
 ```
 
 
@@ -59,6 +62,8 @@ Today's dataset is available on [Github](https://github.com/USAID-OHA-SI/coRps/b
 ```{r}
 url <- "https://raw.githubusercontent.com/USAID-OHA-SI/coRps/master/2020-03-30/FY20_MilkyWay_Testing.csv"
 
+df_hts <- read_csv(url)
+
 
 ```
 
@@ -69,11 +74,14 @@ A best practice whenever we import a new dataset is to first inspect it. So, let
 ```{r}
 
 #high level view
+  glimpse(df_hts)
 
 #what modalities do we have?
+  distinct(df_hts, modality)  
+  count(df_hts, modality, wt = HTS_TST)  
 
 #data distribution
-  skim()
+  skim(df_hts, HTS_TST, HTS_TST_POS, Positivity)
 
 ```
 
@@ -84,80 +92,57 @@ Now that we have sense of the dataset, let start exploring the data through `ggp
 ```{r}
  
 #dot plot
-  
+  ggplot(df_hts) +
+  geom_point()
 
 #aes in ggplot
-  
+  ggplot(df_hts, aes(HTS_TST_POS, Positivity))
   
 #what is missing?
-  
+  ?geom_point
 
 #adding a shape to compare index to non index
- 
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, shape = is_index))
   
 #adding a shape and color to index/non-index
-  
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, shape = is_index, color = is_index))
 
 #color by modality
- 
-
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, color = modality)) 
+  
 #color by modality, size dot by HTS_TST
- 
-
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, color = modality, size = HTS_TST))
+  
 #adjust transparency
- 
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, alpha = Positivity))
     
 #how do we make all the points blue?
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, color = "blue"))
   
-
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST), color = "blue")
+  
 #adjust dot size
-  
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST), size = 4)
   
 #adjust dot size and tranparency
-  
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST), size = 4, alpha = .3)
   
 #add mean lines to plot
- 
-
-```
-
-## Facets
-
-```{r}
-
-#facetting (wrap)
+  mean_hts_pos <- mean(df_hts$HTS_TST_POS)
+  mean_positivity <- mean(df_hts$Positivity)
   
-  
-#ordered facets (wrap)
-
-  
-#facet grid
-
+  ggplot(df_hts) +
+  geom_vline(aes(xintercept = mean_hts_pos)) +
+  geom_hline(aes(yintercept = mean_positivity)) +
+  geom_point(aes(HTS_TST_POS, Positivity))
   
 ```
-
-
-
-## Geometric objects
-
-```{r}
-#linear fit
-  
-
-
-
-```
-
-## Transformations
-```{r}
-
-```
-
-
- 
-  
-
-
-
-
-
