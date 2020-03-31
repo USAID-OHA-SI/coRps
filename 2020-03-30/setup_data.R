@@ -49,7 +49,7 @@ library(ICPIutilities)
     
   #aggregate
     df_tx <- df_tx %>%
-      group_by(fiscal_year, operatingunit, primepartner,  indicator) %>% 
+      group_by(fiscal_year, operatingunit, fundingagency, primepartner,  indicator) %>% 
       summarise_at(vars(cumulative), sum, na.rm = TRUE) %>% 
       ungroup() %>% 
       filter(cumulative != 0,
@@ -59,6 +59,11 @@ library(ICPIutilities)
     df_tx <- df_tx %>% 
       spread(indicator, cumulative) %>% 
       filter_at(vars(TX_CURR, TX_NEW), any_vars(!is.na(.)))
+    
+  #additional filters
+    df_tx <- df_tx %>% 
+      filter(TX_NEW < 1000,
+           TX_NET_NEW > -2000)
     
 # EXPORT ------------------------------------------------------------------
 
