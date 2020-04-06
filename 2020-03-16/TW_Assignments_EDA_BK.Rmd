@@ -15,8 +15,8 @@ library(RColorBrewer)
 ### Read data
 ```{r echo=FALSE, message=FALSE}
 jupiter_data <- read_csv("./FY20Q1_Jupiter_TXNEW.csv")
-
 ```
+
 ### Examine datasets
 ```{r}
 head(jupiter_data)
@@ -95,6 +95,8 @@ jupiter_data %>%
         panel.grid.major.x = element_blank(),
         strip.text.x = element_text(face = "bold"),
         title = element_text(face = "bold"))
+
+#ggsave("Jupiter_TX_NEW_Trends_BK1.png")
 ```
 
 ```{r}
@@ -115,4 +117,6 @@ jupiter_data %>%
         panel.grid.major.x = element_blank(),
         strip.text = element_text(face = "bold"),
         title = element_text(face = "bold"))
+
+#ggsave("Jupiter_TX_NEW_Trends_BK2.png")
 ```
