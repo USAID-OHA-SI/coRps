@@ -1,0 +1,118 @@
+## PROJECT:  coRps
+## AUTHOR:   B.Kagniniwa | USAID
+## PURPOSE:  Respond to March 16th TW Assignment
+## DATE:     2020-04-06
+
+## Load R Packages
+```{r echo=FALSE, message=FALSE}
+library(tidyverse)
+library(readxl)
+library(scales)
+library(lubridate)
+library(RColorBrewer)
+```
+
+### Read data
+```{r echo=FALSE, message=FALSE}
+jupiter_data <- read_csv("./FY20Q1_Jupiter_TXNEW.csv")
+
+```
+### Examine datasets
+```{r}
+head(jupiter_data)
+```
+
+```{r}
+glimpse(jupiter_data)
+```
+
+How many partners are we dealing with?
+```{r}
+jupiter_data %>% 
+  distinct(primepartner)
+```
+
+What are the reporting periods?
+```{r}
+jupiter_data %>% 
+  distinct(period)
+```
+
+### Split period into FY & Quaters
+```{r}
+jupiter_data <- jupiter_data %>% 
+  separate(period, into=c("fiscal_year", "rep_qtr"), sep = 4, remove = FALSE)
+```
+
+
+```{r}
+jupiter_data %>% head()
+```
+
+
+```{r}
+jupiter_data %>% 
+  distinct(fiscal_year)
+```
+
+```{r}
+jupiter_data %>% 
+  distinct(rep_qtr)
+```
+
+
+```{r}
+jupiter_data %>% 
+  group_by(primepartner, fiscal_year, rep_qtr) %>% 
+  tally() %>% 
+  filter(n < 1)
+```
+
+### Visualize TX_NEW data
+```{r}
+jupiter_data %>% 
+  arrange(primepartner) %>% 
+  ggplot(aes(x=period, y=val)) +
+  geom_col(aes(fill=primepartner), show.legend = FALSE) +
+  scale_x_discrete(labels = function(labels) {
+    fixedLabels <- c()
+    for (l in 1:length(labels)) {
+      fixedLabels[l] <- paste0(ifelse(l %% 2 == 0, '', '\n'), labels[l])
+    }
+    return(fixedLabels)
+  }) +
+  scale_y_continuous(labels = comma) +
+  scale_fill_brewer(palette = "Accent") +
+  geom_hline(yintercept = 0, size = .5) +
+  facet_wrap(~ factor(primepartner, levels = c("Orion","Capricornus","Cygnus","Corona Australis")), nrow = 2) +
+  labs(title = "ORION IS SCALING UP TESTING", 
+       subtitle = "Jupiter | TX_NEW",
+       caption = paste0("USAID's Office of HIV/AIDS (OHA), ", today()),
+       x = NULL, 
+       y = NULL) +
+  theme_minimal() +
+  theme(panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        strip.text.x = element_text(face = "bold"),
+        title = element_text(face = "bold"))
+```
+
+```{r}
+jupiter_data %>% 
+  ggplot(aes(x=rep_qtr, y=val)) +
+  geom_col(aes(fill=primepartner), show.legend = FALSE) +
+  geom_hline(yintercept = 0, size = .5) +
+  scale_y_continuous(labels = comma) +
+  scale_fill_brewer(palette = "Accent") +
+  facet_grid(factor(fiscal_year, levels = c("FY20", "FY19", "FY18")) ~ factor(primepartner, levels = c("Orion","Capricornus","Cygnus","Corona Australis"))) +
+  labs(title = "SCALING UP TREATMENT", 
+       subtitle = "Jupiter | TX_NEW",
+       caption = paste0("USAID's Office of HIV/AIDS (OHA), ", today()),
+       x = NULL, 
+       y = NULL) +
+  theme_minimal() +
+  theme(panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        strip.text = element_text(face = "bold"),
+        title = element_text(face = "bold"))
+```
