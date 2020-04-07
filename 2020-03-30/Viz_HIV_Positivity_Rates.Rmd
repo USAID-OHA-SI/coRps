@@ -99,7 +99,7 @@ data %>%
              scales = "free_x", 
              space = "free") +
   labs(title = "HIV TESTING SERVICES (HTS)",
-       subtitle = "Posivity Rates Southern Atmosphere",
+       subtitle = "Posivity Rates in Southern Atmosphere",
        caption = paste0("USAID's Office of HIV/AIDS (OHA), ", today()),
        x = "", y = "Positivity (%)") +
   theme_minimal() +
@@ -111,5 +111,7 @@ data %>%
     axis.text.x = element_text(angle = 30),
     title = element_text(face = "bold")
   )
+
+ggsave("HIV_PositivityRates.png")
   
 ```
