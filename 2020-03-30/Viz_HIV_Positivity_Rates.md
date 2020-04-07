@@ -112,6 +112,8 @@ data %>%
     title = element_text(face = "bold")
   )
 
-ggsave("HIV_PositivityRates.png")
+#ggsave("HIV_PositivityRates.png")
   
 ```
+
+![HIV Positivity Rates](HIV_PosivityRates.png)
