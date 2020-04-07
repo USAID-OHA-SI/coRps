@@ -116,4 +116,4 @@ data %>%
   
 ```
 
-![HIV Positivity Rates](HIV_PosivityRates.png)
+![HIV Positivity Rates](HIV_PositivityRates.png)
