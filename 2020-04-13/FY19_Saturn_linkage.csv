@@ -1,0 +1,24 @@
+operatingunit,primepartner,psnu,fiscal_year,HTS_TST_POS,TX_NEW,linkage
+Saturn,Auriga,Dione,2019,1010,820,0.8118811881188119
+Saturn,Auriga,Mimas,2019,160,80,0.5
+Saturn,Auriga,Thea,2019,1650,1270,0.7696969696969697
+Saturn,Boötes,Thea,2019,150,140,0.9333333333333333
+Saturn,Capricornus,Dione,2019,940,840,0.8936170212765957
+Saturn,Capricornus,Thea,2019,1910,1530,0.8010471204188482
+Saturn,Cepheus,Dione,2019,40,20,0.5
+Saturn,Cepheus,Mimas,2019,280,170,0.6071428571428571
+Saturn,Cepheus,Thea,2019,520,400,0.7692307692307693
+Saturn,Corvus,Thea,2019,3440,2940,0.8546511627906976
+Saturn,Dedup,Mimas,2019,-10,,
+Saturn,Dedup,Thea,2019,-10,,
+Saturn,Eridanus,Mimas,2019,4900,4080,0.8326530612244898
+Saturn,Libra,Dione,2019,6480,5050,0.779320987654321
+Saturn,Ophiuchus,Mimas,2019,1100,480,0.43636363636363634
+Saturn,Sagittarius,Dione,2019,20,,
+Saturn,Sagittarius,Mimas,2019,5760,4850,0.8420138888888888
+Saturn,Sagittarius,Thea,2019,100,40,0.4
+Saturn,Serpens,Mimas,2019,120,50,0.4166666666666667
+Saturn,Ursa Major,Mimas,2019,2260,2130,0.9424778761061947
+Saturn,Virgo,Dione,2019,350,10,0.02857142857142857
+Saturn,Virgo,Mimas,2019,160,,
+Saturn,Virgo,Thea,2019,70,,
