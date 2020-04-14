@@ -9,6 +9,22 @@ Our mission is to create an inclusive learning/sharing collaborative withing [US
 - [Markdown Cheatsheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
 
 
+## Session Topics
+
+| date       | topic                          | presenters |
+|------------|--------------------------------|------------|
+| 2020-03-11 | kick off                       |            |
+| 2020-03-16 | no meeting held, remote work   |            |
+| 2020-03-30 | visualization I                | Aaron C    |
+| 2020-04-13 | visualization II               | Aaron C    |
+| 2020-04-27 | data transformation            | Josh D     |
+| 2020-05-11 | importing + merging/appending  | Gina S     |
+| 2020-05-25 | working with strings + factors | Tim E      |
+| 2020-06-08 | functions (basics) + iteration | Aaron C    |
+| 2020-06-22 | mapping                        | Baboyma K  |
+| 2020-07-06 | GitHub/project workflow        |            |
+
+
 ## Proposed Discussion topics
 - basic to exploratory analysis (data viz) in R
 - structuring reproducible analysis
