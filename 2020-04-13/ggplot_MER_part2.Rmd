@@ -73,34 +73,46 @@ Last session we went over some of the data exploration after loading the data an
 ## FACETS
 
 ```{r}
-ggplot(df_hts) +
-  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, color = modality)) +
-  facet_wrap(~operatingunit, scales = "free")
- 
-ggplot(df_hts) +
-  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, color = modality)) +
-  facet_wrap(~fct_lump(modality, 3))
 
-df_hts %>% 
-  filter(is_index == TRUE) %>% 
-  ggplot() +
-  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, color = modality)) +
+#facetting (wrap)
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, color = modality, alpha = Positivity)) +
+  facet_wrap(~modality)
+  
+#ordered facets (wrap)
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, color = modality, alpha = Positivity)) +
+  facet_wrap(~ fct_reorder(modality, HTS_TST, sum, .desc = TRUE))
+  
+#facet grid
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, color = modality, alpha = Positivity)) +
   facet_grid(modality ~ operatingunit)
   
 ```
 
 
-## Geometic Objects
+## Geometric objects
 
 ```{r}
-ggplot(df_hts) +
-  geom_smooth(aes(HTS_TST_POS, Positivity), method = "lm", formula = y~x, se = FALSE) +
-  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST))
-
-
-ggplot(df_hts, aes(HTS_TST_POS, Positivity)) +
-  geom_point()
+#linear fit
+  ggplot(df_hts) +
+  geom_smooth(aes(HTS_TST_POS, Positivity), method='lm', formula= y~x)
+    
+#linear fit + points (multiple layers)
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST)) +
+  geom_smooth(aes(HTS_TST_POS, Positivity), method='lm', formula= y~x)
   
+#linear fit by operatingunit
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, color = operatingunit)) +
+  geom_smooth(aes(HTS_TST_POS, Positivity, color = operatingunit), method='lm', formula= y~x, se = FALSE)
+
+#simplifying w/ global aes
+  ggplot(df_hts, aes(HTS_TST_POS, Positivity)) +
+  geom_point(aes(size = HTS_TST)) +
+  geom_smooth(method='lm', formula= y~x)
 ```
 
 ## Transformations
@@ -139,6 +151,43 @@ ggplot(df_hts, aes(Positivity, operatingunit)) +
 ggplot(df_hts) +
   geom_col(aes(modality, HTS_TST)) +
   coord_flip()
+
+```
+
+We didn't get to this part in the session, but wanted to show that we can also map my in R.
+
+## Coordinate systems
+
+```{r}
+
+library(map_data)
+
+ggplot(df_hts) +
+  geom_col(aes(modality, HTS_TST))
+
+ggplot(df_hts) +
+  geom_col(aes(modality, HTS_TST)) +
+  coord_flip()
+
+md <- map_data('county', 'marland')
+
+ggplot(mi, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill="lightgray", colour = "white") +
+  coord_quickmap()
+
+
+bar <- ggplot(df_hts) + 
+  geom_bar(
+    mapping = aes(x = modality, fill = modality), 
+    show.legend = FALSE,
+    width = 1
+  ) + 
+  theme(aspect.ratio = 1) +
+  labs(x = NULL, y = NULL)
+
+  bar + coord_flip()
+  bar + coord_polar()
+
 
 ```
 
