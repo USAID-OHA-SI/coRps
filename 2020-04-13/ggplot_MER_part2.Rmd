@@ -67,84 +67,80 @@ df_hts <- read_csv(url)
 
 ```
 
-## Exploring the data
+Last session we went over some of the data exploration after loading the data and spent most of our time on the aesthetics in ggplot structured based on R for Data Science.
 
-A best practice whenever we import a new dataset is to first inspect it. So, let's take a look.
 
-```{r}
-
-#high level view
-  glimpse(df_hts)
-
-#what modalities do we have?
-  distinct(df_hts, modality)  
-  count(df_hts, modality, wt = HTS_TST)  
-
-#data distribution
-  skim(df_hts, HTS_TST, HTS_TST_POS, Positivity)
-
-```
-
-Now that we have sense of the dataset, let start exploring the data through `ggplot`. We are model our work after the structure of R for Data Science.
-
-## Aesthetics
+## FACETS
 
 ```{r}
+ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, color = modality)) +
+  facet_wrap(~operatingunit, scales = "free")
  
-#dot plot
-  ggplot(df_hts) +
-  geom_point()
+ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, color = modality)) +
+  facet_wrap(~fct_lump(modality, 3))
 
-#aes in ggplot
-  ggplot(df_hts, aes(HTS_TST_POS, Positivity))
-  
-#what is missing?
-  ?geom_point
-
-#adding a shape to compare index to non index
-  ggplot(df_hts) +
-  geom_point(aes(HTS_TST_POS, Positivity, shape = is_index))
-  
-#adding a shape and color to index/non-index
-  ggplot(df_hts) +
-  geom_point(aes(HTS_TST_POS, Positivity, shape = is_index, color = is_index))
-
-#color by modality
-  ggplot(df_hts) +
-  geom_point(aes(HTS_TST_POS, Positivity, color = modality)) 
-  
-#color by modality, size dot by HTS_TST
-  ggplot(df_hts) +
-  geom_point(aes(HTS_TST_POS, Positivity, color = modality, size = HTS_TST))
-  
-#adjust transparency
-  ggplot(df_hts) +
-  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, alpha = Positivity))
-    
-#how do we make all the points blue?
-  ggplot(df_hts) +
-  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, color = "blue"))
-  
-  ggplot(df_hts) +
-  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST), color = "blue")
-  
-#adjust dot size
-  ggplot(df_hts) +
-  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST), size = 4)
-  
-#adjust dot size and tranparency
-  ggplot(df_hts) +
-  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST), size = 4, alpha = .3)
-  
-#add mean lines to plot
-  mean_hts_pos <- mean(df_hts$HTS_TST_POS)
-  mean_positivity <- mean(df_hts$Positivity)
-  
-  ggplot(df_hts) +
-  geom_vline(aes(xintercept = mean_hts_pos)) +
-  geom_hline(aes(yintercept = mean_positivity)) +
-  geom_point(aes(HTS_TST_POS, Positivity))
+df_hts %>% 
+  filter(is_index == TRUE) %>% 
+  ggplot() +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, color = modality)) +
+  facet_grid(modality ~ operatingunit)
   
 ```
 
-We'll spend next session on facetting, geometric objects and tranformations with ggplot.
+
+## Geometic Objects
+
+```{r}
+ggplot(df_hts) +
+  geom_smooth(aes(HTS_TST_POS, Positivity), method = "lm", formula = y~x, se = FALSE) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST))
+
+
+ggplot(df_hts, aes(HTS_TST_POS, Positivity)) +
+  geom_point()
+  
+```
+
+## Transformations
+
+```{r}
+ggplot(df_hts, aes(operatingunit)) +
+  geom_bar()
+
+
+ggplot(df_hts, aes(operatingunit, HTS_TST_POS)) +
+  geom_bar(stat = "identity")
+
+ggplot(df_hts, aes(operatingunit, HTS_TST_POS)) +
+  geom_col()
+
+
+ggplot(df_hts, aes(operatingunit, HTS_TST_POS, fill = modality)) +
+  geom_col()
+
+
+ggplot(df_hts, aes(operatingunit, HTS_TST_POS, fill = modality)) +
+  geom_col() +
+  facet_wrap(. ~ modality, scales = "free_x")
+
+ggplot(df_hts, aes(operatingunit, HTS_TST_POS, fill = modality)) +
+  geom_col(position = "dodge")
+
+ggplot(df_hts, aes(Positivity, operatingunit)) +
+         geom_point(size = 6, alpha = .5,
+                    position = "jitter")
+
+ggplot(df_hts, aes(Positivity, operatingunit)) +
+         geom_jitter(size = 6, alpha = .5,
+                    height = .15)
+
+ggplot(df_hts) +
+  geom_col(aes(modality, HTS_TST)) +
+  coord_flip()
+
+```
+
+
+
