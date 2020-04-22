@@ -1,0 +1,171 @@
+---
+title: "transform_data"
+author: "jdavis"
+date: "4/21/2020"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Getting started
+Today we're going to get into the down and dirty with one of the more valuable packages in the tidyverse, `dplyr`. Simply put, `dplyr` implements a grammar for transforming tabular data. It is powerful and has a number of wide ranging functions and uses, that will no doubt inspire joy, adminiration, fear, and dread (in somewhat equal measures) as you advance through your learning of `R`
+
+We've touched on the use of `dplyr` in the previous exercises invovlving `ggplot`, but today we will go into some detail as to what those functions are doing and the different ways we can use them in our work.
+
+
+  load r packages and import data
+```{r message=FALSE}
+
+library(tidyverse)
+library(ICPIutilities)
+
+dataset_url <- "https://raw.githubusercontent.com/USAID-OHA-SI/coRps/master/2020-04-27/"
+
+df <- read_csv(dataset_url)
+
+```
+
+
+Let's take a look at all the packages loaded with `install.packages("tidyverse")`, which actually installs a host of packages for you to use. We can see what those are through running the code below.
+
+```{r tidyverse}
+tidyverse::tidyverse_packages()
+```
+
+Another interesting exercise is to look at the bounty of functions available in `dplyr`. You can see there are 267, but today we'll only be focusing on 4; `select`, `rename`, `filter`, and `mutate`. One of the great things about the tidyverse in general, and dplyr in specific is the strength and flexilibity of the 'helpers' that are able to used with each function. These helpers are extremely valuable for expanding what can be done with these functions, often allowing you to `pipe ( %>% )` together multiple transformation actions into easy to manage and intrepret code chunks. This comes in handy when you have a lot of transformations to make, or as we saw with the `ggplot2` section, the transformation is not the end goal in and of itself. 
+
+```{r}
+
+ls(package:dplyr)
+
+```
+
+
+
+
+## dplyr::select
+`select` extracts columns by name. 
+
+```{r}
+glimpse(df)
+
+df %>% select(operatingunit, psnu, fundingagency, standardizeddisaggregate, fiscal_year, targets) %>% 
+  glimpse()
+
+## change the order of the vars within your select statement
+df %>% select(targets, fiscal_year, operatingunit, psnu, fundingagency, standardizeddisaggregate) %>% 
+  glimpse()
+
+```
+
+##helpers part 1 : ranges and `ends_with`
+Pretty straight forward right? If you have a lot of things you want to select, it can be a pain to list everything out in a select statement, in that case there are a couple of options. 
+```{r}
+## use a start_col:end_col, or a range
+
+df %>% select(operatingunit:targets) %>% 
+  glimpse()
+
+##combine ranges
+df %>% select(operatingunit:fundingagency, standardizeddisaggregate:targets)
+
+##you can also deselect columns by adding a - in front of them : note use of parans
+df %>% select(-region, -regionuid, -(snuprioritization:disaggregate))
+
+## you can even deselect a chunk and re-add a column
+df %>% select(-(snuprioritization:modality), standardizeddisaggregate, indicator) %>% 
+  glimpse()
+
+## if you have data that has column names of a similar struture, you can use partial matching
+df %>% select(operatingunit, ends_with("uid")) %>%
+  glimpse()
+
+## cool, but not very helpful, we really want to do the reverse
+df %>% select(-ends_with("uid")) %>% 
+  glimpse()
+
+```
+
+## select_if
+```{r}
+#to do
+
+```
+
+## rename and rename_all
+Next, we're going to talk about how to rename columns. This is really easy with `dplyr` and useful when working with the MSD as a lot of times you'll want to rename the vars in your df for display/viz purposes. We're all introducing the `_all` modifier for the dplyr functions here. Note that these are not helpers, they are standalone functions, just that the role they serve is a lot like the helpers. `rename` is pretty straightforward: `rename(new_name = old_name)` (note, if you are like me you will get that backwards a seemingly unbelievable number of times)
+```{r}
+
+df <- df %>% 
+  rename()
+
+
+
+```
+
+
+##helpers part 2 : contains, starts_with, ends_with
+This is where the helpers start to get neat, `dplyr` if you have a lot of columns with similar structure you can use some of partial matching to choose what you want.
+```{r}
+df %>% select()
+
+```
+
+
+
+
+
+
+
+
+
+
+##running list of helpers for the facilitation team to help josh figure out where to include
+```{r}
+one_col:another_col (range)
+-c("one_col", "another_col") (except)
+starts_with()
+ends_with()
+contains()
+matches()
+one_of()
+## boolean
+<
+>
+==
+<=
+>=
+!=
+%in%
+is.na()
+!is.na()
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
