@@ -22,7 +22,7 @@ We've touched on the use of `dplyr` in the previous exercises invovlving `ggplot
 library(tidyverse)
 library(ICPIutilities)
 
-dataset_url <- "https://raw.githubusercontent.com/USAID-OHA-SI/coRps/master/2020-04-27/"
+dataset_url <- "https://raw.githubusercontent.com/USAID-OHA-SI/coRps/master/2020-04-27/dplyr_exercise.csv"
 
 df <- read_csv(dataset_url)
 
@@ -35,13 +35,136 @@ Let's take a look at all the packages loaded with `install.packages("tidyverse")
 tidyverse::tidyverse_packages()
 ```
 
-Another interesting exercise is to look at the bounty of functions available in `dplyr`. You can see there are 267, but today we'll only be focusing on 4; `select`, `rename`, `filter`, and `mutate`. One of the great things about the tidyverse in general, and dplyr in specific is the strength and flexilibity of the 'helpers' that are able to used with each function. These helpers are extremely valuable for expanding what can be done with these functions, often allowing you to `pipe ( %>% )` together multiple transformation actions into easy to manage and intrepret code chunks. This comes in handy when you have a lot of transformations to make, or as we saw with the `ggplot2` section, the transformation is not the end goal in and of itself. 
+Another interesting exercise is to look at the bounty of functions available in `dplyr`. You can see there are 267, but today we'll only be focusing on 4 time permitting; `filter`, `mutate`, `rename`, and `select`. One of the great things about the tidyverse in general, and dplyr in specific is the strength and flexilibity of the 'helpers' that are able to used with each function. These helpers are extremely valuable for expanding what can be done with these functions, often allowing you to `pipe ( %>% )` together multiple transformation actions into easy to manage and intrepret code chunks. This comes in handy when you have a lot of transformations to make, or as we saw with the `ggplot2` section, the transformation is not the end goal in and of itself. 
 
 ```{r}
 
 ls(package:dplyr)
 
 ```
+
+## dplry::filter
+
+`filter` extracts rows that meet a logical criteria
+Like most of the tidyverse, `filter` follows a predicatable syntax
+`filter`(data_to_transform, condition)
+So we're going to spend a little bit of time going over the basics and then get into some of the ways to modify `filter`
+
+```{r}
+## as always lets have a look at our data
+glimpse(df)
+
+##which OUs are we dealing with?
+distinct(df, operatingunit)
+
+##if we want to limit our analysis to just Saturn
+df %>% 
+filter(operatingunit == "Saturn") %>% 
+  distinct(operatingunit)
+
+## more than one criteria?
+distinct(df, indicator)
+
+df %>% 
+  filter(indicator %in% c("HTS_TST", "HTS_TST_POS")) %>% 
+  distinct(indicator)
+
+## this works with 'everything but' which can be helpful
+## !%in% might seem logic but it won’t work.
+
+distinct(df, psnu)
+## remove Thea and Mimas
+
+df %>%
+  filter(!psnu %in% c("Thea", "Mimas")) %>% 
+  distinct(psnu)
+
+##  you can also use logical tests with filter
+##  >, >=, <, <=, == and != (plus %in% (group membership) which we just did)
+
+
+## Can take boolean operators, with some caveats
+## filter out the missing values for results (helpful with DATIM data)
+
+df %>% 
+  filter(!is.na(cumulative)) %>% 
+  glimpse()
+
+df %>% 
+  filter(!is.na(cumulative), !is.na(targets)) %>% 
+  glimpse()
+
+```
+
+One nice aspect about working in the tidyverse is that you can write your code in a nice, organized way. You can 'stack' your conditions within the same function for ease of reading. This helps when you want to go back and quickly tell if you munged the data the way you meant to. Using the `space` and `tab` keys in rstudio makes for uniform indentions
+
+```{r}
+
+## subset down to just one indicator for one time period for one partner
+## TX_CURR, for mech "AlfMr"
+df %>% 
+  filter(indicator == "TX_CURR",
+         mech_name == "AlfMr",
+         psnu == "Ganymede") %>% 
+  glimpse()
+```
+
+So we've covered how to filter within one or more variables, now we're going to introduce one of the variants of `filter`, which is `filter_at`. Several of the `dplyr` functions have variants (`_at`, `_if`, `_all`) that allow you to 
+apply the function across multiple colums at once. This means you can do with one line what might have taken several.
+We're also going to start playing with a couple of the ways to define your logical condition `contains()`, `starts_with()`, and `ends_with()`.
+
+We'll start with `filter_if`. Because of reasons, there are a lot of 0 values in the DATIM data. Depending on what we're trying to do, this can cause problems. Sometimes we're only interested in the total or `cumulative` value for a particular `fiscal_year`, but often times we want to look at trends, quarter over quarter. Part of making the initial munging you do on an MSD should be to make your `df` as small as possible. This will serve you well; what you end up doing with it (tableau, excel, whatever) might not be apparant when you first start. 
+
+```{r}
+#returning to our data (732 rows)
+
+glimpse(df)
+
+#Let's try and remove where any of the rows have no data (536 rows)
+
+df %>%
+  select(-cumulative, -targets) %>% 
+  filter(!is.na(qtr1) | !is.na(qtr2) | !is.na(qtr3) | !is.na(qtr4)) %>% 
+  glimpse()
+
+## line 126 was kind of a pain to type out (trust me)
+
+## let's try with `filter_if`
+
+df %>%
+  select(-cumulative, -targets) %>% 
+  filter_if(is.double, any_vars(!is.na(.))) %>% 
+  glimpse()
+
+## this is a bad example because this df is already subset down so i had to incorporate `select` to make it do anything\
+
+df %>%
+  filter_at(vars(starts_with("qtr")), any_vars(!is.na(.))) %>% 
+  glimpse()
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
