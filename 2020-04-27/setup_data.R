@@ -18,54 +18,14 @@ library(ICPIutilities)
   
 
 
-# LINKAGE -----------------------------------------------------------------
+# dplyr -----------------------------------------------------------------
 
-
-  df_linkage <- df %>% 
-    filter(operatingunit == "Saturn",
-           indicator %in% c("HTS_TST_POS", "TX_NEW"),
-           standardizeddisaggregate == "Total Numerator",
-           fiscal_year == 2019) %>% 
-    group_by(operatingunit, primepartner, psnu, indicator, fiscal_year) %>% 
-    summarise_at(vars(cumulative), sum, na.rm = TRUE) %>% 
-    ungroup() %>% 
-    spread(indicator, cumulative) %>% 
-    mutate(linkage = TX_NEW/HTS_TST_POS)
+  df <- df %>% 
+    filter(indicator %in% c("TX_CURR", "TX_NEW", "HTS_TST", "HTS_TST_POS"),
+           operatingunit %in% c("Saturn", "Jupiter"),
+           standardizeddisaggregate == "Total Numerator") %>% 
+    select(operatingunit, psnu, fundingagency, mech_name, indicator, fiscal_year:cumulative)
+  
   
   write_csv(df_linkage, "2020-04-13/FY19_Saturn_linkage.csv", na = "")
-  
-
-
-# TREATMENT TRENDS --------------------------------------------------------
-
-  df_trends <- df %>% 
-    filter(operatingunit == "Jupiter",
-           indicator %in% c("TX_CURR", "TX_NEW", "TX_NET_NEW"),
-           standardizeddisaggregate == "Total Numerator") %>% 
-    group_by(operatingunit,  indicator, fiscal_year) %>% 
-    summarise_at(vars(starts_with("qtr")), sum, na.rm = TRUE) %>% 
-    ungroup() %>% 
-    reshape_msd(clean = TRUE) %>% 
-    arrange(indicator, period)
-  
-  write_csv(df_trends, "2020-04-13/FY18-20_Jupiter_txtrends.csv", na = "")
-  
-  
-
-# TARGET ACHIEVEMENT ------------------------------------------------------
-
-  df_achievement <- df %>% 
-    filter(operatingunit == "Neptune",
-           indicator == "TX_NEW",
-           standardizeddisaggregate == "Age/Sex/HIVStatus",
-           fiscal_year == 2020) %>% 
-    group_by(fiscal_year, operatingunit, primepartner, indicator, sex) %>% 
-    summarise_at(vars(cumulative, targets), sum, na.rm = TRUE) %>% 
-    ungroup() %>% 
-    filter(primepartner != "Dedup") %>% 
-    mutate(achievement = cumulative / targets)
-  
-  write_csv(df_achievement, "2020-04-13/FY20_Neptune_txnew_achievement.csv", na = "")
-  
-    
   
