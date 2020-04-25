@@ -20,12 +20,20 @@ library(ICPIutilities)
 
 # dplyr -----------------------------------------------------------------
 
-  df <- df %>% 
+  df_dplyr <- df %>% 
     filter(indicator %in% c("TX_CURR", "TX_NEW", "HTS_TST", "HTS_TST_POS"),
            operatingunit %in% c("Saturn", "Jupiter"),
            standardizeddisaggregate == "Total Numerator") %>% 
     select(operatingunit, psnu, fundingagency, mech_name, indicator, fiscal_year:cumulative)
   
+  set.seed(42)
   
-  write_csv(df_linkage, "2020-04-13/FY19_Saturn_linkage.csv", na = "")
+  extra_zeros <- df %>% 
+    sample_n(10) %>% 
+    mutate_if(is.double, ~ 0)
+  
+  df <- bind_rows(df, extra_zeros)
+  
+  
+  write_csv(df_dplyr, "2020-04-27/dplyr_exercise.csv", na = "")
   

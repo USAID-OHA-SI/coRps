@@ -107,6 +107,17 @@ df %>%
          mech_name == "AlfMr",
          psnu == "Ganymede") %>% 
   glimpse()
+
+## create a list of what you want to filter and play with that
+## a set of mechs perhaps
+
+distinct(df, mech_name) %>% print(n=Inf)
+
+things_to_keep <- c("Ssr", "RjllAww", "Askll", "AsllusTrus ")
+
+df %>% filter(mech_name %in% things_to_keep) %>% 
+  distinct(mech_name)
+
 ```
 
 So we've covered how to filter within one or more variables, now we're going to introduce one of the variants of `filter`, which is `filter_at`. Several of the `dplyr` functions have variants (`_at`, `_if`, `_all`) that allow you to 
@@ -116,14 +127,13 @@ We're also going to start playing with a couple of the ways to define your logic
 We'll start with `filter_if`. Because of reasons, there are a lot of 0 values in the DATIM data. Depending on what we're trying to do, this can cause problems. Sometimes we're only interested in the total or `cumulative` value for a particular `fiscal_year`, but often times we want to look at trends, quarter over quarter. Part of making the initial munging you do on an MSD should be to make your `df` as small as possible. This will serve you well; what you end up doing with it (tableau, excel, whatever) might not be apparant when you first start. 
 
 ```{r}
-#returning to our data (732 rows)
+#returning to our data (742 rows)
 
 glimpse(df)
 
-#Let's try and remove where any of the rows have no data (536 rows)
+#Let's try and remove where any of the rows have no data (546 rows)
 
 df %>%
-  select(-cumulative, -targets) %>% 
   filter(!is.na(qtr1) | !is.na(qtr2) | !is.na(qtr3) | !is.na(qtr4)) %>% 
   glimpse()
 
