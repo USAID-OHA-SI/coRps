@@ -1,0 +1,31 @@
+## PROJECT:  coRps
+## AUTHOR:   Chafetz | USAID
+## PURPOSE:  stucture dataset for use in dplyr exercises
+## DATE:     2020-04-27
+## UPDATTED: 
+
+
+# DEPENDENCIES ------------------------------------------------------------
+
+library(tidyverse)
+library(ICPIutilities)
+
+# IMPORT MASKED DATASET ---------------------------------------------------
+
+  dataset_url <- "https://media.githubusercontent.com/media/ICPI/TrainingDataset/master/Output/MER_Structured_TRAINING_Datasets_PSNU_IM_FY18-20_20200214_v1_1.txt"
+  
+  df <- read_msd(dataset_url, save_rds = FALSE)
+  
+
+
+# dplyr -----------------------------------------------------------------
+
+  df <- df %>% 
+    filter(indicator %in% c("TX_CURR", "TX_NEW", "HTS_TST", "HTS_TST_POS"),
+           operatingunit %in% c("Saturn", "Jupiter"),
+           standardizeddisaggregate == "Total Numerator") %>% 
+    select(operatingunit, psnu, fundingagency, mech_name, indicator, fiscal_year:cumulative)
+  
+  
+  write_csv(df_linkage, "2020-04-13/FY19_Saturn_linkage.csv", na = "")
+  
