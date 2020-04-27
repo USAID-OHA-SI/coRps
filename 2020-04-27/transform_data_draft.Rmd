@@ -58,17 +58,26 @@ glimpse(df)
 distinct(df, operatingunit)
 
 ##if we want to limit our analysis to just Saturn
-
+df %>% 
+filter(operatingunit == "Saturn") %>% 
+  distinct(operatingunit)
 
 ## more than one criteria?
+distinct(df, indicator)
 
+df %>% 
+  filter(indicator %in% c("HTS_TST", "HTS_TST_POS")) %>% 
+  distinct(indicator)
 
 ## this works with 'everything but' which can be helpful
 ## !%in% might seem logic but it won’t work.
 
+distinct(df, psnu)
 ## remove Thea and Mimas
 
-
+df %>%
+  filter(!psnu %in% c("Thea", "Mimas")) %>% 
+  distinct(psnu)
 
 ##  you can also use logical tests with filter
 ##  >, >=, <, <=, == and != (plus %in% (group membership) which we just did)
@@ -77,7 +86,13 @@ distinct(df, operatingunit)
 ## Can take boolean operators, with some caveats
 ## filter out the missing values for results (helpful with DATIM data)
 
+df %>% 
+  filter(!is.na(cumulative)) %>% 
+  glimpse()
 
+df %>% 
+  filter(!is.na(cumulative), !is.na(targets)) %>% 
+  glimpse()
 
 ```
 
@@ -87,6 +102,21 @@ One nice aspect about working in the tidyverse is that you can write your code i
 
 ## subset down to just one indicator for one time period for one partner
 ## TX_CURR, for mech "AlfMr"
+df %>% 
+  filter(indicator == "TX_CURR",
+         mech_name == "AlfMr",
+         psnu == "Ganymede") %>% 
+  glimpse()
+
+## create a list of what you want to filter and play with that
+## a set of mechs perhaps
+
+distinct(df, mech_name) %>% print(n=Inf)
+
+things_to_keep <- c("Ssr", "RjllAww", "Askll", "AsllusSrus ")
+
+df %>% filter(mech_name %in% things_to_keep) %>% 
+  distinct(mech_name)
 
 ```
 
@@ -104,11 +134,15 @@ let's try with `filter_at`
 
 ## lets look at where the value for cumulative and targets is over 100
 
-
+df %>% 
+  filter(targets > 100 & cumulative >100) %>% 
+  glimpse()
 
 ##using filter_at
 
-
+df %>% 
+  filter_at(vars(targets, cumulative), all_vars(. >100)) %>% 
+  glimpse()
 
 ```
 
@@ -122,23 +156,34 @@ glimpse(df)
 
 #Let's try and remove where any of the rows have no data (546 rows)
 
-
+df %>%
+  filter(!is.na(qtr1) | !is.na(qtr2) | !is.na(qtr3) | !is.na(qtr4)) %>% 
+  glimpse()
 
 ## line 159 was kind of a pain to type out (trust me)
 
 ## try with starts_with, inside of vars()
-
+df %>%
+  filter_at(vars(starts_with("qtr")), any_vars(!is.na(.))) %>% 
+  glimpse()
 
 ##also works with contains
-
+df %>%
+  filter_at(vars(contains("qtr")), any_vars(!is.na(.))) %>% 
+  glimpse()
 
 ## can do this same with filter_if but it requires some modifications
 
-
+df %>%
+  select(-cumulative, -targets) %>% 
+  filter_if(is.double, any_vars(!is.na(.))) %>% 
+  glimpse()
 
 ## one way to remove all the rows with all na's
 
-
+df %>% 
+  filter_if(is.numeric, any_vars(!is.na(.) & . != 0)) %>% 
+  glimpse()
 
 ``` 
 
@@ -153,15 +198,31 @@ glimpse(df)
 
 ##let's create a flag variable for non-missing fy20 targets
 
+df %>% 
+  mutate(qtr_avg = cumulative/4) %>%
+  filter(fiscal_year == 2020) %>% 
+  glimpse() %>% 
+  view()
 
 ## what about something more useful
-
+df %>% 
+  mutate(achievement = cumulative/targets) %>%
+  filter(fiscal_year == 2020) %>% 
+  view()
 
 ## make it look a little nicer
-
+df %>% 
+  mutate(achievement = round(cumulative/targets,2)) %>%
+  filter(fiscal_year == 2020) %>% 
+  view()
 
 ## more useful still
-
+df %>%
+  filter(fiscal_year == 2019,
+         mech_name == "Ksr",
+         indicator %in% c("HTS_TST_POS")) %>%
+  mutate(achievement = round(cumulative/targets,2)) %>%
+  view()
 
 ```
 
@@ -170,7 +231,12 @@ Below is a really good thing to add when working with the MSD
 
 ```{r}
 
+df %>% distinct(fundingagency) 
 
+df %>% 
+  mutate(fundingagency = str_remove(fundingagency, "HHS/"),
+           fundingagency = factor(fundingagency, c("USAID", "CDC", "DOD"))) %>% 
+  count(fundingagency)
 
 ```
 
@@ -181,15 +247,25 @@ A very simple but powerful function to use with `mutate` is `if_else()`. With `i
 
 # let's make some groups, shall we?
 
+distinct(df, fundingagency)
 
+df %>% 
+  mutate(fundingagency = str_remove(fundingagency, "HHS/"),
+        fundingagency = factor(fundingagency, c("USAID", "CDC", "DOD"))) %>% 
+  count(fundingagency)
 
 ## note it dropped dedups
 ## usaid vs others
 
-
+df %>% 
+  mutate(fundingagency = if_else(fundingagency == "USAID", "USAID", "Other")) %>% 
+  count(fundingagency)
 
 ## make it a little nicer
-
+df %>% 
+  mutate(fundingagency = if_else(fundingagency == "USAID", "USAID", "Other"),
+         fundingagency = factor(fundingagency, c("USAID", "Other"))) %>% 
+  count(fundingagency)
 
 ## let's try an example with a logical operator
 ## how many mechs had targets for TX_CURR for USAID in 2019?
@@ -197,8 +273,26 @@ A very simple but powerful function to use with `mutate` is `if_else()`. With `i
 df %>% distinct(mech_name, fundingagency, fiscal_year)
 ## not helpful
 
+df %>% 
+  filter(fundingagency == "USAID",
+         indicator == "TX_CURR",
+         fiscal_year == 2019) %>%
+  mutate(no_targets = if_else(targets>0, "yes", "no")) %>% 
+  distinct(mech_name)
+
+```
 
 
+## we're going to subset our data down to work with filter
+
+
+```{r}
+df %>% 
+  filter(fiscal_year == 2019,
+         indicator %in% c("HTS_TST_POS", "TX_NEW"),
+         psnu == "Thea",
+         mech_name == "Ksr") %>% 
+  glimpse()
 ```
 
 
@@ -221,19 +315,13 @@ df %>% distinct(mech_name, fundingagency, fiscal_year)
 
 
 
-
-
-
-
-
-
-
-dplyr::select
+## dplyr::select
 `select` extracts columns by name. 
 
 ```{r}
 glimpse(df)
 
+# TODO: Did you mean to use the extra_zeros dataframe for this? standardizeddisaggregate is not in the df?
 df %>% select(operatingunit, psnu, fundingagency, standardizeddisaggregate, fiscal_year, targets) %>% 
   glimpse()
 
