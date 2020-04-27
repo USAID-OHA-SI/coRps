@@ -1,8 +1,8 @@
 ## PROJECT:  coRps
-## AUTHOR:   Chafetz | USAID
+## AUTHOR:   Davis, Chafetz | USAID
 ## PURPOSE:  stucture dataset for use in dplyr exercises
-## DATE:     2020-04-27
-## UPDATTED: 
+## DATE:     2020-04-24
+## UPDATED:  2020-04-27
 
 
 # DEPENDENCIES ------------------------------------------------------------
@@ -28,11 +28,11 @@ library(ICPIutilities)
   
   set.seed(42)
   
-  extra_zeros <- df %>% 
+  extra_zeros <- df_dplyr %>% 
     sample_n(10) %>% 
     mutate_if(is.double, ~ 0)
   
-  df <- bind_rows(df, extra_zeros)
+  df_dplyr <- bind_rows(df_dplyr, extra_zeros)
   
   
   write_csv(df_dplyr, "2020-04-27/dplyr_exercise.csv", na = "")
