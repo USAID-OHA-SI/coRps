@@ -731,3 +731,13 @@ Jupiter,Ganymede,USAID,AlfMr,HTS_TST_POS,2019,1370,390,520,500,200,1600
 Jupiter,Himalia,DOD,G,TX_CURR,2019,16130,,,,,
 Jupiter,Himalia,DOD,G,TX_NEW,2019,,540,530,560,550,2160
 Jupiter,Himalia,USAID,Ruhb,TX_CURR,2020,,900,,,,900
+Jupiter,Ganymede,USAID,Ruhb,HTS_TST,2020,0,0,0,0,0,0
+Saturn,Thea,HHS/CDC,Azlh,HTS_TST_POS,2018,0,0,0,0,0,0
+Saturn,Mimas,USAID,Alrm,HTS_TST,2020,0,0,0,0,0,0
+Saturn,Mimas,HHS/CDC,Bsh,TX_CURR,2019,0,0,0,0,0,0
+Saturn,Thea,USAID,RjllAww,HTS_TST_POS,2018,0,0,0,0,0,0
+Saturn,Dione,HHS/CDC,Azlh,TX_NEW,2018,0,0,0,0,0,0
+Jupiter,Ganymede,HHS/CDC,Hk,TX_NEW,2019,0,0,0,0,0,0
+Saturn,Dione,HHS/CDC,Zub-l-Akrb,TX_NEW,2020,0,0,0,0,0,0
+Saturn,Mimas,USAID,R,TX_NEW,2018,0,0,0,0,0,0
+Saturn,Dione,HHS/CDC,Okul,HTS_TST_POS,2020,0,0,0,0,0,0

@@ -1,7 +1,7 @@
 ---
 title: "transform_data"
 author: "jdavis"
-date: "4/21/2020"
+date: "4/27/2020"
 output: html_document
 ---
 
@@ -107,47 +107,193 @@ df %>%
          mech_name == "AlfMr",
          psnu == "Ganymede") %>% 
   glimpse()
+
+## create a list of what you want to filter and play with that
+## a set of mechs perhaps
+
+distinct(df, mech_name) %>% print(n=Inf)
+
+things_to_keep <- c("Ssr", "RjllAww", "Askll", "AsllusSrus ")
+
+df %>% filter(mech_name %in% things_to_keep) %>% 
+  distinct(mech_name)
+
 ```
 
-So we've covered how to filter within one or more variables, now we're going to introduce one of the variants of `filter`, which is `filter_at`. Several of the `dplyr` functions have variants (`_at`, `_if`, `_all`) that allow you to 
-apply the function across multiple colums at once. This means you can do with one line what might have taken several.
-We're also going to start playing with a couple of the ways to define your logical condition `contains()`, `starts_with()`, and `ends_with()`.
+So we've covered how to filter within one or more variables, now we're going to introduce one of the variants of `filter`, which is `filter_at`. Several of the `dplyr` functions have variant suffixes (`_at`, `_if`, `_all`) that allow you to apply the same condition across multiple colums at once. This means you can do with one line what might have taken several. We're also going to start playing with a couple of the ways to define your logical condition `contains()`, `starts_with()`, and `ends_with()`.
 
-We'll start with `filter_if`. Because of reasons, there are a lot of 0 values in the DATIM data. Depending on what we're trying to do, this can cause problems. Sometimes we're only interested in the total or `cumulative` value for a particular `fiscal_year`, but often times we want to look at trends, quarter over quarter. Part of making the initial munging you do on an MSD should be to make your `df` as small as possible. This will serve you well; what you end up doing with it (tableau, excel, whatever) might not be apparant when you first start. 
+We'll start with `filter_if`.  
+
+let's try with `filter_at`
+`filter_at` takes two arguements `vars`, a function where you specifiy the vars you are filtering on &
+`all_vars()` or `any_vars`. `all_vars()` is the intersection (`&`) and `any_vars`() is the union (`|`)
+
+
 
 ```{r}
-#returning to our data (732 rows)
+
+## lets look at where the value for cumulative and targets is over 100
+
+df %>% 
+  filter(targets > 100 & cumulative >100) %>% 
+  glimpse()
+
+##using filter_at
+
+df %>% 
+  filter_at(vars(targets, cumulative), all_vars(. >100)) %>% 
+  glimpse()
+
+```
+
+Because of reasons, there are a lot of 0 values in the DATIM data. Depending on what we're trying to do, this can cause problems. Sometimes we're only interested in the total or `cumulative` value for a particular `fiscal_year`, but often times we want to look at trends, quarter over quarter. Part of making the initial munging you do on an MSD should be to make your `df` as small as possible. This will serve you well; what you end up doing with it (tableau, excel, whatever) might not be apparant when you first start.
+
+
+```{r}
+#returning to our data (742 rows)
 
 glimpse(df)
 
-#Let's try and remove where any of the rows have no data (536 rows)
+#Let's try and remove where any of the rows have no data (546 rows)
 
 df %>%
-  select(-cumulative, -targets) %>% 
   filter(!is.na(qtr1) | !is.na(qtr2) | !is.na(qtr3) | !is.na(qtr4)) %>% 
   glimpse()
 
-## line 126 was kind of a pain to type out (trust me)
+## line 159 was kind of a pain to type out (trust me)
 
-## let's try with `filter_if`
+## try with starts_with, inside of vars()
+df %>%
+  filter_at(vars(starts_with("qtr")), any_vars(!is.na(.))) %>% 
+  glimpse()
+
+##also works with contains
+df %>%
+  filter_at(vars(contains("qtr")), any_vars(!is.na(.))) %>% 
+  glimpse()
+
+## can do this same with filter_if but it requires some modifications
 
 df %>%
   select(-cumulative, -targets) %>% 
   filter_if(is.double, any_vars(!is.na(.))) %>% 
   glimpse()
 
-## this is a bad example because this df is already subset down so i had to incorporate `select` to make it do anything\
+## one way to remove all the rows with all na's
 
-df %>%
-  filter_at(vars(starts_with("qtr")), any_vars(!is.na(.))) %>% 
+df %>% 
+  filter_if(is.numeric, any_vars(!is.na(.) & . != 0)) %>% 
   glimpse()
+
+``` 
+
+MUTATE
+Let's create new columns!
+`mutate` has an almost endless number of options, we'll try and cover a few here that we've found to be useful with PEPFAR data
+
+One of the simplest options is a calculation based on values in other columns. In the sample code, we’re changing the sleep data from data measured in hours to minutes.
+
+```{r}
+glimpse(df)
+
+##let's create a flag variable for non-missing fy20 targets
+
+df %>% 
+  mutate(qtr_avg = cumulative/4) %>%
+  filter(fiscal_year == 2020) %>% 
+  glimpse() %>% 
+  view()
+
+## what about something more useful
+df %>% 
+  mutate(achievement = cumulative/targets) %>%
+  filter(fiscal_year == 2020) %>% 
+  view()
+
+## make it look a little nicer
+df %>% 
+  mutate(achievement = round(cumulative/targets,2)) %>%
+  filter(fiscal_year == 2020) %>% 
+  view()
+
+## more useful still
+df %>%
+  filter(fiscal_year == 2019,
+         mech_name == "Ksr",
+         indicator %in% c("HTS_TST_POS")) %>%
+  mutate(achievement = round(cumulative/targets,2)) %>%
+  view()
+
+```
+
+`mutate` can be used to create a new column, or replace an exsisting column by keeping the same name
+Below is a really good thing to add when working with the MSD
+
+```{r}
+
+df %>% distinct(fundingagency) 
+
+df %>% 
+  mutate(fundingagency = str_remove(fundingagency, "HHS/"),
+           fundingagency = factor(fundingagency, c("USAID", "CDC", "DOD"))) %>% 
+  count(fundingagency)
+
+```
+
+We're going to tiptoe into condtions now. There is a lot to cover so we'll start slow.
+A very simple but powerful function to use with `mutate` is `if_else()`. With `if_else()`, you first specify a logical statement, afterwards what needs to happen if the statement returns TRUE, and lastly what needs to happen if it’s FALSE. ([What is the difference between ifelse() and if_else?](https://medium.com/@HollyEmblem/chaining-if-else-statements-using-the-superheroes-dataset-with-dplyr-b13121777b4))
+
+```{r}
+
+# let's make some groups, shall we?
+
+distinct(df, fundingagency)
+
+df %>% 
+  mutate(fundingagency = str_remove(fundingagency, "HHS/"),
+        fundingagency = factor(fundingagency, c("USAID", "CDC", "DOD"))) %>% 
+  count(fundingagency)
+
+## note it dropped dedups
+## usaid vs others
+
+df %>% 
+  mutate(fundingagency = if_else(fundingagency == "USAID", "USAID", "Other")) %>% 
+  count(fundingagency)
+
+## make it a little nicer
+df %>% 
+  mutate(fundingagency = if_else(fundingagency == "USAID", "USAID", "Other"),
+         fundingagency = factor(fundingagency, c("USAID", "Other"))) %>% 
+  count(fundingagency)
+
+## let's try an example with a logical operator
+## how many mechs had targets for TX_CURR for USAID in 2019?
+
+df %>% distinct(mech_name, fundingagency, fiscal_year)
+## not helpful
+
+df %>% 
+  filter(fundingagency == "USAID",
+         indicator == "TX_CURR",
+         fiscal_year == 2019) %>%
+  mutate(no_targets = if_else(targets>0, "yes", "no")) %>% 
+  distinct(mech_name)
 
 ```
 
 
+## we're going to subset our data down to work with filter
 
 
-
+```{r}
+df %>% 
+  filter(fiscal_year == 2019,
+         indicator %in% c("HTS_TST_POS", "TX_NEW"),
+         psnu == "Thea",
+         mech_name == "Ksr") %>% 
+  glimpse()
+```
 
 
 
@@ -175,6 +321,7 @@ df %>%
 ```{r}
 glimpse(df)
 
+# TODO: Did you mean to use the extra_zeros dataframe for this? standardizeddisaggregate is not in the df?
 df %>% select(operatingunit, psnu, fundingagency, standardizeddisaggregate, fiscal_year, targets) %>% 
   glimpse()
 
