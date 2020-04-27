@@ -1,7 +1,7 @@
 ---
 title: "transform_data"
 author: "jdavis"
-date: "4/21/2020"
+date: "4/27/2020"
 output: html_document
 ---
 
@@ -285,16 +285,15 @@ df %>%
 
 ## we're going to subset our data down to work with filter
 
+
+```{r}
 df %>% 
   filter(fiscal_year == 2019,
          indicator %in% c("HTS_TST_POS", "TX_NEW"),
          psnu == "Thea",
          mech_name == "Ksr") %>% 
   glimpse()
-         
-
 ```
-
 
 
 
