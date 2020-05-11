@@ -10,11 +10,70 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r}
+library(tidyverse)
+library(ICPIutilities)
+
+dataset_url <- "https://raw.githubusercontent.com/USAID-OHA-SI/coRps/master/2020-04-27/dplyr_exercise.csv"
+
+df <- read_csv(dataset_url)
+
+#have a look
+glimpse(df)
+
+
+```
+Running order for 5.11
+
+
+1. Review `filter`
+2. `Select`
+3. `Mutate`
+
+
+
+
+dplyr::select
+`select` extracts columns by name. 
+
+```{r}
+glimpse(df)
+
+
+
+## change the order of the vars within your select statement
+
+
+```
+
+##helpers part 1 : ranges and `ends_with`
+Pretty straight forward right? If you have a lot of things you want to select, it can be a pain to list everything out in a select statement, in that case there are a couple of options. 
+```{r}
+## use a start_col:end_col, or a range
+
+
+
+##combine ranges
+
+##you can also deselect columns by adding a - in front of them : note use of parans
+
+## you can even deselect a chunk and re-add a column
+
+
+## if you have data that has column names of a similar struture, you can use partial matching
+
+
+## cool, but not very helpful, we really want to do the reverse
+
+
+```
+
+
 MUTATE
 Let's create new columns!
 `mutate` has an almost endless number of options, we'll try and cover a few here that we've found to be useful with PEPFAR data
 
-One of the simplest options is a calculation based on values in other columns. In the sample code, we’re changing the sleep data from data measured in hours to minutes.
+One of the simplest options is a calculation based on values in other columns. 
 
 ```{r}
 glimpse(df)
@@ -68,154 +127,3 @@ df %>% distinct(mech_name, fundingagency, fiscal_year)
 
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-dplyr::select
-`select` extracts columns by name. 
-
-```{r}
-glimpse(df)
-
-df %>% select(operatingunit, psnu, fundingagency, standardizeddisaggregate, fiscal_year, targets) %>% 
-  glimpse()
-
-## change the order of the vars within your select statement
-df %>% select(targets, fiscal_year, operatingunit, psnu, fundingagency, standardizeddisaggregate) %>% 
-  glimpse()
-
-```
-
-##helpers part 1 : ranges and `ends_with`
-Pretty straight forward right? If you have a lot of things you want to select, it can be a pain to list everything out in a select statement, in that case there are a couple of options. 
-```{r}
-## use a start_col:end_col, or a range
-
-df %>% select(operatingunit:targets) %>% 
-  glimpse()
-
-##combine ranges
-df %>% select(operatingunit:fundingagency, standardizeddisaggregate:targets)
-
-##you can also deselect columns by adding a - in front of them : note use of parans
-df %>% select(-region, -regionuid, -(snuprioritization:disaggregate))
-
-## you can even deselect a chunk and re-add a column
-df %>% select(-(snuprioritization:modality), standardizeddisaggregate, indicator) %>% 
-  glimpse()
-
-## if you have data that has column names of a similar struture, you can use partial matching
-df %>% select(operatingunit, ends_with("uid")) %>%
-  glimpse()
-
-## cool, but not very helpful, we really want to do the reverse
-df %>% select(-ends_with("uid")) %>% 
-  glimpse()
-
-```
-
-## select_if
-```{r}
-#to do
-
-```
-
-## rename and rename_all
-Next, we're going to talk about how to rename columns. This is really easy with `dplyr` and useful when working with the MSD as a lot of times you'll want to rename the vars in your df for display/viz purposes. We're all introducing the `_all` modifier for the dplyr functions here. Note that these are not helpers, they are standalone functions, just that the role they serve is a lot like the helpers. `rename` is pretty straightforward: `rename(new_name = old_name)` (note, if you are like me you will get that backwards a seemingly unbelievable number of times)
-```{r}
-
-df <- df %>% 
-  rename()
-
-
-
-```
-
-
-##helpers part 2 : contains, starts_with, ends_with
-This is where the helpers start to get neat, `dplyr` if you have a lot of columns with similar structure you can use some of partial matching to choose what you want.
-```{r}
-df %>% select()
-
-```
-
-
-
-
-
-
-
-
-
-
-##running list of helpers for the facilitation team to help josh figure out where to include
-```{r}
-one_col:another_col (range)
--c("one_col", "another_col") (except)
-starts_with()
-ends_with()
-contains()
-matches()
-one_of()
-## boolean
-<
->
-==
-<=
->=
-!=
-%in%
-is.na()
-!is.na()
-
-
-
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -57,21 +57,49 @@ glimpse(df)
 ##which OUs are we dealing with?
 distinct(df, operatingunit)
 
-##if we want to limit our analysis to just Saturn
+df %>% distinct(operatingunit)
 
+##if we want to limit our analysis to just Saturn
+df %>% 
+filter(operatingunit == "Saturn") %>% 
+  distinct(operatingunit)
 
 ## more than one criteria?
+distinct(df, indicator)
+
+drop_me <- c("HTS_TST", "HTS_TST_POS")
+
+df %>% 
+  filter(indicator %in% c("HTS_TST", "HTS_TST_POS")) %>% 
+  distinct(indicator)
 
 
 ## this works with 'everything but' which can be helpful
 ## !%in% might seem logic but it won’t work.
 
+distinct(df, psnu)
+
 ## remove Thea and Mimas
 
+df %>%
+  filter(!psnu %in% c("Thea", "Mimas")) %>% 
+  distinct(psnu)
 
+df %>% 
+  filter(psnu == "Dione" | psnu == "Europa" | psnu == "Ganymede") %>% 
+  distinct(psnu)
 
 ##  you can also use logical tests with filter
 ##  >, >=, <, <=, == and != (plus %in% (group membership) which we just did)
+
+df %>% 
+  filter(!is.na(cumulative)) %>% 
+  glimpse()
+
+df %>% 
+  filter(!is.na(cumulative), !is.na(targets)) %>% 
+  glimpse()
+
 
 
 ## Can take boolean operators, with some caveats
@@ -86,13 +114,32 @@ One nice aspect about working in the tidyverse is that you can write your code i
 ```{r}
 
 ## subset down to just one indicator for one time period for one partner
-## TX_CURR, for mech "AlfMr"
+## TX_CURR, for mech "AlfMr" for psnu Ganymede
+
+df %>% 
+  filter(indicator == "TX_CURR") %>% 
+  filter(mech_name == "AlfMr") %>% 
+  filter(psnu == "Ganymede") %>% 
+  glimpse()
+
+df %>% 
+  filter(indicator == "TX_CURR",
+         mech_name == "AlfMr",
+         psnu == "Ganymede") %>% 
+  glimpse()
+
+## create a list of what you want to filter and play with that
+## a set of mechs perhaps
+
+things_to_keep <- c("Ssr", "RjllAww", "Askll", "AsllusSrus")
+
+df %>%
+  filter(mech_name %in% things_to_keep) %>% 
+  distinct(mech_name)
 
 ```
 
 So we've covered how to filter within one or more variables, now we're going to introduce one of the variants of `filter`, which is `filter_at`. Several of the `dplyr` functions have variant suffixes (`_at`, `_if`, `_all`) that allow you to apply the same condition across multiple colums at once. This means you can do with one line what might have taken several. We're also going to start playing with a couple of the ways to define your logical condition `contains()`, `starts_with()`, and `ends_with()`.
-
-We'll start with `filter_if`.  
 
 let's try with `filter_at`
 `filter_at` takes two arguements `vars`, a function where you specifiy the vars you are filtering on &
@@ -103,12 +150,19 @@ let's try with `filter_at`
 ```{r}
 
 ## lets look at where the value for cumulative and targets is over 100
-
-
+df %>% 
+  filter(targets > 100 & cumulative >100) %>% 
+  glimpse()
 
 ##using filter_at
 
+df %>% 
+  filter_at(vars(targets, cumulative), all_vars(. >100)) %>% 
+  glimpse()
 
+df %>% 
+  filter(., operatingunit == "Saturn") %>% 
+  glimpse()
 
 ```
 
@@ -121,24 +175,44 @@ Because of reasons, there are a lot of 0 values in the DATIM data. Depending on 
 glimpse(df)
 
 #Let's try and remove where any of the rows have no data (546 rows)
+df %>%
+  filter(!is.na(qtr1) | !is.na(qtr2) | !is.na(qtr3) | !is.na(qtr4)) %>% 
+  glimpse()
 
-
-
-## line 159 was kind of a pain to type out (trust me)
+## line 179 was kind of a pain to type out (trust me)
 
 ## try with starts_with, inside of vars()
+
+df %>%
+  filter_at(vars(starts_with("qtr")), any_vars(!is.na(.))) %>% 
+  glimpse()
 
 
 ##also works with contains
 
+df %>%
+  filter_at(vars(contains("qtr")), any_vars(!is.na(.))) %>% 
+  glimpse()
+
 
 ## can do this same with filter_if but it requires some modifications
+df %>%
+  filter_if(is.double, any_vars(!is.na(.))) %>% 
+  glimpse()
 
 
+df %>%
+  select(-cumulative, -targets, -fiscal_year) %>% 
+  filter_if(is.double, any_vars(!is.na(.))) %>% 
+  glimpse()
 
 ## one way to remove all the rows with all na's
 
+df %>%
+  filter_if(is.double, any_vars(!is.na(.) & . != 0)) %>% 
+  glimpse()
 
+glimpse(df)
 
 ``` 
 
