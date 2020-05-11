@@ -1,0 +1,134 @@
+---
+title: Data Transformation
+date: 2020-05-11
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+This exercise is devided into 2 parts and designed to work you through data transformation processes.
+
+1. Subsetting your data
+
+2. Transform your data
+
+
+## Load required libraries
+
+```{r}
+#Dependencies
+  library(tidyverse)
+  library(ICPIutilities)
+```
+
+
+## import row data
+```{r}
+  dataset_url <- "https://media.githubusercontent.com/media/ICPI/TrainingDataset/master/Output/MER_Structured_TRAINING_Datasets_PSNU_IM_FY18-20_20200214_v1_1.txt"
+  
+  df <- read_msd(dataset_url, save_rds = FALSE)
+  
+  
+  df_dplyr <- df %>% 
+    filter(indicator %in% c("TX_CURR", "TX_NEW", "HTS_TST", "HTS_TST_POS"),
+           operatingunit %in% c("Saturn", "Jupiter"),
+           standardizeddisaggregate == "Total Numerator") %>% 
+    select(operatingunit, psnu, fundingagency, mech_name, indicator, fiscal_year:cumulative)
+  
+  set.seed(42)
+  
+  extra_zeros <- df_dplyr %>% 
+    sample_n(10) %>% 
+    mutate_if(is.double, ~ 0)
+  
+  df_dplyr <- bind_rows(df_dplyr, extra_zeros)
+  
+```
+
+## Subsetting your data
+
+Subset the original dataset by filtering down indicators and operatingunits.
+
+You only need to keep 4 indicators: TX_CURR, TX_NEW, HTS_TST, HTS_TST_POS 
+
+and 2 operating units: Saturn, Jupiter
+
+
+```{r}
+df <- df %>%
+  filter(
+    indicator %in% c("TX_CURR", "TX_NEW", "HTS_TST", "HTS_TST_POS"),
+    operatingunit %in% c("Saturn", "Jupiter")
+  )
+```
+
+
+Subset your dataset again and only keep columns of interest, about 12 of them
+
+You will need to select: operatingunit, psnu, fundingagency, mech_name, indicator, and all columns between fiscal_year and cumulative
+
+
+```{r}
+df <- df %>% 
+  select(operatingunit, psnu, fundingagency, mech_name, indicator, fiscal_year:cumulative)
+```
+
+
+Try to rename some of the columns: operatingunit, fundingagency and cumulative
+
+
+```{r}
+df <- df %>% 
+  rename(
+    operating_unit = operatingunit,
+    funding_agency = fundingagency,
+    cumulative_result = cumulative
+  )
+```
+
+
+## Transform you data
+
+Re-calculate the cumulative results values and make sure results makes sense
+
+
+```{r}
+df <- df %>% 
+  rowwise() %>% 
+  mutate(cumulative_result = sum(qtr1, qtr2, qtr3, qtr4, na.rm = TRUE))
+```
+
+Make sure zero in the cumulative result field is NA
+
+```{r}
+df <- df %>%
+  mutate(cumulative_result = ifelse(cumulative_result == 0, NA, cumulative_result))
+```
+
+Add a new column to hold the average result of all 4 quarters
+
+Make sure to exlude NAs. Does this average result make sense to you?
+
+
+```{r}
+df <- df %>%
+  mutate(
+    average_result = rowMeans(cbind(qtr1, qtr2, qtr3, qtr4), na.rm = TRUE),
+    average_result = as.integer(average_result))
+```
+
+Get a list of IM and Indicator with achievement rates greater than 100 %
+
+Focus on one operating unit and the current fiscal year
+
+```{r}
+df %>% 
+  mutate(achievement_rate = round(cumulative_result / targets * 100, 1)) %>%   filter(fiscal_year == 2020, operating_unit == 'Saturn', achievement_rate > 100) %>% 
+  distinct(mech_name, indicator) %>% 
+  pull(mech_name)
+
+```
