@@ -1,0 +1,129 @@
+---
+title: "transform_data"
+author: "jdavis"
+date: "5/11/2020"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(ICPIutilities)
+
+dataset_url <- "https://raw.githubusercontent.com/USAID-OHA-SI/coRps/master/2020-04-27/dplyr_exercise.csv"
+
+df <- read_csv(dataset_url)
+
+#have a look
+glimpse(df)
+
+
+```
+Running order for 5.11
+
+
+1. Review `filter`
+2. `Select`
+3. `Mutate`
+
+
+
+
+dplyr::select
+`select` extracts columns by name. 
+
+```{r}
+glimpse(df)
+
+
+
+## change the order of the vars within your select statement
+
+
+```
+
+##helpers part 1 : ranges and `ends_with`
+Pretty straight forward right? If you have a lot of things you want to select, it can be a pain to list everything out in a select statement, in that case there are a couple of options. 
+```{r}
+## use a start_col:end_col, or a range
+
+
+
+##combine ranges
+
+##you can also deselect columns by adding a - in front of them : note use of parans
+
+## you can even deselect a chunk and re-add a column
+
+
+## if you have data that has column names of a similar struture, you can use partial matching
+
+
+## cool, but not very helpful, we really want to do the reverse
+
+
+```
+
+
+MUTATE
+Let's create new columns!
+`mutate` has an almost endless number of options, we'll try and cover a few here that we've found to be useful with PEPFAR data
+
+One of the simplest options is a calculation based on values in other columns. 
+
+```{r}
+glimpse(df)
+
+##let's create a flag variable for non-missing fy20 targets
+
+
+## what about something more useful
+
+
+## make it look a little nicer
+
+
+## more useful still
+
+
+```
+
+`mutate` can be used to create a new column, or replace an exsisting column by keeping the same name
+Below is a really good thing to add when working with the MSD
+
+```{r}
+
+
+
+```
+
+We're going to tiptoe into condtions now. There is a lot to cover so we'll start slow.
+A very simple but powerful function to use with `mutate` is `if_else()`. With `if_else()`, you first specify a logical statement, afterwards what needs to happen if the statement returns TRUE, and lastly what needs to happen if it’s FALSE. ([What is the difference between ifelse() and if_else?](https://medium.com/@HollyEmblem/chaining-if-else-statements-using-the-superheroes-dataset-with-dplyr-b13121777b4))
+
+```{r}
+
+# let's make some groups, shall we?
+
+
+
+## note it dropped dedups
+## usaid vs others
+
+
+
+## make it a little nicer
+
+
+## let's try an example with a logical operator
+## how many mechs had targets for TX_CURR for USAID in 2019?
+
+df %>% distinct(mech_name, fundingagency, fiscal_year)
+## not helpful
+
+
+
+```

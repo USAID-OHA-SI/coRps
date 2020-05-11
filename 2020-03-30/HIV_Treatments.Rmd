@@ -41,7 +41,8 @@ txData %>%
   geom_point(aes(color = fundingagency), shape = 16, size = 6, alpha = .5) +
   geom_hline(yintercept = 0, color = 'gray10') +
   geom_vline(xintercept = 0, color = 'gray10') +
-  geom_smooth(method = "lm", se = FALSE) +
+  geom_abline(intercept = 0, slope = 1)+
+  #geom_smooth(method = "lm", se = FALSE) +
   scale_colour_manual(values = c('gray60', 'gray30', 'purple')) +
   labs(title = "HIV Treatments",
        subtitle = "Newly enrolled in ART",
