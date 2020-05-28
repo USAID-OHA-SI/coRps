@@ -1,0 +1,238 @@
+---
+title: "import_merge_append"
+author: "G. Sarfaty"
+date: "5/29/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Getting Started
+
+We started with the fun stuff, like visualizing and transforming data! :) Now on to importing, merging, and appending data. 
+
+
+## Install Packages
+In a previous session, you saw how to install additional packages that are not available on CRAN, like [ICPIutilities](https://github.com/ICPI/ICPIutilities/blob/master/README.md) which is package developed for use with the PEPFAR MSD. It can be installed from GitHub (via the `devtools` package). If you don't have it installed yet, you can run the code below to do so.
+
+
+```{r install_github}
+#install ICPI utilities using devtools
+devtools::install_github("ICPI/ICPIutilities")
+
+```
+
+
+## Load Packages
+Now we will load the packages we want to use.
+
+```{r load, echo=FALSE}
+
+library(tidyverse)
+library(ICPIutilities)
+
+```
+
+
+## Importing data
+Today, we will walk through how to load data in R with the 'readr' package which is part of tidyverse. For the most part, 'readr' functions handle converting flat files to data frames. The most common are read_csv (comma separated values), read_tsv (tab delimited), read_delim (any delimiter). Once you know the syntax of one of these, generally, you can apply it the same way to the others.
+
+
+First, we are going to look at a data set from the United Nations & troubleshoot the import process using read_csv!
+
+```{r}
+#import UN data set from URL
+dataset_url<-"https://data.un.org/_Docs/SYB/CSV/SYB62_1_201907_Population,%20Surface%20Area%20and%20Density.csv"
+
+
+UN_pop<-read_csv(dataset_url)
+
+
+#inspect it - what do you notice?
+print(UN_pop)
+
+
+#how can we fix it to read in correctly?
+UN_pop<-read_csv(dataset_url, skip=1)
+
+
+#look at the new import to see the difference
+print(UN_pop)
+
+
+#close - but one column was missing a name - anyone remember how we can rename a column (X2)?
+UN_pop<-UN_pop %>% 
+  rename(indicator=X2)
+
+
+#check and see if we did it correctly
+glimpse(UN_pop)
+
+
+#we may also want to specify how missing values are represented in our file. Let's pretend missing values are noted as 2005
+UN_pop<-read_csv(dataset_url, skip=1,
+                 na="2005")
+
+
+#notice how the columns were read in - R guessed what the columns were based on the 1st 1000 rows
+glimpse(UN_pop)
+
+
+#How do we fix that if it guessed wrong? we can specify column type on import
+UN_pop<-read_csv(dataset_url, skip=1,
+                 col_types=cols(Year = "i"),
+                 na="2005")
+
+#remember ICPI Utilities? you can use it to read MSDs and it will pick correct column type for you
+msd_url<-"https://media.githubusercontent.com/media/ICPI/TrainingDataset/master/Output/MER_Structured_TRAINING_Datasets_PSNU_IM_FY18-20_20200214_v1_1.txt"
+
+
+MSD<-read_msd(msd_url, save_rds = FALSE)
+
+
+#inspect
+glimpse(MSD)
+
+```
+
+
+ 
+
+But what about Excel files? We receive many of those from various stakeholders. It's no problem for R. Now we will read in an excel file using the 'readxl' package which is also part of the tidyverse.Go ahead and clear your workspace since we will no longer be using the UN dataset.
+
+```{r}
+
+#read xlsx - specify path, sheet name to read, rows to skip
+
+df<-read_xlsx("HIV_estimates_from_1990-to-present.xlsx", 
+              sheet = "Treatment - by Year",
+              skip=5)
+
+#inspect
+glimpse(df)
+
+
+```
+
+Ok, let's clear our workspace because now we are going to load the data we will use for merging and appending.
+
+## Merging data
+```{r}
+#load data
+df_Jupiter_POS <- read_csv("https://raw.githubusercontent.com/USAID-OHA-SI/coRps/gina/2020-05-29/FY20Q1_Jupiter_POS.csv")
+  
+df_Jupiter_mechs<- read_csv("https://raw.githubusercontent.com/USAID-OHA-SI/coRps/gina/2020-05-29/FY20_Jupiter_mechs.csv")
+  
+df_Jupiter_NEW<- read_csv("https://raw.githubusercontent.com/USAID-OHA-SI/coRps/gina/2020-05-29/FY20Q1_NEW.csv")
+
+#inspect the POS and mechs data
+glimpse(df_Jupiter_POS)
+glimpse(df_Jupiter_mechs)
+
+#may also help to print so you can see the full contents of each
+print(df_Jupiter_POS)
+print(df_Jupiter_mechs)
+
+#we want to merge these so that we have the partner and mech names in our POS dataset
+df_Jupiter_POS_LJ<-df_Jupiter_POS %>% 
+  left_join(df_Jupiter_mechs, by="mech_code")
+
+#let's check out the originals vs. our results
+print(df_Jupiter_POS)
+print(df_Jupiter_mechs)
+print(df_Jupiter_POS_LJ)
+
+
+#what if we did it the other way around - starting with the mech table
+df_Jupiter_mechs_LJ<-df_Jupiter_mechs %>% 
+  left_join(df_Jupiter_POS, by="mech_code")
+
+
+#now let's look at the originals vs. our two results
+print(df_Jupiter_POS)
+print(df_Jupiter_mechs)
+print(df_Jupiter_POS_LJ)
+print(df_Jupiter_mechs_LJ)
+```
+
+The left_join is one of the "mutating joins" because it adds new variables to one data frame from the matching observations in the other. The other mutating joings are:
+- right_join
+- inner_join
+- full_join
+
+The other types of joins are "filtering joins" because they filter the data based on matches in the tables instead of adding variables to a table. They are:
+- semi_join
+- anti_join
+
+Let's try one out. Say you wanted a list of partners that reported HTS_TST_POS in FY20Q1 in Jupiter. You don't care about the POS values, you just want to know what partners reported. You can use a semi-join.
+
+```{r}
+#semi join
+df_Jupiter_mechs_POS<-df_Jupiter_mechs %>% 
+  semi_join(df_Jupiter_POS, by="mech_code")
+
+#check the results - did it filter the mech list to only those who reported POS?
+print(df_Jupiter_mechs_POS)
+print(df_Jupiter_POS)
+
+```
+
+An anti- join works similary but will just keep the rows of the first table where there are NOT matching values in the second. Let's try it on the same data we used for semi_join.
+
+```{r}
+#anti join to see which Jupiter partners did NOT report POS in FY20Q1
+df_mechs_nonPOS<-df_Jupiter_mechs %>% 
+  anti_join(df_Jupiter_POS, by="mech_code")
+
+#check the results
+print(df_Jupiter_POS)
+print(df_mechs_nonPOS)
+```
+
+
+
+## Appending data
+Now we are going to work on appending data sets. Let's say you had Jupiter's POS results for FY20Q1, and had TX_NEW results in a different data set. But you want them combined into a single table.
+
+```{r}
+
+#check the format of POS & NEW data sets
+glimpse(df_Jupiter_POS)
+glimpse(df_Jupiter_NEW)
+
+#let's append or "stack" these on top of each other
+df_Jupiter_combined<-bind_rows(df_Jupiter_POS,df_Jupiter_NEW)
+
+#see what that looks like
+print(df_Jupiter_combined)
+
+```
+
+## Exercise
+
+You have a dataset of Jupiter's FY20Q1 TX_CURR results and a separate dataset of Jupiter's FY20 TX_CURR targets. You have been asked to provide a list of the mechanisms that have targets but did not report results.
+
+Exercise data can be found here:
+results: https://raw.githubusercontent.com/USAID-OHA-SI/coRps/gina/2020-05-29/Jupiter_TX_FY20_Results.txt
+targets: https://raw.githubusercontent.com/USAID-OHA-SI/coRps/gina/2020-05-29/Jupiter_TX_FY20_Targets.txt
+
+```{r}
+#import data - which readr function do you use for the text flie?
+df_results<-read_tsv("https://raw.githubusercontent.com/USAID-OHA-SI/coRps/gina/2020-05-29/Jupiter_TX_FY20_Results.txt")
+df_targets<-read_tsv("https://raw.githubusercontent.com/USAID-OHA-SI/coRps/gina/2020-05-29/Jupiter_TX_FY20_Targets.txt")
+  
+
+#decide which join you should use to get a list of mechanisms with targets, but no results
+
+
+```
+
+You have been asked to provide the full Jupiter TX_CURR results and targets in a single file. How would you do this?
+```{r}
+#append results & targets
+
+
+```
+
