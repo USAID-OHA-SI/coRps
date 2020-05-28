@@ -58,3 +58,29 @@ jupiter_new <- df %>%
   select(operatingunit, indicator, mech_code, period, val)
 
 write_csv(jupiter_new, "2020-05-29/FY20Q1_NEW.csv", na="")
+
+
+# EXERCISE DATA -----------------------------------------------------
+
+jupiter_TX_results<-df %>% 
+  filter(operatingunit=="Jupiter",
+         fiscal_year=="2020",
+         indicator=="TX_CURR") %>% 
+  group_by(fiscal_year, operatingunit, mech_code, indicator) %>% 
+  summarise_at(vars(starts_with("cum")), sum, na.rm = TRUE) %>% 
+  ungroup() %>% 
+  reshape_msd(clean = TRUE)
+
+write_tsv(jupiter_TX_results, "2020-05-29/Jupiter_TX_FY20_Results.txt", na="")
+
+  
+jupiter_TX_targets<-df %>% 
+  filter(operatingunit=="Jupiter",
+         fiscal_year=="2020",
+         indicator=="TX_CURR") %>% 
+  group_by(fiscal_year, operatingunit, mech_code, indicator) %>% 
+  summarise_at(vars(starts_with("tar")), sum, na.rm = TRUE) %>% 
+  ungroup() %>% 
+  reshape_msd(clean = TRUE)
+
+write_tsv(jupiter_TX_targets, "2020-05-29/Jupiter_TX_FY20_Targets.txt", na="")
