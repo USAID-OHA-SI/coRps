@@ -21,9 +21,11 @@ targets: https://raw.githubusercontent.com/USAID-OHA-SI/coRps/gina/2020-05-29/Ju
 
 ## Load required libraries
 
-Load R Packages: tidyverse, readxl, ICPIutilities
+Load R Packages: tidyverse, readxl, ICPIutilities, glamr, here
 
 ```{r}
+library(...)
+library(...)
 library(...)
 library(...)
 library(...)
@@ -34,14 +36,16 @@ Import data - which readr function do you use for the text flie?
 
 ```{r}
 
-df_results <-read_tsv("https://raw.githubusercontent.com/USAID-OHA-SI/coRps/gina/2020-05-29/Jupiter_TX_FY20_Results.txt")
+df_results <-read_tsv("...")
 
 ```
+
 
 ```{r}
 
-df_targets <- read_tsv("https://raw.githubusercontent.com/USAID-OHA-SI/coRps/gina/2020-05-29/Jupiter_TX_FY20_Targets.txt")
+df_targets <- read_tsv("...")
 ```
+
 
 Decide which join you should use to get a list of mechanisms with targets, but no results
 
@@ -49,6 +53,7 @@ Decide which join you should use to get a list of mechanisms with targets, but n
 
 
 ```
+
 
 You have been asked to provide the full Jupiter TX_CURR results and targets in a single file. How would you do this?
 
