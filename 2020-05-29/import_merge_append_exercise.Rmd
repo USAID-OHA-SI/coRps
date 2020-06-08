@@ -1,5 +1,6 @@
 ---
 title: Data Transformation
+author: "G. Sarfaty | B. Kagniniwa"
 date: 2020-05-29
 output: html_document
 ---
@@ -14,9 +15,9 @@ You have a dataset of Jupiter's FY20Q1 TX_CURR results and a separate dataset of
 
 Exercise data can be found here:
 
-results: https://raw.githubusercontent.com/USAID-OHA-SI/coRps/gina/2020-05-29/Jupiter_TX_FY20_Results.txt
+results: https://raw.githubusercontent.com/USAID-OHA-SI/coRps/master/2020-05-29/Jupiter_TX_FY20_Results.txt
 
-targets: https://raw.githubusercontent.com/USAID-OHA-SI/coRps/gina/2020-05-29/Jupiter_TX_FY20_Targets.txt
+targets: https://raw.githubusercontent.com/USAID-OHA-SI/coRps/master/2020-05-29/Jupiter_TX_FY20_Targets.txt
 
 
 ## Load required libraries
