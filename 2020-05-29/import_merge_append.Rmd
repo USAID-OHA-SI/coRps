@@ -1,6 +1,6 @@
 ---
 title: "import_merge_append"
-author: "G. Sarfaty"
+author: "G. Sarfaty | B. Kagniniwa"
 date: "5/29/2020"
 output: html_document
 ---
@@ -36,7 +36,7 @@ install.packages("here")
 ```
 
 2. glamr
-This package is a syster package of ICPIutilities for working with data from datim and the MER
+This package is a sister package of ICPIutilities for working with data from datim and the MER
 The main function that we will be introducing today is glamr::folder_setup()
 
 ```{install_github}
@@ -76,25 +76,26 @@ un_pop <- read_csv(dataset_url)
 Inspect your dataset - what do you notice?
 
 ```{r}
-glimpse(un_pop)
+
+
+
 ```
 
-```{r}
-print(un_pop)
-```
 
 
 How can we fix it to read in correctly?
 
 ```{r}
-un_pop <- read_csv(dataset_url, skip=1)
+un_pop <- read_csv(dataset_url,
+                   
 ```
 
 
 Look at the new import to see the difference
 
 ```{r}
-print(un_pop)
+
+
 ```
 
 
@@ -102,56 +103,62 @@ Close - but one column was missing a name - anyone remember how we can rename a 
 
 ```{r}
 un_pop <- un_pop %>% 
-  rename(indicator=X2)
+ 
+  
 ```
 
 
 Check and see if we did it correctly
 
 ```{r}
-glimpse(un_pop)
+
+
 ```
 
 
 We may also want to specify how missing values are represented in our file. Let's pretend missing values are noted as 2005
 
 ```{r}
-un_pop <- read_csv(dataset_url, skip=1, na="2005")
+un_pop <- read_csv(dataset_url, 
+                   
 ```
 
 
 Notice how the columns were read in - R guessed what the columns were based on the 1st 1000 rows
 
 ```{r}
-glimpse(un_pop)
+
+
 ```
 
 
 How do we fix that if it guessed wrong? we can specify column type on import
 
 ```{r}
-un_pop <- read_csv(dataset_url, skip=1,
-                 col_types=cols(Year = "i"),
-                 na="2005")
+un_pop <- read_csv(dataset_url, 
+                   
 
-un_pop %>% glimpse()
+
 ```
 
 Remember ICPI Utilities? you can use it to read MSDs and it will pick correct column type for you
 
 ```{r}
-msd_url <- "https://media.githubusercontent.com/media/ICPI/TrainingDataset/master/Output/MER_Structured_TRAINING_Datasets_PSNU_IM_FY18-20_20200214_v1_1.txt"
+msd_url <- "https://raw.githubusercontent.com/USAID-OHA-SI/coRps/master/2020-05-29/MSD_Training_subset_Saturn_PSNU_IM_FY18-20_20200214_v1_1.txt"
 ```
 
 Let's take advantage to read_msd function from from ICPIUtilities packages
 
 ```{r}
-msd <- read_msd(msd_url, save_rds = FALSE)
+msd <- 
+  
+  
 ```
 Inspect the content of the file
 
 ```{r}
 glimpse(msd)
+
 ```
 
 But what about Excel files? We receive many of those from various stakeholders. It's no problem for R. Now we will read in an excel file using the 'readxl' package which is also part of the tidyverse.Go ahead and clear your workspace since we will no longer be using the UN dataset.
@@ -160,8 +167,8 @@ But what about Excel files? We receive many of those from various stakeholders. 
 #read xlsx - specify path, sheet name to read, rows to skip
 
 df <- read_xlsx("HIV_estimates_from_1990-to-present.xlsx", 
-              sheet = "Treatment - by Year",
-              skip=5)
+                
+
 ```
 
 We could also take advantage of here package to identify the file full path
@@ -177,7 +184,8 @@ What's the full path of our excel file?
 Notice how here combines all components and create a full path
 
 ```{r}
-here("2020-05-29", "HIV_estimates_from_1990-to-present.xlsx")
+here("HIV_estimates_from_1990-to-present.xlsx")
+
 ```
 
 Here is very useful where you have multiple folders in your projects
@@ -199,9 +207,10 @@ glamr::folder_setup(folder_list = list("COVID", "TWG"))
 Let's try to read the content of the excel file again
 
 ```{r}
-df <- read_xlsx(path = here("2020-05-29", "HIV_estimates_from_1990-to-present.xlsx"), 
-              sheet = "Treatment - by Year",
-              skip=5)
+df <- read_xlsx(
+  
+  
+  
 ```
 
 
@@ -212,25 +221,20 @@ glimpse(df)
 
 Note: we could have used an index to identify the excel tab you are interested in
 
-```{r}
-df <- read_xlsx(path = here("2020-05-29", "HIV_estimates_from_1990-to-present.xlsx"), 
-              sheet = 3,
-              skip=5)
-```
 
-
-There is a quick way of taking a quick pick at excel file content
+There is a quick way of taking a peek at excel file content
 Let's list out the names of all tabs in this file
 
 ```{r}
-excel_sheets(path = here("2020-05-29", "HIV_estimates_from_1990-to-present.xlsx"))
+excel_sheets(
+  
 ```
 
 
 Could we read the content of all these tabs simultaneously?
 
 ```{r}
-path <- here("2020-05-29", "HIV_estimates_from_1990-to-present.xlsx")
+path <- here("HIV_estimates_from_1990-to-present.xlsx")
 
 dfs <- path %>% 
   excel_sheets() %>% 
@@ -247,16 +251,16 @@ Ok, let's clear our workspace because now we are going to load the data we will 
 
 ```{r}
 #load data
-df_Jupiter_POS <- read_csv("https://raw.githubusercontent.com/USAID-OHA-SI/coRps/gina/2020-05-29/FY20Q1_Jupiter_POS.csv")
+df_Jupiter_POS <- read_csv("https://raw.githubusercontent.com/USAID-OHA-SI/coRps/master/2020-05-29/FY20Q1_Jupiter_POS.csv")
 ```
   
   
 ```{r}
-df_Jupiter_mechs <- read_csv("https://raw.githubusercontent.com/USAID-OHA-SI/coRps/gina/2020-05-29/FY20_Jupiter_mechs.csv")
+df_Jupiter_mechs <- read_csv("https://raw.githubusercontent.com/USAID-OHA-SI/coRps/master/2020-05-29/FY20_Jupiter_mechs.csv")
 ```
   
 ```{r}
-df_Jupiter_NEW <- read_csv("https://raw.githubusercontent.com/USAID-OHA-SI/coRps/gina/2020-05-29/FY20Q1_NEW.csv")
+df_Jupiter_NEW <- read_csv("https://raw.githubusercontent.com/USAID-OHA-SI/coRps/master/2020-05-29/FY20Q1_NEW.csv")
 ```
 
 Inspect the POS and mechs data
@@ -280,7 +284,9 @@ We want to merge these so that we have the partner and mech names in our POS dat
 
 ```{r}
 df_Jupiter_POS_LJ <- df_Jupiter_POS %>% 
-  left_join(df_Jupiter_mechs, by="mech_code")
+
+  
+  
 ```
 
 Let's check out the originals vs. our results
@@ -296,7 +302,9 @@ What if we did it the other way around - starting with the mech table
 
 ```{r}
 df_Jupiter_mechs_LJ<-df_Jupiter_mechs %>% 
-  left_join(df_Jupiter_POS, by="mech_code")
+
+  
+  
 ```
 
 Wow let's look at the originals vs. our two results
@@ -319,11 +327,13 @@ The other types of joins are "filtering joins" because they filter the data base
 
 Let's try one out. Say you wanted a list of partners that reported HTS_TST_POS in FY20Q1 in Jupiter. You don't care about the POS values, you just want to know what partners reported. You can use a semi-join.
 
-Semi join
+Semi join:
 
 ```{r}
 df_Jupiter_mechs_POS<-df_Jupiter_mechs %>% 
-  semi_join(df_Jupiter_POS, by="mech_code")
+  
+  
+  
 ```
 
 
@@ -341,7 +351,8 @@ Anti join to see which Jupiter partners did NOT report POS in FY20Q1
 
 ```{r}
 df_mechs_nonPOS<-df_Jupiter_mechs %>% 
-  anti_join(df_Jupiter_POS, by="mech_code")
+  
+  
 ```
 
 
@@ -367,7 +378,10 @@ glimpse(df_Jupiter_NEW)
 Let's append or "stack" these on top of each other
 
 ```{r}
-df_Jupiter_combined <- bind_rows(df_Jupiter_POS,df_Jupiter_NEW)
+df_Jupiter_combined <- 
+  
+  
+  
 ```
 
 
@@ -376,4 +390,3 @@ See what that looks like
 ```{r}
 print(df_Jupiter_combined)
 ```
-
