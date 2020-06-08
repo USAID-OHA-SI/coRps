@@ -204,7 +204,7 @@ glamr::folder_setup(folder_list = list("COVID", "TWG"))
 ```
 
 
-Let's try to read the content of the excel file again
+Let's try to read the content of the excel file again, this time using 2020-05-29 as my top level directory, with the HIV estimates file stored in a subfolder called "Data"
 
 ```{r}
 df <- read_xlsx(
@@ -234,7 +234,7 @@ excel_sheets(
 Could we read the content of all these tabs simultaneously?
 
 ```{r}
-path <- here("HIV_estimates_from_1990-to-present.xlsx")
+path <- here("Data","HIV_estimates_from_1990-to-present.xlsx")
 
 dfs <- path %>% 
   excel_sheets() %>% 
