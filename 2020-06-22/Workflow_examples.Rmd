@@ -1,0 +1,140 @@
+---
+title: "Workflow"
+author: "Tim Essam | Aaron Chafetz"
+date: "6/21/2020"
+output: html_document
+---
+
+
+
+## Setting up a workflow
+In today's coRps session we will review how to setup a workflow for a new project. To do this, we will walk through the following setps:
+1) Creating a new R project
+2) Setting up a folder system to orgize your files
+3) Checking folders for files
+4) Reading an MSD using ICPIUtilities
+5) Reshaping an MSD for tidy analysis and plotting
+6) Using group_by and mutate commands to create new variables for analysis
+7) Documenting and/or commenting code
+
+
+
+## Create a New R Project
+There are two ways to create a new project in R: 1) the dropdown menu at the top right of your R-studio screeen or 2) the `usethis` package
+
+To create  a new project with the use this package run the following chunk of code.
+```{r New project}
+library(usethis)
+getwd()
+project_path <- c("/Users/tim/Documents/MyNewProject")
+#create_project(path = project_path, open = TRUE, rstudio = TRUE)
+```
+
+## Setup folder structure
+
+Now that we have a new project set up, we can populate it with a standardized folder structure using the glitr package. If you don't have `glamr` installed, you can download it using the following commands.
+
+```{r folder setup, message = FALSE}
+  #install
+    #install.packages("devtools")
+    #devtools::install_github("USAID-OHA-SI/glamr")
+    
+  #load the package
+    library(glamr)
+    library(tidyverse)
+    library(here)
+
+## LIST TYPES OF STYLES INCLUDED WITH PACKAGE
+  ls("package:glamr")
+```
+
+The last command `ls("package:glamr")` will show you all the functions or objects associated with a package. To setup our folder structure, we'll use the folder_setup() function. If you want o view what a function does under the hood you can type folder_setup the console to see the guts of the function. By default the function will test if a series of folders exist and if they do not, it will create a set of new folders. Let's switch to our new project and try setting up these folders.
+
+```{r folder setup in a project}
+#Check whats under the hood of a function
+# Let's check where we are in our directory
+#here()
+#corps_path <- here("/2020-06-22")
+
+# Look at what is going on with folder setup function.
+folder_setup
+
+# This will setup up the default folders
+folder_setup()
+
+# Delete folders - when using recursive this will delete everything
+# within each folder. 
+unlink(list("Data", "Images", "Scripts", "Dataout", 
+  "GIS", "Documents", "Graphics", "markdown"), recursive = T)
+
+# Custom folder setup - use with caution
+folder_setup(list("MER_Data", "Plots", "RScripts"))
+```
+
+## Listing files
+
+Now that we have a new project setup, we can populate our files accordingly. Let's assume that you have downloaded some MSD and have move it to your newly created Data folder. Alternatively, you may have a single folder on your machine where you keep all your updated MSDs. 
+
+```{r listing files}
+
+# Because the datim path lives outside of my Rproj path, I have set a pointer path. These are helpful for pulling in data from a central folder. 
+datim_path <- "/Users/tim/Documents/DATIM_DATA"
+list.files(path = datim_path)
+
+# Search only for xlsx filtes
+list.files(path = datim_path, pattern = "xlsx")
+
+# Search only for Genie pulls
+list.files(path = datim_path, pattern = "Genie")
+
+# List files that are txt or xlsx
+list.files(path = datim_path, pattern = "txt|xlsx")
+```
+
+## MSD laod
+
+The ICPI utilities package is your friend when working with MSDs. It has numerous functions to make your life easier. First, let's talk about the read_msd function. This function will import each column as characters and then coerce the appropriate columns into the appropriate types. 
+
+```{r read msd}
+library(ICPIutilities)
+
+list.files(path = datim_path, pattern = "Zambia")
+df <- read_msd(file.path(datim_path,  "MER_Structured_Datasets_PSNU_IM_FY18-20_20200605_v1_1_Zambia.txt"))
+
+# Confirm data loaded and check column types for munging
+glimpse(df)
+```
+
+
+## Reshape MSD
+If you take a closer look at the MSD, you'll notice that it's quite difficult to plot how an idnicator may change over time because there are four separate columns for each quarter. To get the MSD into a row optimized tidy dataset, you can use the reshape_msd function
+
+```{r reshape msd}
+df_long <- reshape_msd(df)
+
+glimpse(df_long)
+
+df_long %>% 
+  filter(indicator == "HTS_TST") %>% 
+  count(indicator, period) %>% prinf()
+
+# Let's make a table of the counts across periods, can use str_detect to help us
+df_long %>% 
+  filter(str_detect(period, "q"), indicator == "TX_CURR", 
+    fundingagency == "USAID", disaggregate =="Total Numerator") %>% 
+  group_by(period) %>% 
+  summarise(TX_CURR = sum(val, na.rm = TRUE)) %>% 
+  spread(period, TX_CURR)
+
+
+# Quick plot to check if this
+df_long %>% 
+  filter(str_detect(period, "q"), indicator == "TX_CURR", 
+    fundingagency == "USAID", disaggregate =="Total Numerator") %>% 
+  group_by(period) %>% 
+  summarise(TX_CURR = sum(val, na.rm = TRUE)) %>% 
+  ggplot(aes(x = period, y = TX_CURR)) + geom_col() +
+  scale_y_continuous(labels = scales::comma) +
+  glitr::si_style_ygrid()
+
+```
