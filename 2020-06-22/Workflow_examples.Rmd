@@ -24,10 +24,16 @@ There are two ways to create a new project in R: 1) the dropdown menu at the top
 
 To create  a new project with the use this package run the following chunk of code.
 ```{r New project}
+library(here)
 library(usethis)
-getwd()
-project_path <- c("/Users/tim/Documents/MyNewProject")
-#create_project(path = project_path, open = TRUE, rstudio = TRUE)
+
+# Check where we are in terms of paths
+here()
+
+# CAn use the create_project command to initialize a new R project
+project_path <- c("C:/Users/Tessam/Documents/MyNewProject")
+
+create_project(path = project_path, open = TRUE, rstudio = TRUE)
 ```
 
 ## Setup folder structure
@@ -78,7 +84,12 @@ Now that we have a new project setup, we can populate our files accordingly. Let
 ```{r listing files}
 
 # Because the datim path lives outside of my Rproj path, I have set a pointer path. These are helpful for pulling in data from a central folder. 
-datim_path <- "/Users/tim/Documents/DATIM_DATA"
+datim_path <- "C:/Users/Tessam/Documents/DATIM_Data"
+
+#Alternative way of doing this
+datim_path <- "../../DATIM_Data"
+
+# Show the files int he DATIM_Data folder
 list.files(path = datim_path)
 
 # Search only for xlsx filtes
@@ -89,20 +100,28 @@ list.files(path = datim_path, pattern = "Genie")
 
 # List files that are txt or xlsx
 list.files(path = datim_path, pattern = "txt|xlsx")
+
+# List files that are nested in folders, return the full.names
+list.files(path = datim_path, pattern = "NGA|HIV", recursive = TRUE, full.names = TRUE)
 ```
 
 ## MSD laod
 
 The ICPI utilities package is your friend when working with MSDs. It has numerous functions to make your life easier. First, let's talk about the read_msd function. This function will import each column as characters and then coerce the appropriate columns into the appropriate types. 
 
+
 ```{r read msd}
 library(ICPIutilities)
+library(tidyverse)
+library(glamr)
+library(glitr)
+library(extrafont)
 
-list.files(path = datim_path, pattern = "Zambia")
 df <- read_msd(file.path(datim_path,  "MER_Structured_Datasets_PSNU_IM_FY18-20_20200605_v1_1_Zambia.txt"))
 
 # Confirm data loaded and check column types for munging
 glimpse(df)
+str(df)
 ```
 
 
@@ -115,10 +134,11 @@ df_long <- reshape_msd(df)
 glimpse(df_long)
 
 df_long %>% 
-  filter(indicator == "HTS_TST") %>% 
-  count(indicator, period) %>% prinf()
+  filter(indicator == "TX_CURR", disaggregate == "Total Numerator") %>% 
+  count(indicator, period, fundingagency) %>% 
+  spread(fundingagency, n)
 
-# Let's make a table of the counts across periods, can use str_detect to help us
+# Let's make a table of TX_CURR across periods, can use str_detect to help us
 df_long %>% 
   filter(str_detect(period, "q"), indicator == "TX_CURR", 
     fundingagency == "USAID", disaggregate =="Total Numerator") %>% 
@@ -127,14 +147,37 @@ df_long %>%
   spread(period, TX_CURR)
 
 
+# Say we want to create a lag variable
+df_long %>% 
+    filter(str_detect(period, "q"), indicator == "TX_CURR", 
+    fundingagency == "USAID", disaggregate =="Total Numerator") %>% 
+  group_by(period) %>% 
+  summarise(TX_CURR = sum(val, na.rm = TRUE)) %>% 
+  mutate(TX_CURR_pct_chg = ((TX_CURR/lag(TX_CURR, order_by = period) - 1)))
+
+
+
+
+df_long %>% 
+  filter(str_detect(period, "q"), indicator == "TX_CURR", 
+    fundingagency == "USAID", disaggregate =="Total Numerator") %>% 
+  group_by(period, primepartner) %>% 
+  summarise(TX_CURR = sum(val, na.rm = TRUE)) %>% 
+  spread(period, TX_CURR)
+
+
 # Quick plot to check if this
 df_long %>% 
   filter(str_detect(period, "q"), indicator == "TX_CURR", 
     fundingagency == "USAID", disaggregate =="Total Numerator") %>% 
-  group_by(period) %>% 
+  mutate(period_mod = str_remove_all(period, "fy")) %>% 
+  group_by(period_mod, primepartner) %>% 
   summarise(TX_CURR = sum(val, na.rm = TRUE)) %>% 
-  ggplot(aes(x = period, y = TX_CURR)) + geom_col() +
+  ggplot(aes(x = period_mod, y = TX_CURR, group = primepartner)) + 
+  geom_col() +
+  facet_wrap(~primepartner) +
   scale_y_continuous(labels = scales::comma) +
-  glitr::si_style_ygrid()
+  si_style_ygrid() +
+  labs(title = "TX_CURR by Prime Partner")
 
 ```
