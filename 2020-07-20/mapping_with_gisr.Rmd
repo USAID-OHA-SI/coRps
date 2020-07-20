@@ -1,13 +1,13 @@
 ---
 title: "Making Maps with gisr package"
-author: "B.Kagniniwa"
+author: "B.Kagniniwa | G.Sarfaty"
 date: "2020-07-20"
 output: html_document
 ---
   
-## Making Maps with gisr package
+## Making Maps with R
 
-Introduction to geospatial analytics packages: st, raster, sf, rnaturalearth, and gisr
+Introduction to Mapping and Geospatial Analytics packages: sp, raster, sf, rnaturalearth, and gisr
 
 1) Install R Packages for Geospatial Analytics
 2) Spatial Data Acquisition
@@ -23,7 +23,7 @@ Let's install couple R Packages useful for Mapping and Spatial Analytics. Each o
 
 `sf` is good for vector data processing and works well with tidyverse and ggplot2 
 
-`raster` is good for raster data (imagery) processing and allows for Geodata Data Extraction and Manipulation
+`raster` is good for raster data (imagery) processing and allows for Geodata Extraction and Manipulation
 
 `rnaturalearth` focuses more on vector data and we've used it to download country administrative boundaries
 
@@ -32,7 +32,7 @@ Let's install couple R Packages useful for Mapping and Spatial Analytics. Each o
 
 ```{r}
 
-# Grand father of all Spatial Data Packages
+# Grand father of all Spatial Data Packages: https://cran.r-project.org/web/packages/sp/vignettes/intro_sp.pdf
 install.packages("sp")
 
 # Simple Feature for R. An improve version of sp: https://r-spatial.github.io/sf/
@@ -55,6 +55,7 @@ devtools::install_github("USAID-OHA-SI/gisr")
 
 
 Let's download geodata from raster package
+
 - `GADM`: vector data
 - `worldclim`: raster data
 
@@ -166,6 +167,11 @@ ggplot(data = regions) +
 ## Spatial Data Visualization + PEPVAR OVC Results
 
 Now let's try to integrate the spatial dimension of PEPFAR OVC Results
+
+Background: 
+
+The CAC received a request for mapping support from PEDs/OVC.
+The request came in a bit late and the output was supposed to be for the MOZ Deep Dive. 
 
 [lastmile Repo](https://github.com/USAID-OHA-SI/lastmile)
 
