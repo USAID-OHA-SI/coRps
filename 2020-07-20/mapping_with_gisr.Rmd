@@ -1,0 +1,318 @@
+---
+title: "Making Maps with gisr package"
+author: "B.Kagniniwa"
+date: "2020-07-20"
+output: html_document
+---
+  
+## Making Maps with gisr package
+
+Introduction to geospatial analytics packages: st, raster, sf, rnaturalearth, and gisr
+
+1) Install R Packages for Geospatial Analytics
+2) Spatial Data Acquisition
+3) Spatial Data Visualization
+4) Integration of Spatial Dimension to HQ Data Reviews and other daily work
+
+
+## Spatial Packages
+
+Let's install couple R Packages useful for Mapping and Spatial Analytics. Each of these packages has it's strength and weaknesses: 
+
+`sp` is good for spatial data manipulation
+
+`sf` is good for vector data processing and works well with tidyverse and ggplot2 
+
+`raster` is good for raster data (imagery) processing and allows for Geodata Data Extraction and Manipulation
+
+`rnaturalearth` focuses more on vector data and we've used it to download country administrative boundaries
+
+`gisr` is a home grown package that we've put together to organize some of the most recurrent geo-related functions
+
+
+```{r}
+
+# Grand father of all Spatial Data Packages
+install.packages("sp")
+
+# Simple Feature for R. An improve version of sp: https://r-spatial.github.io/sf/
+install.packages("sf")
+
+# Spatial Data manipulation: https://rspatial.org/raster/index.html#
+install.packages("raster")
+
+# Good resource for vector and raster data: http://www.naturalearthdata.com/
+install.packages("rnaturalearth")
+install.packages("rnaturalearthdata")
+
+# SI Packages for Mapping and Spatial Analytics: https://github.com/USAID-OHA-SI/gisr
+devtools::install_github("USAID-OHA-SI/gisr")
+
+```
+
+
+## Spatial Data Acquisition
+
+
+Let's download geodata from raster package
+- `GADM`: vector data
+- `worldclim`: raster data
+
+```{r}
+
+library(glamr)
+library(raster)
+
+# Setup folder
+glamr::folder_setup(folder_list = list("GIS"))
+
+# Download Admins boundaries
+
+## National Boundaries
+adm0 <- getData("GADM", country = "CIV", level = 0, download = TRUE, path = "GIS")
+
+adm0
+
+## Regions / province
+adm1 <- getData("GADM", country = "CIV", level = 1, download = TRUE, path = "GIS")
+
+adm1
+
+```
+
+
+Let's download geodata from rnaturaleath
+
+
+```{r}
+
+library(rnaturalearth)
+
+
+# Download Admins boundaries
+
+## National Boundaries
+civ0 <- ne_countries(country = "Ivory Coast", scale = "medium", returnclass = "sf")
+
+civ0
+
+## Regions / province
+civ1 <- ne_states(country = "Ivory Coast", returnclass = "sf")
+
+civ1
+
+```
+
+
+Can you download geodata with `gisr` paackage?
+
+```{r}
+
+library(gisr)
+
+# from rnaturalearth
+get_admin0(...)
+get_admin1(...)
+
+# from raster package
+get_adm_boundaries(...)
+
+```
+
+
+Let's read geodata from local file
+
+
+```{r}
+library(sf)
+
+country <- read_sf("GIS/gadm36_CIV_shp/gadm36_CIV_0.shp")
+
+country
+
+```
+
+
+## Spatial Data Visualization
+
+There are multiple ways to visualize geodata: `plot` or `ggplot` or `gisr`
+
+```{r}
+
+library(tidyverse)
+library(sf)
+library(gisr)
+
+# plotting sp data
+plot(adm0, main = "Cote d'Ivoire")
+
+# plotting with ggplot
+regions <- st_as_sf(adm1)
+regions
+
+regions <- regions %>% 
+  dplyr::select(name = NAME_1)
+
+ggplot(data = regions) +
+  geom_sf(aes(fill = name))
+
+ggplot(data = regions) +
+  geom_sf(aes(fill = name), color = "white", lwd = .2, show.legend = FALSE) +
+  labs(title = "Cote d'Ivoire - Regional sub-divisions") +
+  theme_void()
+  
+```
+
+## Spatial Data Visualization + PEPVAR OVC Results
+
+Now let's try to integrate the spatial dimension of PEPFAR OVC Results
+
+[lastmile Repo](https://github.com/USAID-OHA-SI/lastmile)
+
+1) FY20 Q2 - OVC_HIVSTAT_POS Results
+
+```{r}
+library(tidyverse)
+library(sf)
+library(gisr)
+library(glitr)
+library(patchwork)
+library(here)
+
+
+# Vars
+country = "Mozambique"
+
+file_psnu_txt <- "MER_Structured_Datasets_PSNU_IM_FY18-20_20200626_v2_1_Mozambique"
+file_districts <- "Mozambique_PROD_5_District_DistrictLsib_2020_Feb.shp"
+
+# Data
+
+## Geo - Moz PSNUs Boundaries
+moz_districts <- list.files(
+        path = here("../../GEODATA", "PEPFAR"),
+        pattern = file_districts,
+        recursive = TRUE,
+        full.names = TRUE
+    ) %>%
+    unlist() %>%
+    first() %>%
+    read_sf()
+
+moz_districts %>% glimpse()
+
+## Get admin1 geodata
+moz1 <- gisr::get_admin1(country)
+
+moz1 %>% glimpse()
+    
+## MER PSNU x IMs
+df_psnu <- read_rds(here("../../MERDATA", paste0(file_psnu_txt, ".rds")))
+
+df_psnu %>% glimpse()
+
+## Filter data by indicator
+moz_psnu <- df_psnu %>% 
+  filter(
+      fundingagency == "USAID",
+      operatingunit == country,
+      fiscal_year == 2020,
+      indicator == 'OVC_HIVSTAT_POS'
+  ) %>%
+  dplyr::select(fiscal_year, snu1, psnu, psnuuid, primepartner, mech_code, mech_name, cumulative)
+
+## Join MER data to Spatial Data
+df <- moz_districts %>%
+    dplyr::left_join(moz_psnu, by = c("uid" = "psnuuid")) %>%
+    dplyr::filter(!is.na(cumulative))
+
+df %>% head()
+
+## Generate a bar chart
+pos_bar <- df %>%
+    dplyr::mutate(label = paste0(psnu, " (", cumulative, ")")) %>%
+    ggplot2::ggplot(
+        aes(x = reorder(label, cumulative),
+            y = cumulative,
+            fill = cumulative
+        )
+    ) +
+    ggplot2::geom_col(show.legend = F) +
+    ggplot2::scale_fill_viridis_c(option = "D", direction = -1) +
+    ggplot2::scale_y_continuous(position = "right") +
+    ggplot2::labs(x = "", y="") +
+    ggplot2::coord_flip() +
+    glitr::si_style_nolines() +
+    ggplot2::theme(panel.grid.major.x = element_line(size = .2, color = grey10k))
+
+## Generate a map 
+pos_m <- gisr::terrain_map(countries = country, 
+                           terr_path = "../../../GEODATA/RASTER", 
+                           mask = TRUE) +
+    ggplot2::geom_sf(data = df, aes(fill = cumulative), lwd = .1, color = grey10k) +
+    ggplot2::geom_sf(data = moz1, fill = NA, linetype = "dotted") +
+    ggplot2::geom_sf_text(data = moz1, aes(label = name), color = grey80k, size = 3) +
+    ggplot2::scale_fill_viridis_c(direction = -1, na.value = grey30k) +
+    ggplot2::coord_sf() +
+    gisr::si_style_map() +
+    ggplot2::theme(
+        legend.position =  c(.9, .2),
+        legend.direction = "vertical",
+        legend.key.width = ggplot2::unit(.5, "cm"),
+        legend.key.height = ggplot2::unit(1, "cm")
+    )
+
+## Combine bars and map + title
+(pos_m + pos_bar) +
+    patchwork::plot_layout(widths = c(1,1)) +
+    patchwork::plot_annotation(
+        title = paste0(toupper(country), " - OVC_HIVSTAT_POS Results"),
+        subtitle = "Districts hightlighted in grey not part of the PSNUs",
+        caption = paste0("OHA/SIEI - DATIM 2020 PSNU x IMs Data, procuded on ", Sys.Date())
+    )
+
+## Do the above with gisr function
+
+## Combine Results + Map
+spdist_ovc_hivstat_pos(country = country, 
+                        fy = 2020, 
+                        df_psnu = df_psnu, 
+                        geo_psnu = moz_districts)
+
+## Combine Results + Map
+spdist_ovc_hivstat_pos(country = country, 
+                        fy = 2020, 
+                        df_psnu = df_psnu, 
+                        geo_psnu = moz_districts, 
+                        terr_path = "../../../GEODATA/RASTER")
+
+
+```
+
+
+
+2) FY20 Q2 - OVC TX_CURR Achievements
+
+
+```{r}
+library(tidyverse)
+library(sf)
+library(gisr)
+library(glitr)
+library(patchwork)
+library(here)
+
+
+# Vars
+country = "Mozambique"
+
+file_psnu_txt <- "MER_Structured_Datasets_PSNU_IM_FY18-20_20200626_v2_1_Mozambique"
+file_districts <- "Mozambique_PROD_5_District_DistrictLsib_2020_Feb.shp"
+
+# Use gisr to plot achievements
+spdist_ovc_tx_curr(country = country,
+                   fy = 2020,
+                   df_psnu = df_psnu,
+                   geo_psnu = moz_districts,
+                   terr_path = "../../../GEODATA/RASTER")
+```
