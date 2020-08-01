@@ -1,0 +1,158 @@
+---
+title: "the problem with duplicates"
+author: "jdavis"
+date: "7/20/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Problem statement
+Today we're going to cover a few tips and trick to deal with how to explore your data for duplicates and how to deal with them
+
+This is good practice when working with datasets that are new to you or you are unsure about the quality
+
+This is less of a problem with something like the MSD/genie because it goes through an extensive cleaning process
+
+We'll go through a few simple examples using LMIS data
+
+```{r}
+#products
+arvs <- c("Abacavir 300 mg, Tablet, 60 Tabs",
+  "Abacavir/Lamivudine 600/300 mg Dispersible Tablet, 30 Tabs",
+  "Abacavir/Lamivudine 600/300 mg Tablet, 30 Tablets",
+  "Abacavir/Lamivudine 600/300 mg Tablet, 30 Tabs",
+  "Atazanavir/Ritonavir 300/100 mg Tablet, 30 Tablets",
+  "Atazanavir/ritonavir 300/100 mg Tablet, 30 Tabs",
+  "Darunavir 600 mg Tablet, 60 Tabs",
+  "Dolutegravir 50 mg Tablet, 30 Tabs",
+  "Dolutegravir 50 mg Tablet, 30 Tabs",
+  "Dolutegravir/Lamivudine/Tenofovir DF 50/150/300 mg Tablet, 30 Tabs",
+  "Dolutegravir/Lamivudine/Tenofovir DF 50/300/300 mg Tablet, 180 Tabs",
+  "Dolutegravir/Lamivudine/Tenofovir DF 50/300/300 mg Tablet, 30 Tabs",
+  "Dolutegravir/Lamivudine/Tenofovir DF 50/300/300 mg Tablet, 90 Tabs",
+  "Efavirenz 600 mg Tablet, 30 Tablets",
+  "Efavirenz 600 mg Tablet, 30 Tabs",
+  "Efavirenz/Emtricitabine/Tenofovir DF 600/200/300 mg Tablet, 30 Tabs",
+  "Efavirenz/Lamivudine/Tenofovir DF 400/300/300 mg Tablet, 30 Tabs",
+  "Efavirenz/Lamivudine/Tenofovir DF 400/300/300 mg Tablet, 90 Tabs",
+  "Efavirenz/Lamivudine/Tenofovir DF 600/300/300 mg Tablet, 180 Tabs",
+  "Efavirenz/Lamivudine/Tenofovir DF 600/300/300 mg Tablet, 30 Tablets",
+  "Efavirenz/Lamivudine/Tenofovir DF 600/300/300 mg Tablet, 30 Tabs",
+  "Efavirenz/Lamivudine/Tenofovir DF 600/300/300 mg Tablet, 90 Tabs",
+  "Emtricitabine/Tenofovir DF 200/300 mg Tablet, 30 Tabs",
+  "Emtricitabine/Tenofovir DF 300/300 mg Tablet, 30 Tabs",
+  "Etravirine 100 mg Tablet, 120 Tabs",
+  "Lamivudine 150 mg Tablet, 60 Tabs",
+  "Lamivudine/Tenofovir DF 300/300 mg Tablet, 30 Tablets",
+  "Lamivudine/Tenofovir DF 300/300 mg Tablet, 30 Tabs",
+  "Lamivudine/Zidovudine 150/300 mg Tablet, 60 Tablets",
+  "Lamivudine/Zidovudine 150/300 mg Tablet, 60 Tabs",
+  "Lopinavir/ritonavir 200/50 mg Tablet, 120 Tablets",
+  "Lopinavir/ritonavir 200/50 mg Tablet, 120 Tabs",
+  "Nevirapine/Lamivudine/Zidovudine 200/150/300 mg Tablet, 60 Tablets",
+  "Nevirapine/Lamivudine/Zidovudine 200/150/300 mg Tablet, 60 Tabs",
+  "Raltegravir 400 mg Tablet, 60 Tabs")
+
+```
+
+
+```{r}
+
+library(tidyverse)
+library(vroom)
+
+df <- vroom::vroom("C:/Users/Josh/Documents/GitHub/bigfoot/Data/2020-04_SC-FACT_Data.csv") %>% 
+  rename_all(~tolower(.))
+
+glimpse(df)
+
+```
+
+## What identifies a unique observation?
+
+-Depends on your data
+-What is an indicator, what is an observation?
+-Is this tidy?
+
+
+```{r}
+#tidy and subset
+
+df_long <- df %>%
+  filter(period == "2020-03",
+         product %in% arvs) %>% 
+  gather(indicator, value, colnames(select_if(., is.numeric)), na.rm = TRUE) %>% 
+  select(-facilitycd, -datimcode, -facility_mapped, -source, -`datim facility`) %>% 
+  mutate_at(vars(country, facility), ~tolower(.)) %>% 
+  ungroup()
+
+#explore!
+
+glimpse(df_long)
+view(df_long)
+
+df_long %>% distinct(country)
+
+df_long %>% distinct(product)
+
+
+```
+
+
+## So lets look at what we have
+## want to see for combo of indicators what is a unique observation
+## using `n()` means that a variable named n will be assigned the number of rows (think number of observations) in the summarized data.
+
+```{r}
+
+df_long  <- df_long %>%
+  group_by(country, facility, period, product, indicator, value) %>% 
+  mutate(n = n(),
+         dup_flag = row_number())
+
+#what just happened?
+df_long %>% View()
+
+#filter it to the area of interest
+df_long %>% filter(n > 1) %>% View()
+#110 duplicates
+
+#remove duplicate obs
+df_long_dedup <- df_long %>% filter(n ==1)
+
+df_long_dedup %>% filter(n > 1) %>% View()
+
+#remove flags
+df_long_dedup <- df_long_dedup %>% 
+  select(-n, -dup_flag)
+
+# Check if our filter worked
+dim(df_long)[1] - dim(df_long_dedup)[1]
+
+#try a different grouping
+df_long2  <- df_long %>%
+  group_by(country, snl1, facility,  period, product, indicator, value) %>% 
+  mutate(n = n(),
+         dup_flag = row_number())
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
