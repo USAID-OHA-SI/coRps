@@ -1,0 +1,160 @@
+---
+title: "glamr Vignette"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+When using PEPFAR data, the OHA SI analysts by and large use the same MER Structured Datasets to answer the same analytical questions each period. This package is a sister package of ICPIutilities for working primiarly with data from DATIM and the MER Structured Datasets and plotting them using glitr. Focal users are analysts in USAID/GH/OHA who are using R to pull data from DATIM or perform the same repeated functions each quarter like creating TX_NET_NEW targets or assessing achievement.
+
+`glamr` is not on CRAN, so you will have to install it directly from Github using devtools.
+
+If you do not have the devtools package installed, you will have to run the `install.packages("devtools")` line in the code below as well.
+
+```{r install, eval=F, echo=T}
+  install.packages("devtools")
+  devtools::install_github("USAID-OHA-SI/glamr")
+```
+
+```{r load}
+library(glamr)
+library(tidyverse)
+library(COVIDutilities)
+library(googledrive)
+```
+
+Upon loading the library, we can see all the `r suppressWarnings(length(ls(package:glamr)))` functions that `glamr` consists of. We're going to take some time to unpack these as many are interrelated.
+
+```{r startup, echo=F}
+  suppressWarnings(ls(package:glamr))
+```
+
+## PROMPT
+
+To understand the `glamr` package, we're going to start with a question we're trying to solve and explore how `glamr`'s functions help us along the way. Today we'll explore what sort of government restricts have been imposed in countries with PEPFAR's largest treatment programs.
+
+## APPLYING GLAMR FUNCTIONS
+
+Let's start by setting up a new project. I have created a repository on GitHub called `pepfar_covid_tracking` and cloned it to my computer. The repository has nothing in it, but I want to replicate a typical project/workflow so (1) the data aren't posted to GitHub, (2) a disclaimer is added to the README, and (3) anyone one on my team knows where to look for things (ie standard folder structure). We can do all these things with the `si_setup` comamnd which combines multiple functions - `folder_setup`, `setup_gitignore`, and `setup_readme`.
+
+
+```{r setup}
+si_setup()
+```
+
+Let's start by identifying the countries with the largest treatment targets. We're going to pull from [DATIM](https://final.datim.org/), but this information is publically available on [pepfar.gov](pepfar.gov). We can use this [pre-set DATIM favorite](https://www.datim.org/dhis-web-pivot/index.html?id=k6znTf5X8I1) which is a pivot table already setup with the data we need. 
+
+The url is broken out below for that we'll use is broken out below, commented which what of the different API elements are and what they are filtered for. You'll also not that we're using final.datim.org as opposed to datim.org. This is a best practice because final.datim.org is a snapshot from when DATIM closes rather than being live and affected by data cleaning/entry. We will use `extract_datim()` to get pull the data from DATIM and convert it from a json format to a data frame. The other `glamr` function we will use is `getpwd()`, which is a wrapper around a `keyringr` function, pulling your DATIM password from an encrypted local file. For more information about setting that up (rather than having to write out your password), check out the [keyringer vignette](https://cran.r-project.org/web/packages/keyringr/vignettes/Avoiding_plain_text_passwords_in_R_with_keyringr.html).
+
+```{r datim_pull_ou}
+user <- ""
+baseurl <- "https://final.datim.org/"
+url <- paste0(baseurl, 
+              "api/29/analytics.json?",
+              "filter=pe:THIS_FINANCIAL_YEAR&",
+              "dimension=ou:ybg3MO3hcf4;LEVEL-3&",
+              "dimension=IeMmjHyBUpi:W8imnja2Owd&", #Targets / Results: Targets
+              "dimension=LxhLO68FcXm:MvszPTQrUhy&", #Technical Area: TX_CURR
+              "dimension=RUkVjD3BsS1:PE5QVF0w4xj&", #Top Level: Top Level Numerator
+              "displayProperty=SHORTNAME&skipMeta=false&hierarchyMeta=true")
+df_tx <- extract_datim(url,user, mypwd(user))
+```
+
+We can use a `glamr` function to see the full table rather than just, `prinf()`. Typically we would see the first ten rows with a longer dataset but can use the `print(n = Inf)` to see the full table. `prinf()` saves you a few extra key strokes. 
+
+```{r prinf}
+prinf(df_tx)
+```
+
+We're interested in the PSNU information for our top OUs, so let's pull the list of top PSNUs and then use `get_outtable()` to figure out the UIDs and PSNU level for each. This function provides a very useful table that has OUs, countries, ISO codes, levels for everything, and the OU and country UIDs.
+
+```{r top}
+tx_top3 <- df_tx %>% 
+  slice_max(Value, n = 3) %>% 
+  pull(`Organisation unit`)
+
+ous <- get_outable(user, mypwd(user)) %>% 
+  filter(operatingunit %in% tx_top3)
+```
+
+Now, that we have this information, we can convert our earlier work into a function to extract the PSNU level data from each out of our top treatment target operating units and combine them into one dataset. 
+
+```{r datim_pull_psnu}
+get_targets <- function(ou_uid, lvl, user, password, baseurl = "https://final.datim.org/"){
+
+  url <- paste0(baseurl, 
+                "api/29/analytics.json?",
+                "filter=pe:THIS_FINANCIAL_YEAR&",
+                "dimension=ou:", ou_uid,";LEVEL-", lvl, "&",
+                "dimension=IeMmjHyBUpi:W8imnja2Owd&", #Targets / Results: Targets
+                "dimension=LxhLO68FcXm:MvszPTQrUhy&", #Technical Area: TX_CURR
+                "dimension=RUkVjD3BsS1:PE5QVF0w4xj&", #Top Level: Top Level Numerator
+                "displayProperty=SHORTNAME&skipMeta=false&hierarchyMeta=true")
+  
+  df_targets <- extract_datim(url,user, mypwd(user))
+  
+  return(df_targets)
+  
+}
+
+
+df_tx_psnus <- map2_dfr(.x = ous$operatingunit_uid,
+                        .y = ous$prioritization,
+                        .f = ~ get_targets(.x, .y, user, mypwd(user)))
+
+```
+
+We've used an API to exract data from DATIM, but sometimes data are stored as excel files like with the HDX data on COVID that we need. We can use the `extract_excel_data` to download an excel file stored online and extract the data out to create a dataframe.
+
+```{r access_hdx}
+  df_gov_measures <- extract_excel_data(hdx_govmes_url, 
+                                      hdx_govmes_linkid, 
+                                      "Database", 'xlsx')
+```
+
+This has a lot more information that we need, so we can filter it down to just our focal countries. Since the names namy not match (eg Tanzania is the country name in PEPFAR but in many datasets its the offical name, United Republic of Tanzania), we should use the ISO codes to filter on which we have stored in dataframe created from `get_outable()`.
+
+```{r hdx_filter}
+df_gov_measures <- df_gov_measures %>% 
+  filter(iso %in% ous$operatingunit_iso)
+```
+
+The last thing I want to see if we saw any decrease in adding new patients onto treatment. I went through a similar process earlier for accessing the TX_NEW quarterly results and have the data sorted on my USAID Google Drive. We can access our Google Drive files via Google's API as well. We need to estabilish authentiction via OAuth to start.
+
+```{r}
+user_drive <- "" #USAID email
+drive_auth(user_drive)
+```
+
+Now that we are authenticaed, we can go look at where the TX_NEW data is stored on Drive/
+
+```{r}
+folder <- "1knSKdaWk_AQAlr90TlarGfIeuP-TL82O"
+drive_browse(as_id(folder))
+```
+
+Let's download both files that are stored up there. To do so,m we can use the `import_drivefile()` from `glamr`.
+
+```{r}
+drive_files <- drive_ls(as_id(folder)) %>% pull(name)
+
+walk(.x = drive_files,
+     .f = ~ import_drivefile(folder, .x))
+
+list.files("Data")
+
+```
+
+Two files were downloaded to our Data folder. We have a common situation where we have two similar datasets, one is just an update from an earlier version. We can use a `glamr` function to identify which is the newest verison.
+
+```{r}
+latestfile <- return_latest("Data","TXNEW")
+
+df_txnew_psnus <- read_csv(latestfile)
+```
+
+We'll stop here since we now have everything we need to get our project started thanks to the helpful `glamr` function.
