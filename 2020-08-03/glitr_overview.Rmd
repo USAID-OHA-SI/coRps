@@ -1,0 +1,166 @@
+---
+title: "Glitr Overview"
+output: html_notebook
+---
+
+Welcome to the overview of `glitr`. We created this package to make standardized, clean looking plots. 
+
+To use `glitr` you will need to download the following packages. You will also need to install the Source Sans Pro family of fonts. We use Source Sans Pro as the default for all glitr plots.
+
+
+```{r}
+  # install packages needed
+    install.packages("devtools")
+    devtools::install_github("USAID-OHA-SI/glitr")
+    
+    
+  # install fonts needed  
+    install.packages("extrafont")
+    install.packages("extrafontdb")
+    
+  # Download the required font (copy link below into browder, select Download family on top right of page.
+  # This should go into your downloads folder)
+    https://fonts.google.com/specimen/Source+Sans+Pro
+    
+  #restart your R session - CTRL + SHIFT + F10
+    
+  library(extrafont)
+  
+  #import Source Sans Pro from download
+  # For most of you, this will just be "~/Downloads/Source_Sans_Pro"
+    #folderpath <- "../../Downloads/Source_Sans_Pro"
+    folderpath <- "../../../Downloads/Source_Sans_Pro"
+    font_import(folderpath)
+    
+  #restart your R session - CTRL + SHIFT + F10
+  
+  library(extrafont)
+      
+```
+
+### Welcome to the glitr package.
+
+```{r}
+  library(tidyverse)
+  library(glitr)
+
+
+# What's in glitr?
+  ls("package:glitr")
+  
+# You can see that there are about 52 diferent objects / functions associated with the glitr package.
+# Some of these are built-in colors and others are plotting functions. For this demo, we'll focus on the plotting # functions and a few of the helper tools. 
+  
+# That said, let's create a basic plot in glitr using in the build in data set that ships with the package.
+  glimpse(hts)
+
+  hts %>% count(primepartner, indicator, period, period_type)
+
+  # Basic plot with default si_style()
+  # Define a plot object p with the foundation set
+  p <- hts_ordered %>% 
+      filter(indicator == "HTS_TST", 
+             period_type == "results") %>% 
+      ggplot(aes(period, value)) +
+      facet_wrap(~primepartner) 
+  
+    p + geom_col() + si_style() +
+      labs(title = "DEFAULT SI_STYLE()")
+  
+  
+  # Basic plot with default passing a built in color
+    # Basic plot with default si_style()
+    p +
+    geom_col(fill = si_lblue) +
+    si_style() +
+    labs(title = "ONLY SI_STYLE()")
+  
+```
+
+ 
+```{r} 
+ # With other options -- only Y grid
+  p +
+    geom_col(fill = si_lblue) +
+    si_style_ygrid() +
+    labs(title = "ONLY YGRID") 
+
+ # With other options -- only X grid showing
+  p + geom_col(fill = si_lblue) +
+    coord_flip() + 
+    si_style_xgrid() +
+    labs(title = "ONLY XGRID")
+
+# With other options - no XY lines
+  p + geom_col(fill = si_lblue) +
+    si_style_nolines() +
+    labs(title = "NO XY GRIDS")
+  
+# With other options - only X lines
+  p + geom_col(fill = si_lblue) +
+    si_style_xline() +
+    labs(title = "Only X AXIS LINE")  
+  
+  p + geom_col(fill = si_lblue) +
+    coord_flip() + 
+    si_style_yline() +
+    labs(title = "ONLY YLINE")  
+
+  # Void  
+  p + geom_col(fill = si_lorange) +
+    si_style_void() +
+    labs(title = "VOID")
+
+  
+```
+
+
+# Glitr also has a few helper functions to preview colors
+```{r}
+  install.packages("scales")
+  library(scales)
+
+
+  # To preview any of the colors from glitr use the following chunk
+  show_col(c(si_dorange, si_blue, si_orange, si_lblue))
+  show_col(c(grey10k, grey20k, grey30k, grey40k, grey50k, grey60k,
+             grey70k, grey80k, grey90k))
+  
+  
+  
+  # Built in function si_pal will also preview palettes
+  # show built in palettes using show_Col function from scales package
+  si_palettes
+  show_col(si_palettes$contrast)
+  show_col(si_palettes$seablue)
+  show_col(si_palettes$carto_sunset)
+    
+    
+    
+  # USe si_pal to interpolate between colors and return an object with hex colors
+  si_pal("carto_div_geyser")
+  si_pal("carto_div_geyser") %>% show_col()
+  
+  si_pal("carto_div_geyser", n = 14) 
+  si_pal("carto_div_geyser", n = 14) %>% show_col()
+  
+  
+  # Apply this to our original plot
+  
+  # How many colors do we need? 1 for each partner
+  partner_count <- unique(hts$primepartner) %>% length()
+  
+  # Same from before
+    hts_ordered %>% 
+      filter(indicator == "HTS_TST", 
+             period_type == "results") %>% 
+      ggplot(aes(period, value, fill = primepartner)) +
+      facet_wrap(~primepartner) +
+      geom_col() + 
+      si_style() +
+      scale_fill_manual(values = si_pal("carto_div_geyser", n = partner_count)) +
+      theme(legend.position = "none") +
+      labs(title = "SAMPLE WITH CUSTOM COLORS")
+    
+    
+```
