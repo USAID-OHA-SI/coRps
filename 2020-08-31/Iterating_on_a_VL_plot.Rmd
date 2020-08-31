@@ -1,0 +1,155 @@
+---
+title: "Building a Viral Load Plot"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+Today, we're going to go through a typical exercise of having to provide a visualization to support an analytic question for POART. We'll will rely heavily on the Tidyverse to get us the output we want.
+
+We're trying to understand our progress towards the goal of the 3rd 95, viral load suppression. If we're not at 86% (95% * 95% * 95%). We can see [the proposal here](https://user-images.githubusercontent.com/8933069/91723198-62ce4480-eb69-11ea-94ae-5c0b300c16c8.png), where we'ere trying to assertain if a country is at the VLS goal, if not, is a result of low VL coverage issue.
+
+
+## What data do I need?
+
+From the prompt/question/visual, we can identify a number of things.
+
+  - We want to use MER data to evaluate programmatic achievement
+  - We need both TX_CURR (for the VLC denominator) and TX_PVLS (numerator and denominator)
+  - We have to calculate viral load coverage and viral load suppression
+  - We are only looking at USAID data
+  - We should exclude South Africa data given known issues
+  - We only are looking at one point in time, Q3
+
+Based on these things, we have a sense of what we need to get us started. Now, the question is where do we need to go to get the data? We have a number of paths available to us - DATIM API, DATIM Genie, or MSD. I've gone ahead an pulled a file from Genie so we can all access a this smaller, more limited file but typically work from the MSD.
+
+Below is a log of what/when I pulled from Genie for transparency/accountability. Its a best practice to log your queries.
+
+```
+OU By IM
+DATIM data as of: 08/14/2020 03:44:31 UTC
+Genie report updated: 08/14/2020 10:42:26 UTC
+
+Current period(s): 2018 Target,  2018 Q1,  2018 Q2,  2018 Q3,  2018 Q4,  2019 Target,  2019 Q1,  2019 Q2,  2019 Q3,  2019 Q4,  2020 Target,  2020 Q1,  2020 Q2,  2020 Q3 
+
+Daily/Frozen = Frozen
+Funding Agency = USAID
+Indicator = TX_CURR, TX_PVLS
+Standardized Disaggregate = Total Numerator, Total Denominator
+```
+
+
+## Dependencies
+
+We're going to load all the libraries we need for the project so we can start working with the data. If you don't have one of the following packages, you'll need to install it (e.g. `install.packages("googlesheets4")`).
+
+```{r}
+library(tidyverse)
+library(googlesheets4)
+library(scales)
+library(extrafont)
+library(glitr) #if needed, need to install devtools then use devtools::install_github("USAID-OHA-SI/glitr")
+library(ICPIutilities) #if needed, need to install devtools then use devtools::install_github("ICPI/ICPIutilities")
+```
+
+## Accessing the data
+
+We're going to be working from a Genie which I have stored on Google Drive. 
+
+```{r}
+#import using googlesheets4 (will need to authenticate 1st time)
+  df_genie <- read_sheet("https://docs.google.com/spreadsheets/d/1eYse69tc3Vn7JqB0nPT8kzrkD8le41Vrw_w1BJwXKPU/edit?usp=sharing")
+
+#take a quick look
+  glimpse(df_genie)
+```
+
+## Restructing
+
+Now that we have the data we need, we need to think about how we need the data structured to have a useable dataframe for our plot. 
+
+I need to think about if I want the data long or wide. There are merits to going either route, but given the plot, I believe it will be easier to make this wide. Desipite the structure being wide, the data are still tidy (Each variable must have its own column, Each observation must have its own row, Each value must have its own cell.)
+
+Below is how I want my data structured to use in the plot so we're going to need to do some munging to get it into this shape.
+
+
+| OU | TX_CURR_2prior | TX_PVLS_D | TX_PVLS | VLC | VLS |
+|----|----------------|-----------|---------|-----|-----|
+| x  | #              | #         | #       | %   | %   |
+
+
+
+Let's filter for the data we want to use. We have actually already filtered most of these items in the genie, but this helps us be explit about what we're using within the code and allows us to also run this on an MSD if we wanted.
+
+```{r}
+df_vl <- df_genie %>% 
+  filter()
+```
+
+Next up, we need both the PLVS numerator and denominator, so I want to tack a "D" onto the the end of the variable name if its a denominator.
+
+```{r}
+df_vl %>% 
+  distinct(indicator, numeratordenom, standardizeddisaggregate)
+
+df_vl <- df_vl %>% 
+  mutate()
+
+df_vl %>% 
+  distinct(indicator, numeratordenom, standardizeddisaggregate)
+```
+
+Having the deniminator noted will allow us to more easily aggregate by indicator. We don't need targets or cumulative, but we do need to go back 2 quarters so will summarize all our quarterly variables.
+
+```{r}
+df_vl <- df_vl %>% 
+  group_by() %>% 
+  summarise() %>% 
+  ungroup()
+```
+
+If we look at the data, its wide by quater, but what we really want is for it to be wide by indicator.  Having it long by indicaotr will allow us to use `lag()` to pull the prior quarter's values for TX_CURR; otherwise, we would manually have to write this out, making it more complicated and would require additional changes next quarter). We're then going to reshape it one more time to get it wide by indicator for our plot.
+
+```{r}
+glimpse(df_vl)
+
+df_vl <- df_vl %>% 
+  ...
+
+glimpse(df_vl)
+
+df_vl <- df_vl %>% 
+  spread()
+
+glimpse(df_vl)
+```
+
+We have TX_CURR, but what we really want to create VL Coverage is to have TX_CURR from two quarters ago. For that we will need to use `group_by()` and `lag()` with our normal `mutate()`.
+
+```{r}
+df_vl <- df_vl %>%
+  group_by(operatingunit) %>%
+  mutate(TX_CURR_2prior = ) %>% 
+  ungroup()
+```
+
+Perfect! Now we can create our VL calculations and since we only need this current quarter, we can keep just the one. We'll use `max()` in the `filter()` here so we can run this code next period without having to manually change anything.
+
+```{r}
+df_vl <- df_vl %>% 
+  mutate() %>% 
+  filter()
+```
+
+Let's great our visual and see what we need to do to spruce it up and make it presentation ready.
+
+```{r}
+df_vl %>% 
+  ggplot(aes())
+```
+
+Now let's get to iterating!
