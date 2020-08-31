@@ -87,7 +87,10 @@ Let's filter for the data we want to use. We have actually already filtered most
 
 ```{r}
 df_vl <- df_genie %>% 
-  filter()
+  filter(fundingagency == "USAID",
+         indicator %in% c("TX_CURR", "TX_PVLS"),
+         standardizeddisaggregate %in% c("Total Numerator", "Total Denominator"),
+         operatingunit != "South Africa")
 ```
 
 Next up, we need both the PLVS numerator and denominator, so I want to tack a "D" onto the the end of the variable name if its a denominator.
@@ -97,7 +100,7 @@ df_vl %>%
   distinct(indicator, numeratordenom, standardizeddisaggregate)
 
 df_vl <- df_vl %>% 
-  mutate()
+  mutate(indicator = ifelse(numeratordenom == "D", paste0(indicator, "_D"), indicator))
 
 df_vl %>% 
   distinct(indicator, numeratordenom, standardizeddisaggregate)
@@ -107,8 +110,8 @@ Having the deniminator noted will allow us to more easily aggregate by indicator
 
 ```{r}
 df_vl <- df_vl %>% 
-  group_by() %>% 
-  summarise() %>% 
+  group_by(operatingunit, fiscal_year, indicator) %>% 
+  summarise(across(starts_with("qtr"), sum, na.rm = TRUE)) %>% 
   ungroup()
 ```
 
@@ -118,12 +121,13 @@ If we look at the data, its wide by quater, but what we really want is for it to
 glimpse(df_vl)
 
 df_vl <- df_vl %>% 
-  ...
+  reshape_msd(clean = TRUE) %>% 
+  select(-period_type)
 
 glimpse(df_vl)
 
 df_vl <- df_vl %>% 
-  spread()
+  spread(indicator, val)
 
 glimpse(df_vl)
 ```
@@ -133,7 +137,7 @@ We have TX_CURR, but what we really want to create VL Coverage is to have TX_CUR
 ```{r}
 df_vl <- df_vl %>%
   group_by(operatingunit) %>%
-  mutate(TX_CURR_2prior = ) %>% 
+  mutate(TX_CURR_2prior = lag(TX_CURR, 2, order_by = period)) %>% 
   ungroup()
 ```
 
@@ -141,15 +145,167 @@ Perfect! Now we can create our VL calculations and since we only need this curre
 
 ```{r}
 df_vl <- df_vl %>% 
-  mutate() %>% 
-  filter()
+  mutate(VLC = TX_PVLS_D/TX_CURR_2prior,
+         VLS = (TX_PVLS/TX_PVLS_D)*VLC,
+         notcovered = 1 - VLC) %>% 
+  filter(period == max(period))
 ```
 
 Let's great our visual and see what we need to do to spruce it up and make it presentation ready.
 
 ```{r}
 df_vl %>% 
-  ggplot(aes())
+  ggplot(aes(y = operatingunit)) +
+  geom_col(aes(x = VLC), fill = "gray50") +
+  geom_col(aes(x = VLS), fill = "gray20")
+```
+What do we see that we need to change?
+  - remove labels
+  - covert numbers to percentages
+  - recolor
+  - remove tick marks
+  - order the operating units by the denominator
+  - give some sense of magnitude
+  - reduce the length of OU names
+  - have a full bar for not covered
+  - need a note on the calculations and data source
+  
+
+Let's go back to our muning to address a few of these items
+
+```{r}
+#rename OUs
+ df_vl <- df_vl %>% 
+  mutate(operatingunit = recode(operatingunit, 
+                                "Western Hemisphere Region" = "WHR",
+                                "West Africa Region" = "WAR",
+                                "Democratic Republic of the Congo" = "DRC",
+                                "Dominican Republic" = "DR"
+                                ))
+
+#add values to OU names/labels
+  df_vl <- df_vl %>% 
+    mutate(ou_lab = paste0(operatingunit, " (", 
+                             comma(TX_CURR_2prior, 1), ")"))
 ```
 
-Now let's get to iterating!
+Back to the plot to iterate.
+
+Order the OUs by TX_CURR denom
+```{r}
+df_vl %>% 
+  ggplot(aes(y = fct_reorder(ou_lab, VLC, .desc = TRUE))) +
+  geom_col(aes(x = VLC), fill = "gray50") +
+  geom_col(aes(x = VLS), fill = "gray20")
+```
+
+Move the names closer to the bars.
+```{r}
+df_vl %>% 
+  ggplot(aes(y = fct_reorder(ou_lab, VLC, .desc = TRUE))) +
+  geom_col(aes(x = VLC), fill = "gray50") +
+  geom_col(aes(x = VLS), fill = "gray20") +
+  scale_x_continuous(label = percent,expand = c(0.005, 0.005), position = "top")
+```
+
+Remove the axis labels
+```{r}
+df_vl %>% 
+  ggplot(aes(y = fct_reorder(ou_lab, VLC, .desc = TRUE))) +
+  geom_col(aes(x = VLC), fill = "gray50") +
+  geom_col(aes(x = VLS), fill = "gray20") +
+  scale_x_continuous(label = percent,expand = c(0.005, 0.005), position = "top") +
+  labs(x = NULL, y = NULL)
+```
+
+Recolor the bars
+```{r}
+df_vl %>% 
+  ggplot(aes(y = fct_reorder(ou_lab, VLC, .desc = TRUE))) +
+  geom_col(aes(x = VLC), fill = si_lblue) +
+  geom_col(aes(x = VLS), fill = si_blue) +
+  scale_x_continuous(label = percent,expand = c(0.005, 0.005), position = "top") +
+  labs(x = NULL, y = NULL)
+```
+
+Add in a bar to show uncovered
+```{r}
+df_vl %>% 
+  ggplot(aes(y = fct_reorder(ou_lab, VLC, .desc = TRUE))) +
+  geom_col(aes(x = 1), fill = "gray90") +
+  geom_col(aes(x = VLC), fill = si_lblue) +
+  geom_col(aes(x = VLS), fill = si_blue) +
+  scale_x_continuous(label = percent,expand = c(0.005, 0.005), position = "top") +
+  labs(x = NULL, y = NULL)
+```
+
+Remove all the tick marks, applying a `si_style()` from `glamr`
+```{r}
+df_vl %>% 
+  ggplot(aes(y = fct_reorder(ou_lab, VLC, .desc = TRUE))) +
+  geom_col(aes(x = 1), fill = "gray90") +
+  geom_col(aes(x = VLC), fill = si_lblue) +
+  geom_col(aes(x = VLS), fill = si_blue) +
+  scale_x_continuous(label = percent,expand = c(0.005, 0.005), position = "top") +
+  labs(x = NULL, y = NULL) +
+  si_style_nolines()
+```
+
+
+Add a note about calculations and data source
+```{r}
+df_vl %>% 
+  ggplot(aes(y = fct_reorder(ou_lab, VLC, .desc = TRUE))) +
+  geom_col(aes(x = 1), fill = "gray90") +
+  geom_col(aes(x = VLC), fill = si_lblue) +
+  geom_col(aes(x = VLS), fill = si_blue) +
+  scale_x_continuous(label = percent,expand = c(0.005, 0.005), position = "top") +
+  labs(x = NULL, y = NULL,
+       caption = "VLC = TX_PVLS / TX_CURR (2 periods prior); VLS = TX_PVLS / TX_PVLS_D * VLC
+       USAID (sans South Africa)
+       Source: FY20Q3i MSD") +
+  si_style_nolines()
+```
+
+Add in some lines to make each 25%
+```{r}
+df_vl %>% 
+  ggplot(aes(y = fct_reorder(ou_lab, VLC, .desc = TRUE))) +
+  geom_col(aes(x = 1), fill = "gray90") +
+  geom_col(aes(x = VLC), fill = si_lblue) +
+  geom_col(aes(x = VLS), fill = si_blue) +
+  geom_vline(xintercept = c(.25, .5, .75), linetype = "dashed", color = "gray90") +
+  scale_x_continuous(label = percent,expand = c(0.005, 0.005), position = "top") +
+  labs(x = NULL, y = NULL,
+       caption = "VLC = TX_PVLS / TX_CURR (2 periods prior); VLS = TX_PVLS / TX_PVLS_D * VLC
+       USAID (sans South Africa)
+       Source: FY20Q3i MSD") +
+  si_style_nolines()
+```
+
+Add in what share of the denom is not covered
+```{r}
+df_vl %>% 
+  ggplot(aes(y = fct_reorder(ou_lab, VLC, .desc = TRUE))) +
+  geom_col(aes(x = 1), fill = "gray90") +
+  geom_col(aes(x = VLC), fill = si_lblue) +
+  geom_col(aes(x = VLS), fill = si_blue) +
+  geom_text(aes(x = .98, label = percent(notcovered, 1), 
+                color = ifelse(notcovered >=.39, USAID_red, "gray30")), 
+            size = 2.5, family = "Source Sans Pro") +
+  geom_vline(xintercept = c(.25, .5, .75), linetype = "dashed", color = "gray90") +
+  scale_x_continuous(label = percent,expand = c(0.005, 0.005), position = "top") +
+  scale_color_identity() +
+  labs(x = NULL, y = NULL,
+       caption = "VLC = TX_PVLS / TX_CURR (2 periods prior); VLS = TX_PVLS / TX_PVLS_D * VLC
+       USAID (sans South Africa)
+       Source: FY20Q3i MSD") +
+  si_style_nolines()
+```
+
+Let's save to use in our presentation!
+
+```{r}
+ggsave("2020-08-31/FYQ3_USAID_VLC.png", dpi = 600, width = 9.51, height = 4.21)
+```
+
