@@ -1,6 +1,6 @@
 ---
 title: "Making Maps with gisr package"
-author: "B.Kagniniwa | G.Sarfaty"
+author: "B.Kagniniwa & G.Sarfaty"
 date: "2020-08-30"
 output: html_document
 ---
@@ -15,7 +15,7 @@ Introduction to Mapping and Geospatial Analytics packages: sp, raster, sf, rnatu
 4) Integration of Spatial Dimension to HQ Data Reviews and other daily work
 
 
-## Spatial Packages
+## R Spatial Packages
 
 Let's install couple R Packages useful for Mapping and Spatial Analytics. Each of these packages has it's strength and weaknesses: 
 
@@ -25,9 +25,9 @@ Let's install couple R Packages useful for Mapping and Spatial Analytics. Each o
 
 `raster` is good for raster data (imagery) processing and allows for Geodata Extraction and Manipulation
 
-`rnaturalearth` focuses more on vector data and we've used it to download country administrative boundaries
+`rnaturalearth` vector & raster data and we've used it to download country administrative boundaries
 
-`gisr` is a home grown package that we've put together to organize some of the most recurrent geo-related functions
+`gisr` is a SI R package that we've put together to organize some of the most recurrent geo-related functions
 
 
 ```{r}
@@ -112,11 +112,11 @@ Can you download geodata with `gisr` paackage?
 library(gisr)
 
 # from rnaturalearth
-get_admin0(...)
-get_admin1(...)
+get_admin0(countries = "Togo")
+get_admin1(countries = "Ghana")
 
 # from raster package
-get_adm_boundaries(...)
+get_adm_boundaries(country_code = "GHA", geo_path = "GIS")
 
 ```
 
@@ -165,7 +165,7 @@ regions
 
 # Visualize sf data with ggplot
 ggplot(data = regions) +
-  geom_sf(aes(fill = name))
+  geom_sf(aes(fill = name), show.legend = F)
 
 # Change default style and remove theme
 ggplot(data = regions) +
@@ -193,7 +193,7 @@ gisr::terrain_map(countries = list("Ivory Coast"), terr_path = "../../../GEODATA
 
 gisr::terrain_map(countries = list("Ivory Coast"), terr_path = "../../../GEODATA/RASTER", add_neighbors = TRUE)
 
-gisr::admins_map(countries = list("Ivory Coast"))
+gisr::admins_map(countries = list("Ivory Coast"), add_neighbors = TRUE)
 
 ```
 
