@@ -69,6 +69,7 @@ get_ouuid <- function(country, username, password) {
 #' @param country PEPFAR Operating Unit or Regional Countries
 #' @param username Datim Account Username
 #' @param password Datim Account Key
+#' @export
 #'
 extract_locations <- function(country, username, password) {
 
@@ -567,7 +568,7 @@ df %>% glimpse()
 
 
     sites <- df %>%
-        extract_facilities(targets = mer_targets)
+        extract_facilities()
 
     sites %>% glimpse()
     sites %>% View()

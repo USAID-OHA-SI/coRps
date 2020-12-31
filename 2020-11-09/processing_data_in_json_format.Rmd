@@ -19,7 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Overview
 
-JSON stands for JavaScript Object Notation and was initial conceived 
+JSON stands for `JavaScript Object Notation` and was initial conceived 
 as a way to transport JavaScript object between a browser and a web server.
 
 JS = JavaScript (Initial used in JavaSprit Applications)
@@ -55,6 +55,10 @@ JSON is built on 2 main structures:
     "geometry": {
         "type": "Point",
         "coordinates": [33.7793, -13.95473]
+    },
+    "properties": {
+      "fname": "b",
+      "dob": 20222222
     }
 }`
 
@@ -128,7 +132,8 @@ dta_json1 <- raw_json1 %>%
 
 class(dta_json1)
 
-dta_json1
+dta_json1$price$stores
+
 
 ```
 
@@ -144,7 +149,7 @@ dta_json1 <- raw_json1 %>%
   fromJSON(flatten = TRUE) %>% 
   as_tibble()
 
-dta_json1
+dta_json1$price.stores
 
 ```
 
