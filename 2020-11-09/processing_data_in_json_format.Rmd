@@ -1,0 +1,235 @@
+---
+title: "Working with data in JSON Format"
+output: html_document
+author: "B.Kagniniwa"
+organisation: "USAID"
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Plan
+
+1. Overview - What is JSON (GeoJSON)?
+2. How to read JSON (GeoJSON) data
+3. DataFrame to JSON
+4. Resources
+
+
+## Overview
+
+JSON stands for JavaScript Object Notation and was initial conceived 
+as a way to transport JavaScript object between a browser and a web server.
+
+JS = JavaScript (Initial used in JavaSprit Applications)
+O  = Object 
+N  = Notation (A way to represent data)
+
+JSON was discovered and popularized by [Douglas Crockford](https://www.crockford.com/about.html) in the 2000s,
+and then standardized in 2013 as a Lightweight Data-interchange Format.
+
+Today, JSON is the most polular data exchange format and is used by almost all programming languages. JSON has surpassed XML, CSV formats.
+
+JSON is built on 2 main structures:
+
+* JSON Object, a collection of name/value pairs
+  + `JavaScript` => `object`, `Python` => `dictionary`, `R` => `named list`
+* JSON Array, a ordered list of values
+  + `JavaScript` => `array`, `Python` => `list`, `R` => `vector`, `list`
+  
+### Examples of JSON data:
+
+`["mongo", 5, true, 1.95, null]`
+
+`{"group":"fruit", "name":"mongo", "price":.99, "sale":true, "total":7}`
+
+`{"group":"fruit", "name":"mongo", "price": {"normal": 1.99, "sale":false}}`
+
+`{"group":"fruit", "name":"mongo", "price": [1.99, false]}`
+
+`{
+    "level": 7,
+    "name": "Achikondi Women Community Friendly Services Clinic",
+    "id": "FhQhjdiZXxo",
+    "geometry": {
+        "type": "Point",
+        "coordinates": [33.7793, -13.95473]
+    }
+}`
+
+### Examples of JSON Resources:
+
+[DATIM API Resources](https://www.datim.org/api/resources.json)
+
+[DATIM Organisation Units](https://www.datim.org/api/organisationUnits.json)
+
+[Malawi Org hierarchy data](https://final.datim.org/api/organisationUnits?filter=path:like:lZsCb6y0KDX&fields=id,name,path,level,geometry&paging=false&format=json)
+
+
+## 2. Read data in JSON Format
+
+Load required R Packages
+
+```{r}
+library(tidyverse) # Tablular Data wrangling
+library(jsonlite)  # JSON data formating
+library(janitor)   # Helper package
+```
+
+Let's read in some dummy raw json data
+
+```{r}
+# JSON Array
+raw_json0 <- '["mongo", 5, true, 1.95, null]'
+
+print(raw_json0)
+
+# JSON Complex Objects
+raw_json1 <- '[{"group":"fruit", "name":"mongo", "price": {"actual": 1.99, "sale":false, "rate": 0, "stores": [22, 890]}}]'
+
+print(raw_json1)
+
+raw_json2 <- '[{"level": 7,"name": "Achikondi Women Community Friendly Services Clinic","id": "FhQhjdiZXxo","geometry": {"type": "Point","coordinates": [33.7793, -13.95473]}}]'
+
+print(raw_json2)
+
+```
+
+These look like a text!
+
+JSON is a text based data exchange format, so we will need to transform it into something that R can understand.
+
+`fromJSON` function from `jsonlite` package will be helpfull in this case.
+
+
+```{r}
+
+# jsonlite::fromJSON
+dta_json1 <- raw_json1 %>% fromJSON()
+
+class(dta_json1)
+
+dta_json1
+
+```
+
+
+This is better than a text. What can you do with a df nested in another df?
+Take a look at the price column? Can you tell what's inside?
+
+
+```{r}
+
+# Convert json list to df
+dta_json1 <- raw_json1 %>% 
+  fromJSON() %>% 
+  as_tibble()
+
+class(dta_json1)
+
+dta_json1
+
+```
+
+About the same format. How can we extract the nested df?
+
+`as_tibble()` uses the main name/key level of the object as variable names.
+How do we get to the next level? Let's try to flatten the JSON Object.
+
+
+```{r}
+# For fromJSON to flatten the object
+dta_json1 <- raw_json1 %>% 
+  fromJSON(flatten = TRUE) %>% 
+  as_tibble()
+
+dta_json1
+
+```
+
+
+Yeaah, making progress. Really? The `price.stores` is still a list!
+What can we unpack this column?
+
+```{r}
+
+# Unnest list longer
+dta_json1 <- raw_json1 %>% 
+  fromJSON(flatten = TRUE) %>% 
+  unnest_longer("price.stores")
+
+dta_json1
+
+# Unnest lists wider
+dta_json1 <- raw_json1 %>% 
+  fromJSON(flatten = TRUE) %>% 
+  unnest_wider("price.stores", names_sep = "_")
+
+dta_json1
+
+```
+
+
+Great. This version is better. Let's clean up the column names
+
+
+```{r}
+
+# Replace dots with _
+dta_json1 <- dta_json1 %>% 
+  clean_names()
+
+dta_json1
+
+```
+
+
+Let's apply these to the second JSON object
+
+
+```{r}
+
+# Raw json data
+# {
+#     "level": 7,
+#     "name": "Achikondi Women Community Friendly Services Clinic",
+#     "id": "FhQhjdiZXxo",
+#     "geometry": {
+#         "type": "Point",
+#         "coordinates": [33.7793, -13.95473]
+#     }
+# }
+
+dta_json2 <- raw_json2 %>% 
+  fromJSON(flatten = TRUE) %>% 
+  unnest_wider("geometry.coordinates", names_sep = "_") %>% 
+  clean_names() %>% 
+  rename(
+    longitude = geometry_coordinates_1,
+    latitude = geometry_coordinates_2
+  )
+
+dta_json2 %>% glimpse()
+
+dta_json2
+
+```
+
+## 3. JSON to R DataFron
+
+```{r}
+
+toJSON(dta_json2)
+
+```
+
+## 4. Resources
+
+[JSON](https://www.json.org/json-en.html)
+
+[W3SCOOLS](https://www.w3schools.com/js/js_json_intro.asp)
+
+[JS Beautifier - Parser](https://beautifier.io/)
+
+[GeoJSON](https://geojson.org/)
