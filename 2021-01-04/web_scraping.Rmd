@@ -23,7 +23,7 @@ The package is inspired by **beautiful soup**, a python library for web scraping
 
 rvest's functions are wrappers for *httr* and *xml* functions
 
-1. rvest functions
+1. rvest functions: 
   * `read_html()` => returns content of a web page as xml document
   * `html_node()` => returns 1 html element as a node
   * `html_nodes()` => returns 1+ html elements as nodes
@@ -34,8 +34,9 @@ rvest's functions are wrappers for *httr* and *xml* functions
 
 2. rvest logic
   * `read_html('<url>') %>% html_node(doc, '<css-node>') %>% html_text()`
-  * `read_html('<url>') %>% html_nodes(doc, '<css-node>') %>% html_nodes(doc, '<css-node>') %>% html_text()`
   * `read_html('<url>') %>% html_node(doc, '<css-node>') %>% html_attr('href')`
+  * `read_html('<url>') %>% html_node(doc, '<css-node>') %>% html_nodes(doc, '<css-node>') %>% html_text()`
+  
 
 ## WEB Document ----
 
@@ -60,13 +61,13 @@ rvest's functions are wrappers for *httr* and *xml* functions
       - headings: `<h1>content ...</h1>`
       - paragraphs: `<p>content ...</p>`
       - links: `<a href='location of resource'>content ...</a>`
-      - images: `<img src='location of image>`
+      - images: `<img src='location of image'>`
       - lists: `<li>content</li> wrapped with <ul> or <ol>`
       - tables: `<table>content ...<table>`
       
 3. Element Attributes provide additional info about an element
-  * id: uniquely *identify an element*
-  * class: identify a *group of elements*, may content multiple values
+  * id[#]: uniquely identifies an *element* and used with #
+  * class[.]: identifies a *group of elements*, may content multiple values
   * src: provide the *location of an image* element
   * width & height: define the *width and height* of an image
   * href: provide the location of a *link* element
@@ -87,7 +88,8 @@ rvest's functions are wrappers for *httr* and *xml* functions
 
 ```{r message=FALSE, warning=FALSE, results=FALS}
 library(tidyverse)
-library(rvest) # Just in case rvest is not part of your tidyverse
+#install.packages("rvest") # rvest may not be installed with tidyverse
+library(rvest) 
 library(janitor)
 library(lubridate)
 library(glamr)
@@ -309,7 +311,7 @@ si_github %>%
       extract_info(page = .,
                    node = "div.repo-list",
                    nodes = "a.d-inline-block",
-                   type = "href") %>%
+                   type = "content") %>%
       paste0(str_extract(si_github, ".*.com"), .)
   }) %>%
   unlist()
@@ -427,7 +429,7 @@ Below is an example to get you started. Pay attention at the sequence of the pag
 df_cntries %>%
   pull(page) %>%
   first() %>%
-  map(.x, .f = ~ extract_factsheets(.x, "test"))
+  map(.x, .f = ~ extract_factsheets(.x, "table"))
 
 ```
 
@@ -484,7 +486,9 @@ hiv_drugs %>%
   filter(drug_class != brand_name) %>%       # Remove merged column
   relocate(fda_approval_date, brand_name, drug_group, 
            .before = 1) %>%
-  arrange(desc(fda_approval_date))
+  arrange(desc(fda_approval_date)) %>% 
+  mutate(generic_name_other_names_and_acronyms = str_remove_all(generic_name_other_names_and_acronyms, "\\t|\\n"),
+         acronym = extract_text(generic_name_other_names_and_acronyms, "()"))
 ```
 
 There are still a lot of cleaning to be done. Try to remove all the `\n\t` from the *generic_name_other_names_and_acronyms* column.
