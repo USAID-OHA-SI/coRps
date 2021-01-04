@@ -1,0 +1,440 @@
+---
+title: "web_scraping_with_R"
+author: "B.Kagniniwa | USAID"
+date: "2021-01-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Web Scraping
+
+Web Scraping is a data mining technique that allows users to extract unstructured data from web pages into a structured data.
+
+## rvest - Easily Harvest (Scrap) Web Pages
+
+[rvest](https://rvest.tidyverse.org/)
+
+**rvest** is developed and maintain by the *Hadley Wickham* and mainly designed to help with data extraction from web pages  
+
+The package is inspired by **beautiful soup**, a python library for web scraping, and part of *tidyverse*
+
+rvest's functions are wrappers for *httr* and *xml* functions
+
+1. rvest functions
+    * `read_html()` => returns content of a web page as xml document
+    * `html_node()` => returns 1 html element as a node
+    * `html_nodes()` => returns 1+ html elements as nodes
+    * `html_children()` => returns all sub-elements
+    * `html_text()` => returns content of element as character string
+    * `html_attr()` => returns the value of element attribute
+    * `html_attrs()` => returns all values of element attributes
+
+2. rvest logic
+    * `read_html('<url>') %>% html_node(doc, '<css-node>') %>% html_text()`
+    * `read_html('<url>') %>% html_nodes(doc, '<css-node>') %>% html_nodes(doc, '<css-node>') %>% html_text()`
+    * `read_html('<url>') %>% html_node(doc, '<css-node>') %>% html_attr('href')`
+    
+## WEB Document ----
+
+1. HTML
+    * Markup language used to describe a web page
+    * HTML Document consist of a series elements
+    * Elements tells the browser how to display a content
+    * Each element has a starting and end tags that wraps the content
+    * Some of the elements have attributes
+    * Element format: <tagname>content ...</tagname>
+2. HTML Structure
+    * doctype
+    * html
+      + head
+          - Metadata
+          - Title
+          - Style sheets
+          - Scripts
+      + boby
+          - div: `<div>elements</div>`
+          - headings: `<h1>content ...</h1>`
+          - paragraphs: `<p>content ...</p>`
+          - links: `<a href='location of resource'>content ...</a>`
+          - images: `<img src='location of image>`
+          - lists: `<li>content</li> wrapped with <ul> or <ol>`
+          - tables: `<table>content ...<table>`
+3. Element Attributes provide additional info about an element
+    * id: uniquely *identify an element*
+    * class: identify a *group of elements*, may content multiple values
+    * src: provide the *location of an image* element
+    * width & height: define the *width and height* of an image
+    * href: provide the location of a *link* element
+    * title: used to display *popup info* on mouse over and element
+
+
+## Resources
+
+[HTML Elements](http://html5doctor.com/element-index/)
+
+[W3 Schools / html](https://www.w3schools.com/html/default.asp)
+
+[Cheat Sheet](https://github.com/yusuzech/r-web-scraping-cheat-sheet#rvest)
+
+
+## Libraries 
+
+```{r echo = F}
+    library(tidyverse)
+    library(rvest) # Just in case rvest is not part of your tidyverse
+    library(janitor)
+    library(lubridate)
+    library(glamr)
+```
+
+## Web Pages 
+
+```{r}
+# nested group/list
+page_unaids <- "https://www.unaids.org/en/regionscountries/countries"
+
+# paged list
+si_github <- "https://github.com/USAID-OHA-SI"
+
+# tables
+page_fda <- "https://hivinfo.nih.gov/understanding-hiv/fact-sheets/fda-approved-hiv-medicines"
+```
+
+
+## User defined functions
+
+```{r}
+#' extract_elements
+#' @param page
+#' @param node
+#' @param nodes
+#' @param type
+#'
+extract_info <- function(page, node,
+                         nodes = NULL,
+                         type = "content") {
+
+    # Read page content & identify node
+    info <- page %>%
+        read_html(node) %>%
+        html_node(node)
+
+    # Identify sub-nodes, if nay
+    if (!is.null(nodes)) {
+        info <- info %>%
+            html_nodes(nodes)
+    }
+
+    # Extract info
+    if (type == "content") {
+        info <- info %>%
+            html_text()
+    }
+    else {
+        info <- info %>%
+            html_attr(type)
+    }
+
+    return(info)
+}
+
+#' Extract Region/Countries
+#' @param page_url Link to the page
+#' @param regions Vector of regions
+#' @param region region name
+#' @return df region / country
+#'
+extract_countries <- function(page_url, regions, region){
+
+    # Region index
+    idx <- match(region, regions)
+    print(paste0(idx, " - ", region))
+
+    # html node
+    node <- paste0("div.region-list ul#region", idx, " li")
+    print(node)
+
+    # list of region of countries
+    cntries <- page_url %>%
+        read_html() %>%
+        html_nodes(node) %>%
+        html_text()
+
+    # build df from region, country name, country page
+    df <- tibble(
+            region = un_regions[idx],
+            country = cntries
+        ) %>%
+        mutate(page = paste0(page_url, "/",
+                             str_to_lower(cntries) %>%
+                                 str_replace_all("\\W+", "")))
+
+    return(df)
+}
+
+
+#' Extract FactSheets
+#' @param page_url
+#' @param node_id
+#'
+extract_factsheets <- function(page_url, node_id) {
+
+    print(page_url)
+
+    page <- page_url %>%
+        #httr::GET(httr::timeout(10)) %>%
+        read_html(page_url, wait = 20)
+
+    cntry <- page %>%
+        html_node(css = "label.ql-selected-area") %>%
+        html_text()
+
+    print(cntry)
+
+    iso <- page %>%
+        html_node(css = "label.ql-selected-area") %>%
+        html_attr(name = "value")
+
+    print(iso)
+
+    year <- page %>%
+        html_node(css = "label.year") %>%
+        html_attr(name = "value")
+
+    print(year)
+
+    link <- page %>%
+        html_node(css = "div.quicklinks-export-csv.exporting") %>%
+        html_text()
+
+    print(link)
+
+    tbl <- page %>%
+        html_node(css = "table.quicklinks-data-table") %>%
+        html_table()
+
+    print(tbl)
+
+    return(iso)
+}
+
+
+#' Extract Table Content
+#' @param page_url
+#' @param node_css
+#'
+extract_table <- function(page_url, node_css = "") {
+
+    # Table element identifier: eg. table#main-table
+    node <- paste0("table", node_css)
+
+    # Read content of table
+    tbl <- read_html(page_url) %>%
+        html_node(css = node) %>%
+        html_table(fill = TRUE)
+
+    return(tbl)
+}
+
+```
+
+## Extract data
+
+### SI Github Repos
+
+```{r}
+# Extract SI Github Repos
+si_github %>%
+    read_html() %>%
+    html_node('div.repo-list') %>%
+    html_nodes("a.d-inline-block") %>%
+    html_attr("href")
+
+# Extract from multiple pages + full url
+si_github %>%
+    read_html() %>%
+    html_node('em.current') %>%
+    html_attr("data-total-pages") %>%
+    seq(1, ., 1) %>%
+    map(function(x) {
+        x %>%
+            paste0(si_github, "?page=", .) %>%
+            read_html() %>%
+            html_node('div.repo-list') %>%
+            html_nodes("a.d-inline-block") %>%
+            html_attr("href") %>%
+            paste0("https://github.com", .) %>%
+            unlist()
+    }) %>%
+    unlist()
+
+si_github %>%
+    extract_info(page = .,
+                 node = "em.current",
+                 nodes = NULL,
+                 type = "data-total-pages") %>%
+    seq(1, ., 1) %>%
+    map(function(x) {
+        x %>%
+            paste0(si_github, "?page=", .) %>%
+            extract_info(page = .,
+                         node = "div.repo-list",
+                         nodes = "a.d-inline-block",
+                         type = "href") %>%
+            paste0("https://github.com", .)
+    }) %>%
+    unlist()
+
+```
+
+**HW** - Building from this code,
+Try to extract detail info about each package?
+Data to consider are: watchers, stars, forks, license, etc...
+
+
+### UNAIDS Regions/Countries
+
+Extraction of UNAIDS Regions/Countries & their fact sheets
+
+```{r}
+# Page URL
+page_unaids
+
+# html doc
+unaids <- read_html(page_unaids)
+
+unaids
+
+# object type: [1] "xml_document" "xml_node"
+class(unaids)
+```
+Extract all regions:
+
+```{r}
+# UNAIDS Regions
+un_regions <- unaids %>%
+    html_nodes("div.region-list h2") %>%
+    html_text()
+```
+
+Extract countries in region 1
+
+```{r}
+# UNAIDS Region #1 Countries
+un_region1_countries <- unaids %>%
+    html_nodes("div.region-list ul#region1 li") %>%
+    html_text()
+```
+
+Extract countries in region 2
+
+```{r}
+# UNAIDS Region #2 Countries
+un_region2_countries <- unaids %>%
+    html_nodes("div.region-list ul#region2 li") %>%
+    html_text()
+```
+
+Let's avoid the manual step by step work and jump into automation
+Based on the html document, region nodes seems to follow a pattern?
+Can we guess the node id based on region's name?
+
+```{r}
+# UNAIDS Region countries nodes
+un_regions %>%
+    map_chr(.x, .f = ~ paste0("div.region-list ul#region",
+                              match(.x, un_regions), " li"))
+```
+
+Now that we know how to extract the ids, we should also extract country names
+
+```{r}
+# UNAIDS All Region/Countries/Page
+df_cntries <- un_regions %>%
+    map_dfr(.x, .f = ~ extract_countries(page_unaids, un_regions, .x))
+
+```
+
+Explore results
+
+```{r}
+df_cntries %>% glimpse()
+df_cntries %>% prinf()
+```
+
+**HW** - Extract Country fact sheets
+Each country has it's only page, what can you do with that?
+Try to extract the fact sheets for all countries.
+Below is an example to get you started. Pay attention at the sequence of the page load. Look into **RSelenium**
+
+```{r}
+# Facts Sheets ----
+df_cntries %>%
+    pull(page) %>%
+    first() %>%
+    map(.x, .f = ~ extract_factsheets(.x, "test"))
+```
+
+
+
+
+### FDA - HIV Drugs Approval History
+
+Extraction of HIV/AIDS Drugs and their approval dates
+
+```{r}
+# FDA Approved HIV Medecines
+page_fda
+
+# Extract table content from the page
+hiv_drugs <- read_html(page_url) %>%
+        html_node() %>%         # There is only 1 page on the page
+        html_table(fill = TRUE) # Empty cells will be filled with NAs
+
+hiv_drugs %>% glimpse()
+```
+
+The above chunk of code could be re-used
+
+```{r}
+# Extract table content from the page
+hiv_drugs <- extract_table(page_url = page_fda)
+
+hiv_drugs %>% glimpse()
+```
+
+Let's clean the table a bit. 
+Consider using `dplyr`, `tidyr`, `janitor`, `glamr`
+
+```{r}
+
+hiv_drugs %>%
+    as_tibble() %>%
+    clean_names() %>%
+    mutate(
+        drug_group = if_else(
+            drug_class == brand_name,
+            drug_class,
+            NA_character_
+        ),
+        fda_approval_date = ymd(as.Date(fda_approval_date, 
+                                        format = "%b %d, %Y"))
+    ) %>%
+    fill(drug_group, .direction = "down") %>%
+    filter(drug_class != brand_name) %>%
+    relocate(fda_approval_date, brand_name, drug_group, 
+             .before = 1) %>%
+    arrange(desc(fda_approval_date))
+```
+
+There are still a lot of cleaning to be done. Try to remove all the `\n\t` from the *generic_name_other_names_and_acronyms* column.
+
+**HW** - Reusing `extract_table()`
+Find a web page with 1 or more tables, and use this function to extract table content. 
+If you run into issues, try to update the function to make it work.
+
+
+
