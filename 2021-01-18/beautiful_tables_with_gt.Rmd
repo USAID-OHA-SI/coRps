@@ -1,0 +1,45 @@
+---
+title: "beautiful_tables_with_gt"
+author: "jdavis"
+date: "1/4/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+Today we're going to be learning how to create presentation quality tables in R using the `gt` package. 
+
+
+The basic outline is as follows:
+  *munging your data into the tabluar structure you want with `tidyverse`
+  *converting your table to a `gt` object
+  *reviewing + formatting the parts of your table
+    *title
+    *sub title
+    *formatting values
+    *conditional formatting
+  *summary rows
+  *saving your work
+  
+  
+##munging your data
+  We're going to look at a simple table that's in long format and convert to wide using `pivot_wider`
+  
+```{r}
+
+
+```
+  
+  
+
+
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
