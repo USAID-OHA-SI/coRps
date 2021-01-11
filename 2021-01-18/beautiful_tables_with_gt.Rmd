@@ -24,22 +24,111 @@ The basic outline is as follows:
     *conditional formatting
   *summary rows
   *saving your work
+
   
-  
-##munging your data
-  We're going to look at a simple table that's in long format and convert to wide using `pivot_wider`
+## Libraries + globals
   
 ```{r}
+library(tidyverse)
+library(glitr)
+#install.packages("gt")
+library(gt)
+library(googledrive)
+library(ICPIutilities)
 
+#globals
+data <- "1iiwaESC45G9waP7CxQLEbqo1Qq6vw-VxZAUh1qSS5yg"
+user_drive <- "jodavis@usaid.gov" #USAID email
+drive_auth(user_drive)
 
 ```
   
+##munging your data
+  We're going to look at a simple table that's in long format and convert to wide using `pivot_wider
   
+```{r}
+## lines 49 - 62 have been done for you
+# raw <- read_msd("your_ou_by_IM_MSD")
+# 
+# df <- raw %>% 
+#   filter(operatingunit == "Zambia",
+#          standardizeddisaggregate == "Total Numerator",
+#          indicator %in% c("HTS_TST", "HTS_TST_POS", "TX_NEW", "TX_CURR", "TX_NET_NEW", "VMMC_CIRC", "PrEP_NEW"),
+#          fiscal_year %in% c(2020, 2021),
+#          fundingagency == "USAID") %>% 
+#   reshape_msd("long") %>% 
+#   filter(period != "fy2021q1")
+# 
+# df <- df %>% 
+#   dplyr::group_by(indicator, period) %>% 
+#   dplyr::summarise(value = sum(val)) %>% write_csv("1_18_data.csv")
 
+##read in data
 
+df <- googlesheets4::read_sheet(data,
+                                sheet = "Sheet1",
+                                col_types= c(.default = "c"))
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+df <- df %>% 
+  tidyr::pivot_wider(names_from = period,
+              values_from = value)
+  
+  df <- df %>% 
+  dplyr::relocate(fy2020cumulative, .before = fy2021_targets) %>%
+    dplyr::relocate(fy2020_targets, .after = fy2020cumulative) %>% 
+    mutate(indicator = fct_relevel(indicator, "HTS_TST", "HTS_TST_POS", "TX_NEW", "TX_CURR", "TX_NET_NEW", "VMMC_CIRC", "PrEP_NEW"))
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## gt
+
+Now that your data is the form that you want, we're going to pass to `gt`. You have to do all your munging before you get to this
+point since you cannot call `dplyr` from `gt`. `gt` converts your dataframe to a list and then allows you to format the objects
+within that list. This can be a bit of a jarring thing to deal with; as social scientists and not computer science people
+we are more comfortable dealing with dataframes (rows and columns) than lists. But lists are cool, don't worry.
+
+```{r}
+
+df %>% 
+  gt()
+
+## you can see that without doing any modification whatsoever, `gt` spits out a pretty good table with just the defaults
+
+
+
+```
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
