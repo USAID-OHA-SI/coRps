@@ -30,12 +30,20 @@ The basic outline is as follows:
   
 ```{r}
 library(tidyverse)
-library(glitr)
+library(glamr)
 #install.packages("gt")
 library(gt)
 library(googledrive)
 library(googlesheets4)
 library(ICPIutilities)
+library(glitr)
+library(RColorBrewer)
+library(scale)
+library(here)
+
+
+pal <- RColorBrewer::brewer.pal(5, "Spectral")[2:5] ## we'll come back to this
+save_path <- "2021-01-18"
 
 ```
   
@@ -72,13 +80,15 @@ glimpse(df)
 df <- df %>%
   filter(fundingagency == "USAID") %>% 
   tidyr::pivot_wider(names_from = period,
-              values_from = value)
+              values_from = value) %>% 
+   mutate(`FY20 Achieved` =  fy2020cumulative/fy2020_targets)
 
 glimpse(df)
   
   df <- df %>%
+    dplyr::relocate(`FY20 Achieved`, .before = `FY20 Achieved`) %>% 
     dplyr::relocate(fy2020cumulative, .before = fy2021_targets) %>%
-    dplyr::relocate(fy2020_targets, .after = fy2020cumulative) %>% 
+    dplyr::relocate(fy2020_targets, .after = `FY20 Achieved`) %>% 
     mutate(indicator = fct_relevel(indicator, "HTS_TST",
                                    "HTS_TST_POS",
                                    "TX_NEW",
@@ -93,7 +103,8 @@ glimpse(df)
       `FY20 Q4` = fy2020q4,
       `FY20 Total`  = fy2020cumulative,
       `Fy20 Targets` = fy2020_targets,
-      `FY21 Targets` = fy2021_targets)
+      `FY21 Targets` = fy2021_targets) %>% 
+    mutate(`FY20 Achieved` =  `FY20 Total`/`Fy20 Targets`)
   
 glimpse(df)
 
@@ -105,6 +116,9 @@ Now that your data is the form that you want, we're going to pass to `gt`. You h
 point since you cannot call `dplyr` from `gt`. `gt` converts your dataframe to a list and then allows you to format the objects
 within that list. This can be a bit of a jarring thing to deal with; as social scientists and not computer science people
 we are more comfortable dealing with dataframes (rows and columns) than lists. But lists are cool, don't worry.
+
+One thing to remember is that if you `tbl_*` in a function, it's refering to the part of the table that function is modifying
+You can see the parts of the table visually here https://gt.rstudio.com/articles/intro-creating-gt-tables.html
 
 ```{r}
 
@@ -146,6 +160,10 @@ df %>%
       `Fy20 Targets`,
       `FY21 Targets`),
     decimals = 0
+  ) %>% 
+  fmt_percent(
+    columns = vars(`FY20 Achieved`),
+    decimals = 0
   )
 
 # a few things to note: become familiar with the defaults for some of these (see help) for ex, we didn't include 
@@ -169,13 +187,238 @@ df %>%
       `Fy20 Targets`,
       `FY21 Targets`),
     decimals = 0
+  ) %>%
+  fmt_percent(
+    columns = vars(`FY20 Achieved`),
+    decimals = 0
   ) %>% 
 fmt_missing(columns = everything(),
             missing_text = "-")
 
-````
+```
 
 
+Ok basically there, but lets adjust the formatting a bit before we move into the conditional formatting
+To do that, we're going to the `tab_options` which lets you modify the characteristics of the whole table,
+rather than parts (which we cover in a bit). The two below are `table.font.names` and `data_row.padding`
+
+We're also going to add `cols_witdth` which allows you to play with the size (spacing) of various columns
+The `cols_*` functions in `gt` have a number of `dplyr`-like functionalities that let you move things around
+(similar to `arrange`) so if you are deep in a `gt` workflow and it would be easier than modding your original
+df, consider these.
+
+
+```{r}
+df %>% 
+  gt(groupname_col = "fundingagency",
+    rowname_col = "indicator") %>% 
+  fmt_number(
+    columns = vars(
+      `FY20 Q2`,
+      `FY20 Q3`,
+      `FY20 Q4`,
+      `FY20 Total`,
+      `Fy20 Targets`,
+      `FY21 Targets`),
+    decimals = 0) %>%
+  fmt_percent(
+    columns = vars(`FY20 Achieved`),
+    decimals = 0) %>% 
+fmt_missing(columns = everything(),
+            missing_text = "-") %>% 
+  tab_options(
+    table.font.names = "Source Sans Pro"
+    ) %>% 
+   cols_width(
+    vars(indicator) ~ px(140),
+    everything() ~ px(80)
+  )
+  
+
+```
+
+Next we're going to look at `tab_styles` which is a real powerhouse in this package. It basically lets you do anything
+to any cell, row, or columns. The two basic components are the style (what are you doing) and the location (where are you doing it)
+
+We'll start by adding some cell borders
+
+
+```{r}
+df %>% 
+  gt(groupname_col = "fundingagency",
+    rowname_col = "indicator") %>% 
+  fmt_number(
+    columns = vars(
+      `FY20 Q2`,
+      `FY20 Q3`,
+      `FY20 Q4`,
+      `FY20 Total`,
+      `Fy20 Targets`,
+      `FY21 Targets`),
+    decimals = 0) %>%
+  fmt_percent(
+    columns = vars(`FY20 Achieved`),
+    decimals = 0) %>% 
+fmt_missing(columns = everything(),
+            missing_text = "-") %>% 
+  tab_options(
+    table.font.names = "Source Sans Pro") %>%
+    cols_width(
+    vars(indicator) ~ px(140),
+    everything() ~ px(80)
+  ) %>% 
+  tab_style(
+    style = cell_borders(
+      sides = "right",
+      weight = px(1.5),
+    ),
+    locations = cells_body(
+      columns = everything(),
+      rows = everything()
+    ))
+
+```
+
+So now that we have our table in the basic format we want, let's add the shading based on value which is analgous to conditional
+formatting
+
+```{r}
+df %>% 
+  gt(groupname_col = "fundingagency",
+    rowname_col = "indicator") %>% 
+  fmt_number(
+    columns = vars(
+      `FY20 Q2`,
+      `FY20 Q3`,
+      `FY20 Q4`,
+      `FY20 Total`,
+      `Fy20 Targets`,
+      `FY21 Targets`),
+    decimals = 0) %>%
+  fmt_percent(
+    columns = vars(`FY20 Achieved`),
+    decimals = 0) %>% 
+fmt_missing(columns = everything(),
+            missing_text = "-") %>% 
+  tab_options(
+    table.font.names = "Source Sans Pro") %>%
+    cols_width(
+    vars(indicator) ~ px(140),
+    everything() ~ px(80)
+  ) %>% 
+  tab_style(
+    style = cell_borders(
+      sides = "right",
+      weight = px(1.5),
+    ),
+    locations = cells_body(
+      columns = everything(),
+      rows = everything()
+    )) %>% 
+    tab_style(style = cell_fill(color = pal[4]),      ## defining the what (the 4th value of the pal object)
+              locations = cells_body(                 ## telling it where (ie, the body of a cell)
+                columns = vars(`FY20 Achieved`),      ## which col this refers to (note `vars()`)
+                rows = `FY20 Achieved` >= 1.1)) %>%   ## the argument
+    tab_style(style = cell_fill(color = pal[3]),
+              locations = cells_body(
+                columns = vars(`FY20 Achieved`),
+                rows = `FY20 Achieved` < 1.1)) %>% 
+    tab_style(style = cell_fill(color = pal[2]),
+              locations = cells_body(
+                columns = vars(`FY20 Achieved`),
+                rows = `FY20 Achieved` < .9)) %>% 
+    tab_style(style = cell_fill(color = pal[1]),
+              locations = cells_body(
+                columns = vars(`FY20 Achieved`),
+                rows = `FY20 Achieved` < .75))
+
+```
+
+
+Let's add the finishing touches
+-Title (very important) and subtitle (maybe important)
+-Source (never leave this out)
+Title,subtitle, and footnote are very easy and both can take advantage of markdown if you need it by adding `md()`
+`tab_header`
+`tab_footnote`
+`tab_source_note`
+
+```{r}
+tbl <- df %>% 
+  gt(groupname_col = "fundingagency",
+    rowname_col = "indicator") %>% 
+  fmt_number(
+    columns = vars(
+      `FY20 Q2`,
+      `FY20 Q3`,
+      `FY20 Q4`,
+      `FY20 Total`,
+      `Fy20 Targets`,
+      `FY21 Targets`),
+    decimals = 0) %>%
+  fmt_percent(
+    columns = vars(`FY20 Achieved`),
+    decimals = 0) %>% 
+fmt_missing(columns = everything(),
+            missing_text = "-") %>% 
+  tab_options(
+    table.font.names = "Source Sans Pro") %>%
+    cols_width(
+    vars(indicator) ~ px(140),
+    everything() ~ px(80)
+  ) %>% 
+  tab_style(
+    style = cell_borders(
+      sides = "right",
+      weight = px(1.5),
+    ),
+    locations = cells_body(
+      columns = everything(),
+      rows = everything()
+    )) %>% 
+    tab_style(style = cell_fill(color = pal[4]),      ## defining the what (the 4th value of the pal object)
+              locations = cells_body(                 ## telling it where (ie, the body of a cell)
+                columns = vars(`FY20 Achieved`),      ## which col this refers to (note `vars()`)
+                rows = `FY20 Achieved` >= 1.1)) %>%   ## the argument
+    tab_style(style = cell_fill(color = pal[3]),
+              locations = cells_body(
+                columns = vars(`FY20 Achieved`),
+                rows = `FY20 Achieved` < 1.1)) %>% 
+    tab_style(style = cell_fill(color = pal[2]),
+              locations = cells_body(
+                columns = vars(`FY20 Achieved`),
+                rows = `FY20 Achieved` < .9)) %>% 
+    tab_style(style = cell_fill(color = pal[1]),
+              locations = cells_body(
+                columns = vars(`FY20 Achieved`),
+                rows = `FY20 Achieved` < .75)) %>% 
+  tab_header(title = "USAID results, performance, and targets FY20-21",
+             subtitle = md("Super Timmy's **magic** tabler-ater")) %>% 
+  tab_source_note("Source: DATIM MSD FY20Q4 2020-12-18")
+  
+
+
+```
+
+Let's save.
+`gt` has a few options. For our uses, we'll focus on .png and .pdf. You'll need to install the `webshot` package, which has most of the options for saving, we'll focus on `expand` and `zoom`
+
+```{r}
+
+gtsave(tbl, here(save_path,"corps_table.pdf"))
+gtsave(tbl, here(save_path,"corps_table.png"))
+
+#let's play with zoom
+gtsave(tbl, here(save_path,"corps_table.pdf"), zoom = 1)
+
+
+```
+
+
+
+Todo: add borders, formatting,
+-alignment
+-bolding
 
 
 
