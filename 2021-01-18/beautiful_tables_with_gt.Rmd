@@ -288,7 +288,7 @@ fmt_missing(columns = everything(),
 
 ```
 
-So now that we have our table in the basic format we want, let's add the shading based on value which is analgous to conditional
+So now that we have our table in the basic format we want, let's add the shading based on value which is analogous to conditional
 formatting
 
 ```{r}
@@ -494,11 +494,22 @@ df3 %>%
                      decimals = 0)
   
 
-
 ```
 
 
+Finally some `gt` resources
 
+https://themockup.blog/
+An inspo album
+
+https://gt.rstudio.com/index.html
+Main reference
+
+https://yutannihilation.github.io/gt/
+More
+
+https://malco.io/2020/05/16/replicating-an-nyt-table-of-swedish-covid-deaths-with-gt/
+even more
 
 
 
