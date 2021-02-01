@@ -1,9 +1,9 @@
 ---
-title: "CoRps December 7, 2020"
+title: "SIEI CoRps December 7, 2020"
 output: html_notebook
 ---
 
-Welcome to today's coRps session. I'll be walking through the `glitr` package to show you some of the key features. The glitr package adorns your plots in a standardized SI style. Recent changes have been made to incorporate our new [SIEI color palette](https://github.com/USAID-OHA-SI/pretty_in_grey40K/wiki/SIEI-Data-Viz-Cheat-Sheet) that will be introduced in our SIEI style guide cheat sheet. 
+Welcome to today's coRps session. I'll be walking through the `glitr` package to show you some of the key features. The glitr package adorns your plots in a standardized SI style. Recent changes have been made to incorporate our new [SIEI color palette](https://github.com/USAID-OHA-SI/pretty_in_grey40K/wiki/SIEI-Recommended-Colors) that will be introduced in our SIEI style guide [cheat sheet](https://github.com/USAID-OHA-SI/pretty_in_grey40K/wiki/SIEI-Data-Viz-Cheat-Sheet). 
 
 Let's start by installing and loading `glitr` along with `scales`. The `scales` package has a wonderful helper function `show_col()` that quickly previews colors and color palettes.
 
@@ -12,7 +12,7 @@ Let's start by installing and loading `glitr` along with `scales`. The `scales` 
 # Install the latest version from Github
   devtools::install_github("USAID-OHA-SI/glitr")
   devtools::install_github("r-lib/scales")
-
+  
 # Load
   library(glitr)
   library(scales) 
@@ -64,6 +64,9 @@ The nice thing about these colors is that once you have loaded the package, you 
   # Or the USAID colors
    show_col(c(usaid_blue, usaid_red, usaid_black, usaid_lightblue, usaid_medblue, 
                      usaid_darkgrey, usaid_medgrey, usaid_lightgrey))
+   
+  # Can also use the si_palettes list to preview colors
+   show_col(si_palettes$siei_pairs)
 ```
 
 This is fine and all, but it wouldn't it be easier if you could pass a name of [color palette](https://github.com/USAID-OHA-SI/pretty_in_grey40K/wiki/SIEI-Recommended-Colors)? The `si_rampr()` function allows you to do this. 
@@ -114,15 +117,16 @@ To learn more: help(scale_color_si)
 
     ggplot(penguins) +
     geom_point(aes(x = flipper_length_mm, y = body_mass_g, color = species)) +
-    scale_color_si("siei", reverse = TRUE) + facet_wrap(~island) +
+    scale_color_si("siei") + facet_wrap(~island) +
       si_style()
     
     
     # Passing continuous value to a discrete scale -- turn the discrete = FALSE parameter on
      ggplot(penguins, 
-            aes(x = flipper_length_mm, y = body_mass_g, color = body_mass_g)) +
+            aes(x = flipper_length_mm, y = body_mass_g, 
+                color = body_mass_g)) +
        geom_point() +
-       scale_color_si("genoas", reverse = TRUE) + 
+       scale_color_si("genoas") + 
        facet_wrap(~island) + 
        si_style()
      
@@ -130,7 +134,8 @@ To learn more: help(scale_color_si)
             aes(x = flipper_length_mm, y = body_mass_g, color = body_mass_g)) +
        geom_point() +
         stat_smooth(se = FALSE, color = grey30k) +
-       scale_color_si("genoas", reverse = TRUE, discrete = FALSE) + 
+       scale_color_si("genoas", 
+                      discrete = FALSE) + 
        facet_wrap(~island) + 
        si_style()
     
@@ -142,11 +147,12 @@ Also works with scale_fill_()* options. help(scale_fill_si)
 
 ```{r}
   # Example where the fill is continuous
-  rnaturalearth::ne_countries(continent = "africa", returnclass = "sf") %>%
+  # Add install rnaturalearth  
+rnaturalearth::ne_countries(continent = "africa", returnclass = "sf") %>%
    add_column(runif = runif(nrow(.))) %>%
    ggplot() +
    geom_sf(aes(fill = runif), color = "white", size = 0.25) +
-   scale_fill_si("old_roses", discrete = FALSE, reverse = T) +
+   scale_fill_si("old_roses", discrete = FALSE) +
    si_style_void() 
 
 # Example where the fill is discrete (default)
