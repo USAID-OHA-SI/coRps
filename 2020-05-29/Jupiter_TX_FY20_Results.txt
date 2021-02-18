@@ -1,5 +1,0 @@
-period	operatingunit	mech_code	indicator	period_type	val
-FY20	Jupiter	01304	TX_CURR	cumulative	253290
-FY20	Jupiter	01390	TX_CURR	cumulative	10980
-FY20	Jupiter	01612	TX_CURR	cumulative	44170
-FY20	Jupiter	01620	TX_CURR	cumulative	1830

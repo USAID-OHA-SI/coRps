@@ -1,5 +1,0 @@
-period	operatingunit	mech_code	indicator	period_type	val
-FY20	Jupiter	01304	TX_CURR	targets	179950
-FY20	Jupiter	01462	TX_CURR	targets	7800
-FY20	Jupiter	01612	TX_CURR	targets	35490
-FY20	Jupiter	01620	TX_CURR	targets	2240

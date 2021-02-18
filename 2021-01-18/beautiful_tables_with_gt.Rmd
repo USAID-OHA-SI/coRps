@@ -71,6 +71,9 @@ ls("package:gt")
 
 ##read in data
 
+gs4_auth() #or glamr::load_secrets() https://github.com/USAID-OHA-SI/glamr/blob/master/vignettes/credential-management.Rmd
+
+
 df <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1iiwaESC45G9waP7CxQLEbqo1Qq6vw-VxZAUh1qSS5yg/edit#gid=0",
                                 sheet = "Sheet1")
 #have a look

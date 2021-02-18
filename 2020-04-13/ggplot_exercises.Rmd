@@ -37,7 +37,20 @@ The USAID/Saturn team is interested in knowing where partners are seeing less th
 
 glimpse(df_linkage)
 
-ggplot(df_linkage)
+df_linkage %>% 
+  ggplot(aes(HTS_TST_POS, TX_NEW)) +
+  geom_point(aes(color = linkage < mean(linkage, na.rm = TRUE)), 
+             size = 4, alpha = .6, na.rm = TRUE) +
+  geom_abline(aes(slope = 1, intercept = 0)) +
+  labs(color = "below avg \n linkage") +
+  scale_x_continuous(labels = comma) +
+  scale_y_continuous(labels = comma) +
+  scale_color_manual(values = c("gray30", "red")) +
+  labs(title = "Flagging poor linkage in Saturday",
+       subtitle = "red points denote below average linkage")
+  theme_minimal() +
+  theme(legend.position = "none")
+  
 
 
 

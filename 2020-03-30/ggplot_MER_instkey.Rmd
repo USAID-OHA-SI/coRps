@@ -1,0 +1,274 @@
+---
+title: "ggplot + MER"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Getting Started
+
+Today we will be diving into the some exploratory analysis with R, getting familiar with visualizing data using `ggplot2` which is part of the [tidyverse](https://www.tidyverse.org/).
+
+To get started, you'll need to install a few different packages to work in R. Unlike proprietary software like Excel, Stata, SPSS, etc. where all the functions are built into shipped software, R is open source and allows on contributers to develop and share useful code in "packages." 
+
+The main way to install software in R is to use `install.package()`. This function (built into R) allows you access and install software from [CRAN](https://cran.r-project.org/). 
+
+
+```{r install}
+install.packages("tidyverse")
+install.packages("devtools")
+install.packages("skimr")
+install.packages("scales")
+install.packages("extrafont")
+install.packages("patchwork")
+```
+
+Users can also access additional packages not available on CRAN for various reasons (still in development, small scale, etc). We will also be using a package developed for use with the PEPFAR MSD, called [ICPIutilities](https://github.com/ICPI/ICPIutilities/blob/master/README.md) and is able to be installed from GitHub (via the `devtools` package).
+
+```{r install_github}
+devtools::install_github("ICPI/ICPIutilities")
+```
+
+Let's take a look at all the packages loaded with `install.packages("tidyverse")`, which actually installs a host of packages for you to use. We can see what those are through running the code below.
+
+```{r tidyverse}
+tidyverse::tidyverse_packages()
+```
+
+Great. We have the options to utitlize these packages now that they are installed,  Every time we start up a new R session, we have load the packages we want to use, using the function, `library()`.
+
+```{r load, echo=FALSE}
+library("tidyverse")
+library("devtools")
+library("skimr")
+library("scales")
+library("extrafont")
+library("patchwork")
+```
+
+
+## Loading the data
+
+You can use lots of different types of data in R like csv, txt, and json or even proprietary formats like xlsx and .dta. 
+
+Today we'll be using a csv file from our training dataset that has been filtered down to a manageable size, focusing on one indicator in one operating unit.
+
+To load the data, we will rely on a packge from the tidyverse called `readr`. One of the cool features is we can actually load data from a url and we don't need it stored locally (although, please don't store any real PEPFAR data publically).
+
+Today's dataset is available on [Github](https://github.com/USAID-OHA-SI/coRps/blob/master/2020-03-30/FY20_MilkyWay_Testing.csv). Let's load the data locally.
+
+```{r}
+url <- "https://raw.githubusercontent.com/USAID-OHA-SI/coRps/master/2020-03-30/FY20_MilkyWay_Testing.csv"
+df_hts <- read_csv(url)
+```
+
+## Exploring the data
+
+A best practice whenever we import a new dataset is to first inspect it. So, let's take a look.
+
+```{r}
+
+#high level view
+  glimpse(df_hts)
+
+#what modalities do we have?
+  distinct(df_hts, modality)
+  
+#data distribution
+  skim(df_hts, HTS_TST, HTS_TST_POS, Positivity)
+
+```
+
+Now that we have sense of the dataset, let start exploring the data through `ggplot`. We are model our work after the structure of R for Data Science.
+
+## Aesthetics
+
+```{r}
+ 
+#dot plot
+  ggplot(df_hts) +
+  geom_point()
+
+#aes in ggplot
+  ggplot(df_hts, aes(HTS_TST_POS, Positivity))
+  
+#what is missing?
+  ?geom_point
+
+#adding a shape to compare index to non index
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, shape = is_index))
+  
+#adding a shape and color to index/non-index
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, shape = is_index, color = is_index))
+
+#color by modality
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, color = modality)) 
+  
+#color by modality, size dot by HTS_TST
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, color = modality, size = HTS_TST))
+  
+#adjust transparency
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, alpha = Positivity))
+    
+#how do we make all the points blue?
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, color = "blue"))
+  
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST), color = "blue")
+  
+#adjust dot size
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST), size = 4)
+  
+#adjust dot size and tranparency
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST), size = 4, alpha = .3)
+  
+#add mean lines to plot
+  mean_hts_pos <- mean(df_hts$HTS_TST_POS)
+  mean_positivity <- mean(df_hts$Positivity)
+  
+  ggplot(df_hts) +
+  geom_vline(aes(xintercept = mean_hts_pos)) +
+  geom_hline(aes(yintercept = mean_positivity)) +
+  geom_point(aes(HTS_TST_POS, Positivity))
+```
+
+## Facets
+
+```{r}
+
+#facetting (wrap)
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, color = modality, alpha = Positivity)) +
+  facet_wrap(~modality)
+  
+#ordered facets (wrap)
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, color = modality, alpha = Positivity)) +
+  facet_wrap(~ fct_reorder(modality, HTS_TST, sum, .desc = TRUE))
+  
+#facet grid
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, color = modality, alpha = Positivity)) +
+  facet_grid(modality ~ operatingunit)
+  
+```
+
+
+
+## Geometric objects
+
+```{r}
+#linear fit
+  ggplot(df_hts) +
+  geom_smooth(aes(HTS_TST_POS, Positivity), method='lm', formula= y~x)
+    
+#linear fit + points (multiple layers)
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST)) +
+  geom_smooth(aes(HTS_TST_POS, Positivity), method='lm', formula= y~x)
+  
+#linear fit by operatingunit
+  ggplot(df_hts) +
+  geom_point(aes(HTS_TST_POS, Positivity, size = HTS_TST, color = operatingunit)) +
+  geom_smooth(aes(HTS_TST_POS, Positivity, color = operatingunit), method='lm', formula= y~x, se = FALSE)
+
+#simplifying w/ global aes
+  ggplot(df_hts, aes(HTS_TST_POS, Positivity)) +
+  geom_point(aes(size = HTS_TST)) +
+  geom_smooth(method='lm', formula= y~x)
+```
+
+## Transformations
+```{r}
+ggplot(df_hts) +
+  geom_bar(aes(operatingunit))
+
+ggplot(df_hts) +
+  geom_bar(aes(operatingunit, HTS_TST_POS), stat = "identity")
+
+
+ggplot(df_hts) + 
+  stat_summary(
+    mapping = aes(x = operatingunit, y = HTS_TST_POS),
+    fun.min = min,
+    fun.max = max,
+    fun = median
+  )
+
+
+ggplot(df_hts) +
+  geom_col(aes(operatingunit, HTS_TST_POS))
+
+
+ggplot(df_hts) +
+  geom_col(aes(operatingunit, HTS_TST_POS, fill = operatingunit))
+
+ggplot(df_hts) +
+  geom_col(aes(operatingunit, HTS_TST_POS, fill = modality), position = "dodge")
+
+ggplot(df_hts) +
+  geom_col(aes(operatingunit, HTS_TST_POS, position = "dodge", fill = operatingunit))
+
+
+ggplot(df_hts) +
+  geom_point(aes(Positivity, operatingunit), size = 5, alpha = .4)
+
+ggplot(df_hts) +
+  geom_point(aes(Positivity, operatingunit, color = is_index), size = 5, alpha = .4, position = "jitter")
+
+ggplot(df_hts) +
+  geom_jitter(aes(Positivity, operatingunit, color = is_index), size = 5, alpha = .4, height = .15)
+
+```
+
+
+## Coordinate systems
+
+```{r}
+
+library(map_data)
+
+ggplot(df_hts) +
+  geom_col(aes(modality, HTS_TST))
+
+ggplot(df_hts) +
+  geom_col(aes(modality, HTS_TST)) +
+  coord_flip()
+
+md <- map_data('county', 'marland')
+
+ggplot(mi, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill="lightgray", colour = "white") +
+  coord_quickmap()
+
+
+bar <- ggplot(df_hts) + 
+  geom_bar(
+    mapping = aes(x = modality, fill = modality), 
+    show.legend = FALSE,
+    width = 1
+  ) + 
+  theme(aspect.ratio = 1) +
+  labs(x = NULL, y = NULL)
+
+  bar + coord_flip()
+  bar + coord_polar()
+
+
+```
+
+
+   
+
+
+
