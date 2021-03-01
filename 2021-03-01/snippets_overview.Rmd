@@ -5,13 +5,11 @@ date: "3/1/2021"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 ## R-studio Snippets
 
-Code snippets are text macros that can be used for quickly inserting chunks of code. If you start typing `fun` you'll see a pop-up that shows you options for a default function.
+Code snippets are text macros that can be used for quickly inserting chunks of code in your script or in the Console. They can be customized for R, HTML, Python, Java, Markdown ... about any language you can think of that works in the R-Studio IDE.
+
+If you start typing `fun` you'll see a pop-up that shows you options for a default function.
 
 If you select the auto-complete option you will see a function with several place holders returned.
 
@@ -19,17 +17,70 @@ R-Studio comes bundled with many useful snippets. A full listing can be found [h
 
 ## Installing Snippets
 
-As we have mentioned before one of the benefits of working with R is there is a vibrant community of folks who create and maintain packages to make our lives easier. With snippets, it's no different as the `snippr` [package](https://github.com/dgrtwo/snippr) allows you to manage and install snippets from public repos.
+For this example, I have loaded my snippets to a private [gist](https://gist.github.com/tessam30/d4098c1b0cbd09c616bd924fd1a208c8) (a gist is a Git repo that can be public or private and can be forked and cloned). While a `snippr` exists, it looks like it does not to be maintained so we will load snippets into R-Studio the old fashioned way. Navigate to the gist and click on the `Raw` button. This will list the snippet in raw form with all the HTML stripped away. Copy the code and navigate to the Edit Snippets window reviewed above.
 
-`devtools::install_github("dgrtwo/snippr")`
+Paste the copied text into your snippets at the bottom.
 
-`library(snippr)`
+Either open a new script or place your cursor in the console and type `ohab` and wait 250 milliseconds. You should see a pop-up window with a bunch of libraries to be loaded. If you hit tab or click on the pop-up window R-Studio will list all those libraries for you. What is going on? We have shortcut to load all the core libraries you may use for an OHA-based analysis. How did we do that? Let' take a look.
 
-While you do have the option to install snippets from a github repo users, you can also install them from a private gist. For this example, I have loaded my snippets to a private [gist](https://gist.github.com/tessam30/d4098c1b0cbd09c616bd924fd1a208c8) (a gist is a Git repo that can be public or private and can be forked and cloned).
+## Decoding & Creating Snippets
 
-    snippets_install_gist("tessam30/d4098c1b0cbd09c616bd924fd1a208c8", language = "r")
+    snippet ohab "base si packages"
+    	library(glitr)
+    	library(glamr)
+    	library(gisr)
+    	library(tidyverse)
+    	library(ICPIutilities)
+    	library(scales)
+    	library(sf)
+    	library(extrafont)
+    	library(tidytext)
+    	library(here)
 
-### 
+The `ohab` snippet is present above. It tells R-Studio to insert the following chunk(s) of code when you type a given phrase. To create a snippet, all you need to do is to navigate back into the Edit Snippets screen and enter the following:
+
+    snippet name_of_snippet "description of what it does"
+    	print("This is my first snippet.")
+
+## Advanced Example 
+
+The snippet below sets up an r-script shell and loads the libraries and local/global objects that I often use when starting a new project. The `${0}` tells R-studio where to place the cursor after executing the snippet and the number tells R-studio where to skip the cursor to when I hit tab. You can also use `${1:predefinedvalue}` to pre-define a value for the sections.
+
+    snippet rscript "script setup"
+    	# PURPOSE: ${1:Munge and Analysis of}
+    	# AUTHOR: Tim Essam | SI, ${2}
+    	# LICENSE: MIT
+    	# DATE: `r Sys.Date()`
+    	# NOTES:
+
+    	# LOCALS & SETUP ==========================================================================
+    	
+    		# Libraries
+    			${4:oha}
+    		
+    		# Set paths	
+    			data 	<- "Data"
+    			dataout <- "Dataout"
+    			images  <- "Images"
+    			graphs  <- "Graphics"
+    			
+    		# Functions	
+    		
+    	
+    	# LOAD DATA ============================================================================	
+    		
+    	
+    	# MUNGE ============================================================================
+    		
+    		${5:#}	
+    		
+    	# VIZ ============================================================================
+
+    		${6:#}	
+    	
+    	# SPINDOWN ============================================================================
+
+## Learn More About Snippets
 
 You can learn a fair bit about snippets by reviewing the existing ones or searching the web for examples.
 
@@ -43,4 +94,33 @@ You can learn a fair bit about snippets by reviewing the existing ones or search
 
 ## Where do I find the examples presented above?
 
-[Tim's custom snippets]([R_studio_snippets_custom.R](https://gist.github.com/tessam30/d4098c1b0cbd09c616bd924fd1a208c8)) - link to gist containing the snippets I use.
+[Tim's custom snippets](https://gist.github.com/tessam30/d4098c1b0cbd09c616bd924fd1a208c8) - link to gist containing the snippets I use.
+
+## Updating Packages?
+
+With the release of the FY21 Q1 data you may (or may not) have noticed that some of core OHA R packages had new releases. As a good practice, you should regularly check for updates before starting a new project.
+
+    # What packages do you currently have installed?
+    installed.packages()
+
+    # list all packages where an update is available
+    old.packages()
+
+    # update all available packages
+    update.packages()
+
+This works great --- if the package is hosted on CRAN. All of our OHA packages are stored on github for various reasons. Running `old.packages()` will not track version changes for you. We are working on a simple function to fix this. For the time being, you can use the snippet shortcut to execute updates. In the next couple of days, we will release a `glamr` function that will do a similar task.
+
+`update_si`
+
+If you are using packages from CRAN, I'd recommend using R-studio's package manager. You can access it by navigating to the `Packages` pane and click on Update. An Update Packages window will pop-up and ask you what packages you'd like to update.
+
+You may see the question `Do you want to install from sources the package which needs compilation?`. What in the world does this mean? IT means that the package has recently updated on CRAN but the binary files are not yet available for your operating system.
+
+What should you do?
+
+If you so no, you will not get the most recent version of the package.
+
+If you say yes, the package will be built from source locally. If the source package has compiled code and you didn't set up build tools for R (Rtools, devtools etc), the installation will likely fail. Want to learn even more? See this [thread](https://community.rstudio.com/t/meaning-of-common-message-when-install-a-package-there-are-binary-versions-available-but-the-source-versions-are-later/2431/6).
+
+TL/DR - Your GFE uses Windows, so make sure you have Rtools set up if you want to keep getting updated packages.
