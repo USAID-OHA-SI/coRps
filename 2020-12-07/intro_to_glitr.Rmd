@@ -1,0 +1,179 @@
+---
+title: "SIEI CoRps December 7, 2020"
+output: html_notebook
+---
+
+Welcome to today's coRps session. I'll be walking through the `glitr` package to show you some of the key features. The glitr package adorns your plots in a standardized SI style. Recent changes have been made to incorporate our new [SIEI color palette](https://github.com/USAID-OHA-SI/pretty_in_grey40K/wiki/SIEI-Recommended-Colors) that will be introduced in our SIEI style guide [cheat sheet](https://github.com/USAID-OHA-SI/pretty_in_grey40K/wiki/SIEI-Data-Viz-Cheat-Sheet). 
+
+Let's start by installing and loading `glitr` along with `scales`. The `scales` package has a wonderful helper function `show_col()` that quickly previews colors and color palettes.
+
+
+```{r, message=FALSE, warning=FALSE, results=FALSE}
+# Install the latest version from Github
+  devtools::install_github("USAID-OHA-SI/glitr")
+  devtools::install_github("r-lib/scales")
+  
+# Load
+  library(glitr)
+  library(scales) 
+  library(tidyverse)
+
+# Preview all the functions/objects bundled in the package
+  ls('package:glitr')
+```
+
+As you can see, there are quite a few objects and functions that are available through the package. So what in world are these things? You can explore them by looking at the underlying source code or just typing the name in the console. Better yet, you can also use the help option `help(scale_fill_si).
+
+The package is basically divided into five parts. We'll cover parts 1 and 2 directly.  
+1) si_colors - built in colors that you can call directly  
+2) si_helpers - helper functions for using SIEI color palettes in ggplots  
+3) si_save - quickly save plots for SIEI Google Presentation dimensions  
+4) si_style - clean, SI approved style  
+5) si_themes - clean, SI approved style alternatives  
+
+```{r, results = TRUE}
+  dir("/Users/tim/Documents/Github/glitr/R")
+```
+
+
+```{r}
+# Many of the colors in the package are legacy colors that were created before we had a beautiful palette. 
+  # Core colors I'll bring to your attention are
+  denim
+  old_rose
+  moody_blue
+  burnt_sienna
+  scooter
+  golden_sand
+  genoa
+
+# You can preview colors by passing the object to the scales::show_col() function
+  burnt_sienna %>% show_col()
+  show_col(c(denim, burnt_sienna))
+```
+
+The nice thing about these colors is that once you have loaded the package, you can pass the object to different functions. For example, we could pass each individual color to the `show_col()` function like so. The values printed on each color are the hexadecimal color values. 
+
+```{r}
+  #Pass through all the SIEI recommended colors to preview them
+   show_col(c(denim, old_rose, moody_blue, burnt_sienna, golden_sand, genoa, scooter))
+
+  # Or have a look at the greys
+   show_col(c(grey10k, grey20k, grey30k, grey40k, grey50k, grey60k, grey70k, grey80k, grey90k))
+   
+  # Or the USAID colors
+   show_col(c(usaid_blue, usaid_red, usaid_black, usaid_lightblue, usaid_medblue, 
+                     usaid_darkgrey, usaid_medgrey, usaid_lightgrey))
+   
+  # Can also use the si_palettes list to preview colors
+   show_col(si_palettes$siei_pairs)
+```
+
+This is fine and all, but it wouldn't it be easier if you could pass a name of [color palette](https://github.com/USAID-OHA-SI/pretty_in_grey40K/wiki/SIEI-Recommended-Colors)? The `si_rampr()` function allows you to do this. 
+
+```{r}
+  # The default will return the SIEI recommended color palette.
+  si_rampr()
+  si_rampr() %>% show_col()
+
+  # SI rampr will give you a hint about what colors you should be using if you misenter them
+  si_rampr("reds")
+
+  
+  # In addition to the discrete palette, you can also access continuous ramps of the core SIEI colors.
+  # Each color ramp is accessed by placing an `s` at the end of the color name.
+  si_rampr("denims") %>% show_col(borders = NA)
+  
+  # You can select the palette name, the number of steps to interpolate, and the direction. 
+  si_rampr("denims", n = 15) %>% show_col(borders = NA)
+  si_rampr("denims", n = 15, reverse = T) %>% show_col(borders = NA)
+  
+  # To see all the palettes available to the si_rampr() function
+  si_palettes
+  si_rampr("siei_greys") %>% show_col(borders = NA)
+  si_rampr("carto_div_earth", n = 21) %>% show_col(borders = NA)
+
+```
+
+
+The final thing with the glitr package I'd like to cover is the scale_fill_si and scale_color_si options. If you are a frequent user of ggplot2, you are probably familiar `with scale_color_*()` / `scale_fill_*()` options. What these allow you to do is to pass colors to the aes() arguments `color` or `fill`. 
+
+To learn more: help(scale_color_si)
+
+```{r}
+#Apply palettes to discrete or continuous colors
+
+  #remotes::install_github("allisonhorst/palmerpenguins")
+  library(palmerpenguins)
+  data("penguins")
+
+  glimpse(penguins)
+  
+  
+  # COLOR Options
+  ggplot(penguins) +
+    geom_point(aes(x = flipper_length_mm, y = body_mass_g, color = species)) +
+    scale_color_si("siei")
+
+    ggplot(penguins) +
+    geom_point(aes(x = flipper_length_mm, y = body_mass_g, color = species)) +
+    scale_color_si("siei") + facet_wrap(~island) +
+      si_style()
+    
+    
+    # Passing continuous value to a discrete scale -- turn the discrete = FALSE parameter on
+     ggplot(penguins, 
+            aes(x = flipper_length_mm, y = body_mass_g, 
+                color = body_mass_g)) +
+       geom_point() +
+       scale_color_si("genoas") + 
+       facet_wrap(~island) + 
+       si_style()
+     
+      ggplot(penguins, 
+            aes(x = flipper_length_mm, y = body_mass_g, color = body_mass_g)) +
+       geom_point() +
+        stat_smooth(se = FALSE, color = grey30k) +
+       scale_color_si("genoas", 
+                      discrete = FALSE) + 
+       facet_wrap(~island) + 
+       si_style()
+    
+    
+    
+
+```
+Also works with scale_fill_()* options. help(scale_fill_si)
+
+```{r}
+  # Example where the fill is continuous
+  # Add install rnaturalearth  
+rnaturalearth::ne_countries(continent = "africa", returnclass = "sf") %>%
+   add_column(runif = runif(nrow(.))) %>%
+   ggplot() +
+   geom_sf(aes(fill = runif), color = "white", size = 0.25) +
+   scale_fill_si("old_roses", discrete = FALSE) +
+   si_style_void() 
+
+# Example where the fill is discrete (default)
+  rnaturalearth::ne_countries(continent = "africa", returnclass = "sf") %>%
+   add_column(runif = runif(nrow(.))) %>%
+   ggplot() +
+   geom_sf(aes(fill = name), color = "white", size = 0.25) +
+   scale_fill_si("scooters", reverse = T) +
+      gisr::si_style_map() + 
+    theme(legend.position = "none")
+
+
+# Generates a continuous siei palette and assigns a distinct color to each country
+# Do not recommend doing this, but showing it can be done.
+  rnaturalearth::ne_countries(continent = "africa", returnclass = "sf") %>% 
+   add_column(runif = runif(nrow(.))) %>%
+   ggplot() +
+   geom_sf(aes(fill = sovereignt, color = name), size = 2) +
+   scale_fill_si("carto_mint") +
+    scale_color_si("siei") +
+   gisr::si_style_map() + theme(legend.position = "none")
+
+```
+

@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Overview
 
 Today we're going to be learning how to create presentation quality tables in R using the `gt` package. 
+We'll be reproducing the table located here:
+https://docs.google.com/presentation/d/1tR3a81fd5mtkAX-RkX3hZv7skahkHryIrbrI7mli1Pc/edit#slide=id.p6
 
 
 The basic outline is as follows:
@@ -38,7 +40,7 @@ library(googlesheets4)
 library(ICPIutilities)
 library(glitr)
 library(RColorBrewer)
-library(scale)
+library(scales)
 library(here)
 
 
@@ -51,8 +53,8 @@ save_path <- "2021-01-18"
   We're going to look at a simple table that's in long format and convert to wide using `pivot_wider
   
 ```{r}
-## lines 47 - 60 have been done for you
-# raw <- read_msd("your_ou_by_IM_MSD")
+## lines 57 - 68 have been done for you
+# raw <- read_msd(here(folderpath_msd, "filename"))
 # # 
 #   filter(operatingunit == "Zambia",
 #          standardizeddisaggregate == "Total Numerator",
@@ -74,33 +76,19 @@ ls("package:gt")
 gs4_auth() #or glamr::load_secrets() https://github.com/USAID-OHA-SI/glamr/blob/master/vignettes/credential-management.Rmd
 
 
-df <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1iiwaESC45G9waP7CxQLEbqo1Qq6vw-VxZAUh1qSS5yg/edit#gid=0",
-                                sheet = "Sheet1")
+df_raw <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1iiwaESC45G9waP7CxQLEbqo1Qq6vw-VxZAUh1qSS5yg/edit#gid=0",
+
+
 #have a look
-glimpse(df)
+glimpse(df_raw)
 
 
-df <- df %>%
+df <- df_raw %>%
   filter(fundingagency == "USAID") %>% 
   tidyr::pivot_wider(names_from = period,
               values_from = value) %>% 
-   mutate(`FY20 Achieved` =  fy2020cumulative/fy2020_targets)
-
-glimpse(df)
-  
-  df <- df %>%
-    dplyr::relocate(`FY20 Achieved`, .before = `FY20 Achieved`) %>% 
-    dplyr::relocate(fy2020cumulative, .before = fy2021_targets) %>%
-    dplyr::relocate(fy2020_targets, .after = `FY20 Achieved`) %>% 
-    mutate(indicator = fct_relevel(indicator, "HTS_TST",
-                                   "HTS_TST_POS",
-                                   "TX_NEW",
-                                   "TX_CURR",
-                                   "TX_NET_NEW",
-                                   "VMMC_CIRC",
-                                   "PrEP_NEW")) %>% 
-    arrange(indicator) %>% 
-    rename(`FY20 Q1` = fy2020q1,
+   mutate(`FY20 Achieved` =  fy2020cumulative/fy2020_targets) %>% 
+  rename(`FY20 Q1` = fy2020q1,
       `FY20 Q2` = fy2020q2,
       `FY20 Q3` = fy2020q3,
       `FY20 Q4` = fy2020q4,
@@ -108,6 +96,21 @@ glimpse(df)
       `Fy20 Targets` = fy2020_targets,
       `FY21 Targets` = fy2021_targets) %>% 
     mutate(`FY20 Achieved` =  `FY20 Total`/`Fy20 Targets`)
+
+glimpse(df)
+  
+  df <- df %>%
+    dplyr::relocate(`FY20 Total`, .before = `FY21 Targets`) %>% 
+    dplyr::relocate(`FY20 Achieved`, .before = `FY21 Targets`) %>%
+    dplyr::relocate(`Fy20 Targets`, .after = `FY20 Total`) %>% 
+    mutate(indicator = fct_relevel(indicator, "HTS_TST",
+                                   "HTS_TST_POS",
+                                   "TX_NEW",
+                                   "TX_CURR",
+                                   "TX_NET_NEW",
+                                   "VMMC_CIRC",
+                                   "PrEP_NEW")) %>% 
+    arrange(indicator)
   
 glimpse(df)
 
@@ -156,6 +159,7 @@ df %>%
     rowname_col = "indicator") %>% 
   fmt_number(
     columns = vars(
+      `FY20 Q1`,
       `FY20 Q2`,
       `FY20 Q3`,
       `FY20 Q4`,
@@ -183,6 +187,7 @@ df %>%
     rowname_col = "indicator") %>% 
   fmt_number(
     columns = vars(
+      `FY20 Q1`,
       `FY20 Q2`,
       `FY20 Q3`,
       `FY20 Q4`,
@@ -217,6 +222,7 @@ df %>%
     rowname_col = "indicator") %>% 
   fmt_number(
     columns = vars(
+      `FY20 Q1`,
       `FY20 Q2`,
       `FY20 Q3`,
       `FY20 Q4`,
@@ -252,6 +258,7 @@ df %>%
     rowname_col = "indicator") %>% 
   fmt_number(
     columns = vars(
+      `FY20 Q1`,
       `FY20 Q2`,
       `FY20 Q3`,
       `FY20 Q4`,
@@ -282,7 +289,7 @@ fmt_missing(columns = everything(),
 
 ```
 
-So now that we have our table in the basic format we want, let's add the shading based on value which is analgous to conditional
+So now that we have our table in the basic format we want, let's add the shading based on value which is analogous to conditional
 formatting
 
 ```{r}
@@ -291,6 +298,7 @@ df %>%
     rowname_col = "indicator") %>% 
   fmt_number(
     columns = vars(
+      `FY20 Q1`,
       `FY20 Q2`,
       `FY20 Q3`,
       `FY20 Q4`,
@@ -352,6 +360,7 @@ tbl <- df %>%
     rowname_col = "indicator") %>% 
   fmt_number(
     columns = vars(
+      `FY20 Q1`,
       `FY20 Q2`,
       `FY20 Q3`,
       `FY20 Q4`,
@@ -419,12 +428,89 @@ gtsave(tbl, here(save_path,"corps_table.pdf"), zoom = 1)
 
 
 
-Todo: add borders, formatting,
--alignment
--bolding
+Ok here is a quick example with some grouping
+
+```{r}
+
+df2 <- df_raw %>% 
+  filter(fundingagency %in% c("USAID", "HHS/CDC")) %>% 
+  tidyr::pivot_wider(names_from = period,
+              values_from = value) %>% 
+   mutate(`FY20 Achieved` =  fy2020cumulative/fy2020_targets) %>% 
+  rename(`FY20 Q1` = fy2020q1,
+      `FY20 Q2` = fy2020q2,
+      `FY20 Q3` = fy2020q3,
+      `FY20 Q4` = fy2020q4,
+      `FY20 Total`  = fy2020cumulative,
+      `Fy20 Targets` = fy2020_targets,
+      `FY21 Targets` = fy2021_targets) %>% 
+    mutate(`FY20 Achieved` =  `FY20 Total`/`Fy20 Targets`)
+
+glimpse(df2)
+  
+  df2 <- df2 %>%
+    dplyr::relocate(`FY20 Total`, .before = `FY21 Targets`) %>% 
+    dplyr::relocate(`FY20 Achieved`, .before = `FY21 Targets`) %>%
+    dplyr::relocate(`Fy20 Targets`, .after = `FY20 Total`) %>% 
+    mutate(indicator = fct_relevel(indicator, "HTS_TST",
+                                   "HTS_TST_POS",
+                                   "TX_NEW",
+                                   "TX_CURR",
+                                   "TX_NET_NEW",
+                                   "VMMC_CIRC",
+                                   "PrEP_NEW")) %>% 
+    arrange(indicator)
+  
+glimpse(df2)
+
+## let's pass that to CDC and see what it does
+
+df2 %>% 
+  gt() 
+
+df2 %>% 
+  gt(groupname_col = "fundingagency") %>% 
+  row_group_order(
+    groups = c("USAID", "HHS/CDC")
+  )
+
+```
 
 
+Next a quick example looking at some summary functions
 
+```{r}
+
+df3 <- df_raw
+
+df3 %>%
+  filter(period == "fy2020cumulative") %>% 
+  pivot_wider(names_from = indicator,
+              values_from = value) %>% 
+  gt(groupname_col = "indicator",
+     rowname_col = "period") %>% 
+  summary_rows(columns = vars("HTS_TST", "HTS_TST_POS", "TX_NEW", "TX_CURR", "TX_NET_NEW", "VMMC_CIRC", "PrEP_NEW"),
+    fns = list(Total = ~sum(., na.rm = TRUE)),
+                     formatter = fmt_number,
+                     decimals = 0)
+  
+
+```
+
+
+Finally some `gt` resources
+
+https://themockup.blog/
+An inspo album
+
+https://gt.rstudio.com/index.html
+Main reference
+
+https://yutannihilation.github.io/gt/
+More
+
+https://malco.io/2020/05/16/replicating-an-nyt-table-of-swedish-covid-deaths-with-gt/
+even more
 
 
 
