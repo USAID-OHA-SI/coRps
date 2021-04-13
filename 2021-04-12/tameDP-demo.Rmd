@@ -1,7 +1,7 @@
 ---
 title: "Working with tameDP"
 author: "A.Chafetz"
-date: "4/13/2021"
+date: "4/12/2021"
 output: html_document
 ---
 
@@ -9,22 +9,90 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## tameDP package overview
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Over the last few years, the SI team has maintained a package for working with the Data Pack called [`tameDP`](https://github.com/USAID-OHA-SI/tameDP). The principle idea is to get a tidy dataset out of the PSNUxIM tab to work with it. There are a numbe of useful features including adding in the additional HTS modalities (from VMMC, PMTCT, TB, and index), breaking out the `indicatorcode` column into discrete usable/filterable pieces, providing mechanism/parnter info, and creating a HTS_TST_POS indicator. 
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```{r}
+#install
+install.packages("remotes")
+remotes::install_github("USAID-OHA-SI/tameDP")
 
-```{r cars}
-summary(cars)
+#load library
+library(tameDP)
 ```
 
-## Including Plots
+## Extracting the data
+The main function is pretty easy to run, providing just the file path to the data pack you're working with.
 
-You can also embed plots, for example:
+```{r}
+filepath <- "tools/COP21_DataPack_Saturn.xlsx"
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+df_sat <- tame_dp(filepath)
+```
+The most time consuming piece is hitting DATIM to connect the `mech_code` to other mechanism information. To speed things up, you can stop the mechanism mapping, by setting the `map_names` parameter to `FALSE`. 
+
+```{r}
+df_sat <- tame_dp(filepath, map_names = FALSE)
+
+```
+This is definitely advisable if you are ingesting multiple data packs so you don't hit DATIM umpteen times.
+
+```{r}
+#load package
+  library(purrr)
+
+#identify all the Data Pack files
+  files <- list.files("tools", full.names = TRUE)
+
+#read in all DPs and combine into one data frame
+  df_all <- map_dfr(.x = files,
+                    .f = ~ tame_dp(.x, map_names = FALSE))
+                    
+#apply mech_name and primepartner name, funding agency and OU from DATIM
+  df_all <- get_names(df_all)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Example query easy to deal with in tidy format
+To see how useful it can be using `tameDP` over Excel, let's try to answer the following question: what districts (PSNUs) have the highest share newly identified positives from the community?
+
+```{r}
+library(dplyr)
+
+df_sat %>% 
+  filter(indicator == "HTS_TST_POS",
+                disagg != "KeyPop",
+                mech_code != "00000") %>% 
+  mutate(source = ifelse(stringr::str_detect(modality, "Mod"), "Comm", "Fac")) %>%
+  count(psnu, source, wt = targets, name = "targets") %>% 
+  group_by(psnu) %>% 
+  mutate(share = targets/sum(targets, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  filter(source == "Comm") %>% 
+  arrange(desc(share)) %>% 
+  print(n = Inf)
+```
+
+
+## SGAC alternative package
+
+The SGAC systems team, who has taken ownership of the Data Pack the last few years, has a [package they use for Data Pack](https://github.com/pepfar-datim/datapackr) development which can also be used for getting a somewhat tidy output back. An additioonal benefit is you are also able to extract data from the tabs leading up to the PSNUxIM tab.
+
+```{r}
+#install
+install.packages("remotes")
+remotes::install_github("pepfar-datim/datapackr")
+
+#load library
+library(datapackr)
+
+#provide DATIM credentials
+loginToDATIM()
+
+#"unpack" the data pack, creating a nested list of objects
+d <- unPackTool(filepath)
+
+#extract the PSNUxIM tab
+dp_tidy <-  d$data$SNUxIM
+
+```
