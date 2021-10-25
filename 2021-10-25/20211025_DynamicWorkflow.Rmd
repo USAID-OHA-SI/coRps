@@ -2,13 +2,14 @@
 title: "Dynamic Quarterly Workflow"
 author: "A.Chafetz"
 date: "10/22/2021"
-output: html_document
+output: md_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+coRps Session on Dynamic Quarterly Workflow
 
 ## Overview
 
@@ -18,7 +19,7 @@ Our goal today is to see how we can be more dynamic in our code, allowing for au
 
 Let's start by load our standard set of packages for munging and plotting MER data. Packages like `glitr`, `glamr`, and `gophr` are USAID/OHA custom packages.  
 
-```{r packages}
+```{r packages, message=FALSE, warning=FALSE}
   library(tidyverse)
   library(glitr)  #remotes::install_github("USAID-OHA-SI/glitr", build_vignettes = TRUE)
   library(glamr)  #remotes::install_github("USAID-OHA-SI/glamr", build_vignettes = TRUE)
@@ -72,19 +73,22 @@ df_tza <- df %>%
          indicator == ind_sel,
          standardizeddisaggregate == "Total Numerator") %>% 
   group_by(fiscal_year, indicator) %>% 
-  summarise(across(c("targets", starts_with("qtr")), sum, na.rm = TRUE)) %>% 
-  ungroup()
+  summarise(across(c("targets", starts_with("qtr")), sum, na.rm = TRUE),
+            .groups = "drop")
   
 ```
 
 The reshape will drop future periods, but we want to keep anything in the current FY for our plot, so we give any quarter in the current FY a negative value to keep it (it will drop if its zero). We need to know the current fiscal year, so we call pull that using `glamr::source_info()`, which uses information from the file name to know the current period. 
 
+```{r}
+(curr_fy <- source_info(return = "fiscal_year"))
+```
+
 
 ```{r}
-curr_fy <- source_info(return = "fiscal_year")
-
 df_tza <- df_tza %>%
-  mutate(across(starts_with("qtr"), ~ ifelse(. == 0 & fiscal_year == curr_fy, -1, .))) %>% 
+  mutate(across(starts_with("qtr"), 
+                ~ ifelse(. == 0 & fiscal_year == curr_fy, -1, .))) %>% 
   reshape_msd("quarters", qtrs_keep_cumulative = TRUE) %>% 
   mutate(results = na_if(results, -1),
          results_cumulative = ifelse(is.na(results), NA, results_cumulative))
@@ -106,10 +110,12 @@ df_tza <- df_tza %>%
 We used `source_info()` earlier to get the year, but we will now use it to get other information so we can make our text dynamic in the plot. We'll also create a data frame (`curr_achv`) that has information that will be included in the plot, rather than manually editing the information.
 
 ```{r}
-msd_source <- source_info()
+(msd_source <- source_info())
 
-curr_pd <- source_info(return = "period")
+(curr_pd <- source_info(return = "period"))
+```
 
+```{r}
 curr_achv <- df_tza %>% 
   filter(fiscal_year == curr_fy) %>% 
   mutate(avg = mean(results, na.rm = TRUE),
