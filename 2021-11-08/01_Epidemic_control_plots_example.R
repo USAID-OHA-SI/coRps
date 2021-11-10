@@ -16,6 +16,9 @@
     library(sf)
     library(extrafont)
     library(tidytext)
+    library(ggtext)
+    library(glue)
+    library(ggfx)
 
 
 # SETUP ============================================================================  
@@ -255,6 +258,66 @@
     }
 
     epi_plot(df_viz_glbl)  
-
     epi_plot(df_viz_pepfar)    
+    
+
+# Plot with legend integrated into title and color axes -------------------
+
+    plot_title <- "STEADY DECLINE IN THE NUMBER OF <span style= 'color:#2057a7;'> NEW HIV INFECTIONS</span> AND <span style = 'color:#e07653;'> AIDS-RELATED DEATHS </span> SINCE THE EARLY 2000s"
+    
+    # Using grDevices::plotmath call
+    anot_death <- 'atop(bold("AIDS-related Deaths"))'
+    anot_hiv   <- 'atop(bold("New HIV infections"))'
+    
+    
+      df_viz_glbl %>% 
+        mutate(indic_color = ifelse(indicator == "New HIV Infections", denim, burnt_sienna),
+               indic_fill = ifelse(indicator == "New HIV Infections", denim_light, burnt_sienna_light),
+               ft_value = ifelse(indicator == "New HIV Infections", value, -value)) %>% 
+        group_by(year) %>% 
+        mutate(gap = value - lag(value)) %>% 
+        ungroup() %>% 
+        ggplot(aes(x = year, y = ft_value, group = indicator, color = indic_color)) +
+        geom_area(aes(fill = indic_fill), alpha = 0.75) +
+        geom_line(size = 1) +
+        geom_line(aes(y = gap), color = "white", size = 0.75) +
+        geom_hline(yintercept = 0, color = grey90k, size = 0.75)+
+        geom_text(data = . %>% filter(year == max(year)), 
+                  aes(label = case_when(
+                    indicator == "New HIV Infections" ~ label_number_si(accuracy = 0.1)(value),
+                    TRUE ~ label_number_si()(value)
+                  )), 
+                  size = 12/.pt, hjust = -0.5, family = "Source Sans Pro SemiBold") +
+        geom_text(data = . %>% filter(indicator == "New HIV Infections", year == max(year)), 
+                  aes(y = gap, label = paste("Epidemic Control Gap\n", label_number_si()(gap))),
+                  size = 12/.pt, hjust = 1, vjust = 1.25, color = grey50k,
+                  family = "Source Sans Pro SemiBold") +
+        annotate(geom = "text", x = 2006, y = -1.95e6, label = anot_death,
+                 color = burnt_sienna, family = "Source Sans Pro", hjust = -0, parse = T) +
+        annotate(geom = "text", x = 2006, y = 2.4e6, label = anot_hiv,
+                 color = denim, family = "Source Sans Pro", hjust = -0,
+                 parse = T) +
+        scale_color_identity() +
+        scale_fill_identity() +
+        si_style_ygrid() +
+        scale_y_continuous(breaks = c(-2e6, -1e6, 0, 1e6, 2e6),
+                           labels = c(glue::glue("<span style= 'color:{burnt_sienna}'>-2M</i>"),
+                                      glue::glue("<span style= 'color:{burnt_sienna}'>-1M</i>"),
+                                      glue::glue("<span style= 'color:{grey90k}'></i>"),
+                                      glue::glue("<span style= 'color:{denim}'>1M</i>"),
+                                      glue::glue("<span style= 'color:{denim}'>2M</i>")
+                                      )
+                           ) +
+        scale_x_continuous(breaks = seq(1990, 2025, 5)) +
+        coord_cartesian(clip = "off") +
+        labs(x = NULL, y = NULL,
+             title = plot_title,
+             caption = "Source: 2021 AIDSinfo Global data on HIV epidemiology and response from UNAIDS") +
+        theme(axis.text.y = element_markdown(family = "Source Sans Pro", size = 12),
+              axis.text.x = element_markdown(family = "Source Sans Pro", size = 12),
+              plot.title = element_textbox_simple(margin = margin(5.5, 0, 0, 5.5)),
+              plot.subtitle = element_textbox_simple(family = "Source Sans Pro Light",
+                                                     margin = margin(5.5, 5.5, 5.5, 5.5)))
+      
+    
     
