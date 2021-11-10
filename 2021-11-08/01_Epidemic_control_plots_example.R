@@ -33,8 +33,10 @@
 
 
 # FETCH DATA ============================================================================
-  
+  #start_time <- Sys.time()
   df <- munge_unaids("HIV Estimates", "Integer")
+  #end_time <- Sys.time()
+
   
 # MUNGE DATA ============================================================================
 
@@ -70,7 +72,7 @@
     df_viz %>% 
     filter(pepfar == "PEPFAR") %>% 
     group_by(indicator, year, stat, sex, age) %>% 
-    summarise(total_value = sum(value, na.rm = T)) %>% 
+    summarise(value = sum(value, na.rm = T)) %>% 
     ungroup()
     
   # So now we have 3 datasets we can use to make differnt types of graphs.
@@ -122,7 +124,7 @@
     geom_line(size = 1) +
     scale_color_identity() +
     si_style_ygrid() +
-    scale_y_continuous(labels = label_number_si(), breaks = seq(0, 3e6, 0.5e6))
+    scale_y_continuous(labels = label_number_si(accuracy = 0.1), breaks = seq(0, 3e6, 0.5e6))
 
   # The plot is ok, nothing great. Let's add some filled circles at the beginning and end
   df_viz_glbl %>% 
@@ -150,7 +152,8 @@
   
   # So we can pass a value to the function to see what we get out
   scales::label_number_si()(1e6)
-  scales::label_number_si(accuracy = 0.1)(1e6)
+  scales::label_number_si(accuracy = 0.01)(1e6)
+  scales::label_number_si(accuracy = 0.1)(1000)
   
   
   # What if we preferred a financial times version of this plot?
@@ -199,6 +202,7 @@
     geom_area(aes(fill = indic_fill), alpha = 0.75) +
     geom_line(size = 1) +
     geom_line(aes(y = gap), color = "white", size = 0.75) +
+    geom_hline(yintercept = 0, color = grey90k, size = 0.75)+
     geom_text(data = . %>% filter(year == max(year)), 
               aes(label = case_when(
                 indicator == "New HIV Infections" ~ label_number_si(accuracy = 0.1)(value),
@@ -209,12 +213,48 @@
               aes(y = gap, label = paste("Epidemic Control Gap\n", label_number_si()(gap))),
               size = 12/.pt, hjust = 1, vjust = 1.25, color = grey50k,
               family = "Source Sans Pro SemiBold") +
-
     scale_color_identity() +
     scale_fill_identity() +
     si_style_ygrid() +
     scale_y_continuous(labels = label_number_si()) +
-    coord_cartesian(clip = "off") +
+    scale_x_continuous(limits = c(1990, 2021))+
+    coord_cartesian(clip = "on") +
     labs(title = "TO BE COMPLETED WITH TITLE INTEGRATING LEGEND", x = NULL, y = NULL)
   
+  # Make it a function to take different data frames
+  
+    epi_plot <- function(df){
+      df %>% 
+        mutate(indic_color = ifelse(indicator == "New HIV Infections", denim, burnt_sienna),
+               indic_fill = ifelse(indicator == "New HIV Infections", denim_light, burnt_sienna_light),
+               ft_value = ifelse(indicator == "New HIV Infections", value, -value)) %>% 
+        group_by(year) %>% 
+        mutate(gap = value - lag(value)) %>% 
+        ungroup() %>% 
+        ggplot(aes(x = year, y = ft_value, group = indicator, color = indic_color)) +
+        geom_area(aes(fill = indic_fill), alpha = 0.75) +
+        geom_line(size = 1) +
+        geom_line(aes(y = gap), color = "white", size = 0.75) +
+        geom_hline(yintercept = 0, color = grey90k, size = 0.75)+
+        geom_text(data = . %>% filter(year == max(year)), 
+                  aes(label = case_when(
+                    indicator == "New HIV Infections" ~ label_number_si(accuracy = 0.1)(value),
+                    TRUE ~ label_number_si()(value)
+                  )), 
+                  size = 12/.pt, hjust = -0.5, family = "Source Sans Pro SemiBold") +
+        geom_text(data = . %>% filter(indicator == "New HIV Infections", year == max(year)), 
+                  aes(y = gap, label = paste("Epidemic Control Gap\n", label_number_si()(gap))),
+                  size = 12/.pt, hjust = 1, vjust = 1.25, color = grey50k,
+                  family = "Source Sans Pro SemiBold") +
+        scale_color_identity() +
+        scale_fill_identity() +
+        si_style_ygrid() +
+        scale_y_continuous(labels = label_number_si()) +
+        coord_cartesian(clip = "off") +
+        labs(title = "TO BE COMPLETED WITH TITLE INTEGRATING LEGEND", x = NULL, y = NULL)
+    }
+
+    epi_plot(df_viz_glbl)  
+
+    epi_plot(df_viz_pepfar)    
     
