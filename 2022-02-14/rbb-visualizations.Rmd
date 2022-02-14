@@ -1,7 +1,11 @@
 ---
-title: "RBB - Visualizations"
-author: "A.Chafetz"
+layout: "post"
+title: "RBBS - 2 Visualizations"
 date: "2022-02-14"
+author: "Aaron Chafetz"
+categories: [corps, rbbs]
+tags: [r]
+thumbnail: "20220214_rbbs_2-visualization.png"
 output: html_document
 ---
 
@@ -11,9 +15,19 @@ knitr::opts_chunk$set(echo = TRUE,
                       fig.height = 3, fig.width = 6,
                       fig.retina = 2)
 ```
-
-### Objectives
+## RBBS 2 - Visualization
 For our R Building Blocks session today, we will be kicking everything off and giving a quick run down of R and getting a sense of how plotting with in R with the `ggplot` package. This session is modeled after [Chapter 3 of R for Data Science](https://r4ds.had.co.nz/data-visualisation.html).
+
+### Learning Objectives
+  - Become familiar with the RStudio IDE
+  - Understand the basic framework to build a plot
+  - Know what aesthetics are
+  - Understand the difference between adding aesthetics within and outside of `aes()`
+  - Able to create small multiples
+  - Understand how to apply themes and styles
+
+### Recording
+You can use this link to access today's recording.
 
 ### Setup
 For these sessions, we'll be using RStudio which is an IDE, "Integrated development environment" that makes it easier to work with R. For help on getting setup and installing packages, please reference [this guide](https://usaid-oha-si.github.io/corps/rbbs/2022/01/28/rbbs-0-setup.html).
@@ -24,12 +38,25 @@ RStudio may seem imposing at first, but in no time you'll know where everything 
 ![RStudio IDE](rstudio_ide.png)
 
   - Source: this box won't be here when you first open RStudio. If you go to File > New File > R Script, you will see this box. This is where you can write/save or open your R scripts. 
-  - Console: below Source, you will have your console. This is where all your R code are excuted and where the outputs are displayed. If you want to run a line as a one off, you can write it here.
+  - Console: below Source, you will have your console. This is where all your R code is excuted and where the outputs are displayed. If you want to run a line as a one off, you can write it here. There is an tab here called Terminal, which is where you can run code through the command line, git for example. 
   - Environment - moving to the upper right hand corner, you have your environment tab. This box contains all the datasets or objects you have stored in your current working session. 
   - Catch All - this last box has a lot of different features. You can see a number of tabs, which allow you to expore your directories/files, this is where your graphs will print, and where the help files are located.
 
+### Setting up your global options
+Right out of the gate, we want to adjust some default option in your RStudio. To access these, in the menu bar at the top, navigate to Tools > Global Options. It's best practice to start with a clean R session each time you load up RStudio, so we want to make the following changes:
+
+  - Uncheck "Result most recent opened project at startup"
+  - Unckeck "Restore .RData into Workspace at startup"
+  - Change dropdown to "Never" for "Save workspace to .RData on exit"
+  - Uncheck "Always save history (even when not saving .RData)
+  
+![RStudio Global Options](rstudio_options.png)
+
 ### Loading packages 
-With a sense of the IDE, we're ready to start working. Open up a new script if you don't have one open (File > New File > R Script or CTRL + SHIFT + N). In there, you will want to add the following code to load the libraries that we're going to use for this session (see [this guide](https://usaid-oha-si.github.io/corps/rbbs/2022/01/28/rbbs-0-setup.html) for help on installing packages). To run code from the console, you will hit CTRL + ENTER. This will run the current line your cusor is on. To run multiple lines, you will highlight those lines and then hit CTRL + ENTER.
+Proprietary programs like Excel, Tableau, or Stata, build in and maintain all of the  functions into the software. With open-source packages, on the other hand, we need to load different libraries or packages that are written by other organization or individual users. This structure allows different users to provide specific "solutions" to a problem. For example, one the packages we'll use today is called `ggplot2`, which is all about visualization. A a packge is a collection of functions. If we wanted to run a time series regression or do text analysis, we would need to install and load different packages created by other users. There are lots and lots of packages out there and we will keep largely to those that are in the ["tidyverse"](https://www.tidyverse.org/), a set of packages "share an underlying design philosophy, grammar, and data structures" maintained mostly by "super developers" at RStudio. The other set of packages we'll use and promote are those [we have build in OHA](https://usaid-oha-si.github.io/tools/) and solve issues we routinely face with workflow and data. 
+
+With a sense of the IDE and what packages are, we're ready to start working. Open up a new script if you don't have one open (File > New File > R Script or CTRL + SHIFT + N). In there, you will want to add the following code to load the libraries that we're going to use for this session (see [this guide](https://usaid-oha-si.github.io/corps/rbbs/2022/01/28/rbbs-0-setup.html) for help on installing packages), noting that packages have to be installed in order to be loaded. To run code from the console, you will hit CTRL + ENTER. This will run the current line your cursor is on. To run multiple lines, you will highlight those lines and then hit CTRL + ENTER. You can also run the entire script by clicking the “Source” button on the top right corner, or run highlighted lines by clicking “Run.” 
+
 
 ```{r}
 library(tidyverse) #install.packages("tidyverse")
@@ -39,16 +66,21 @@ library(scales) #install.packages("scales")
 library(glitr) #remotes::install_github("USAID-OHA-SI/glitr", build_vignettes = TRUE)
 ```
 
-## Viewing the data
-The dataset we're using today is stored in the `glitr` package. It's a masked HFR dataset that has information for FY50 on multi-month dispensing, MMD. Let's take a look at the data using `glimpse()` and then `View()`. *If you are getting an error, make sure you reinstall `glitr` using the code in the section about
+### Viewing the data
+The dataset we're using today is stored in the `glitr` package. It's a masked HFR dataset that has information for FY50 on multi-month dispensing, MMD. Let's take a look at the data using `glimpse()` and then `View()`. *If you are getting an error, make sure you reinstall `glitr` using the code in the section about*
 
-```{r}
-#store the dataset as an object in your Global Environment
-hfr_mmd <- hfr_mmd
+```{r, eval=FALSE}
+#see what datasets exist in the glitr package
+data(package = "glitr")
 ```
 
 ```{r}
-#prints out a previous with your indicators vertically (with type) and data runs horizontally
+#load the dataset in your Global Environment
+data(hfr_mmd)
+```
+
+```{r}
+#prints out a preview of yoru data; indicators run vertically (with type) and data runs horizontally
 glimpse(hfr_mmd)
 ```
 ```{r, eval = FALSE}
@@ -56,7 +88,7 @@ glimpse(hfr_mmd)
 View(hfr_mmd)
 ```
 
-Each row is a distinct reporting period (date:hfr_pd) with information on where the data were reported (operatingunit:pnsu), by whom (mech_code) and how much (tx_curr:share_tx_mmd.o3mo). For more information on the dataset, we can use the `?` to see the documentation through a "help" file. This function is extremely useful for getting help files. 
+Each row is a distinct reporting period (contained in the variables `date`, `fiscal_year`, and `hfr_pd`) with information on where the data were reported (contained in the variables `operatingunit` through `psnu`, which we can write `operatingunit:pnsu`), by whom (`mech_code`) and the values measured for number/share of individuals on treatment and multi-month dispensing (MMD) (`tx_curr:share_tx_mmd.o3mo`). For more information on the dataset, we can use the `?` to see the documentation through a "help" file. The `?` is extremely useful for getting help files across all functions. 
 
 ```{r, eval = FALSE}
 #get help with ?[function] or place your cursor on the function and hit F1
@@ -65,7 +97,7 @@ Each row is a distinct reporting period (date:hfr_pd) with information on where 
 ### Plotting
 Great, we have our data, now we can move onto start plotting. To plot our data, we're going to a package called `ggplot2` which is part of the Tidyverse and installed/loaded with `tidyverse`.
 
-Creating a plot with `ggplot2` is simply about providing some basic information and building layers as you go. We always will start with `ggplot()` to create a coordinate system and then add on a number of mapping arguments or layers. So we are going to pass the dataset into `ggplot()` and we will start by creating a scatter plot using `geom_point()`. In addition to passing in the dataset, we need to provide the function with what we want on the x and y axis.
+Creating a plot with `ggplot2` is simply about providing some basic information and building layers as you go. We always will start with `ggplot()` to create a coordinate system and then add on a number of mapping arguments or layers. For `ggplot2` we can stack those layers by using the `+` sign at the end of each line.  So we are going to pass the dataset into `ggplot()` to start.  In addition to passing in the dataset, we need to provide the function with what we want on the x and y axis. We will start by creating a scatter plot using `geom_point()`. **We will want to start working with the code in our Script in the IDE, as opposed to the Console, to make it easier to run lines, make small tweaks, and rerun again.**
 
 ```{r}
 ggplot(data = hfr_mmd) +
@@ -76,12 +108,12 @@ Et voila, we have a plot! Each of those points is a site in a given month associ
 
 #### Exercises
   1.  How many rows are in `hfr_mmd`?
-  1.  Create a plot to explore the relationship between patient volume (`tx_curr`) and share on over 3 months of treatment dispensing (`share_tx_mmd.3mo`). Looking at the help file and the plot, what makes this plot not very telling?
+  1.  Create a plot to explore the relationship between patient volume (`tx_curr`) and share on over 3 months of treatment dispensing (`share_tx_mmd.3mo`). Looking at the help file and the plot, what makes this plot not very useful to drawing insights from?
 
 ### Aesthetic mapping
-We have developed a basic plot with two lines of code. It's not very telling, but we can start to add layers of complexity through aesthetics. Wickham and Grolemond describe aesthetics as "An aesthetic is a visual property of the objects in your plot. Aesthetics include things like the size, the shape, or the color of your points."
+We have developed a basic plot with two lines of code. It's not very telling, but we can start to add layers of complexity through aesthetics. Wickham and Grolemond describe aesthetics as "An aesthetic is a visual property of the objects in your plot. Aesthetics include things like the size, the shape, or the color of your points" in addition to your data location (x and y coordinates).
 
-On helpful aesthetic to apply to this plot is color. We can try adding our `y` value as the `color` as well and see what happens.
+One helpful aesthetic to apply to this plot is color. We can try adding our `y` value as the `color` as well and see what happens.
 
 ```{r}
 ggplot(data = hfr_mmd) +
@@ -113,37 +145,41 @@ ggplot(data = hfr_mmd) +
              alpha = .4)
 ```
 
-What is interesting about the `alpha` aesthetic? It's outside our `aes()` mapping. What is the difference? By applying an aesthetic outside of `aes()`, you are manually adjusting the aesthetic, applying it to ALL the data values in that geom.
+Let's take a second to review the code we just ran and the plot output. What is interesting about the `alpha` aesthetic? In this example `alpha` sits outside our `aes()` mapping as a layer argument. By applying an aesthetic outside of `aes()`, we are manually applying the same aesthetic to all the data values in that geom as compared with `size`, in the example, which is scaling each point based on it's value for `tx_curr`.
 
 One last feature to flag is that we can also pass in logic into the aesthetics. Maybe we want to highlight the data points below 60%.
 
 ```{r}
 ggplot(data = hfr_mmd) +
-  geom_point(mapping = aes(x = date, y = share_tx_mmd.o3mo, 
-                           color = share_tx_mmd.o3mo >= .6, size = tx_curr),
-             alpha = ifelse(hfr_mmd$share_tx_mmd.o3mo >= .6, .2, 1))
+  geom_point(mapping = aes(x = date, y = share_tx_mmd.o3mo,
+                           color = share_tx_mmd.o3mo >= .6),
+             alpha = .4)
 ```
 
-In the plot above, we used boolean logic for the `color`, so TRUE and FALSE created different colors. And for the alpha, we passed in the vector from the dataframe to say if the value meets the threshold of 60%, use this value for `alpha`, otherwise use this other value.
+In the plot above, we used boolean logic for the `color`, so TRUE and FALSE created different colors. 
 
 #### Exercises
-  1. Using a similar plot from above where `x = date` and `y = share_tx_mmd.o3mo`, change all the data points to size 6. Repeat this and change all the colors to of the points to purple.
   1. What is wrong with the code below? Why are the points not green?
     ```
     ggplot(data = hfr_mmd) + geom_point(mapping = aes(x = date, y = share_tx_mmd.o3mo, color = "green"))
     ```
+  1. Using a similar plot from the first exercise, change all the data points to size 6. Repeat this and change all the colors to of the points to purple.
   1. Use the `shape` aesthetic to change the shape based on `snu1`.
   
 
-### FACETING
-In addition breaking out characteristics of the data with aesthetic mapping, we can also separate the main plot in small multiples, or facets. In one of the examples above, we applied a different color to each PSNU to differentiate the values. Rather than having all of these values on the same plot, we can break it into small multiples using `facet_wrap()`.
+### Faceting
+In addition to breaking out characteristics of the data with aesthetic mapping, we can also separate the main plot in small multiples, or facets. In one of the examples above, we applied a different color to each district (`psnu`) to differentiate the values. Rather than having all of these values on the same plot, we can break it into small multiples using `facet_wrap()`. 
+
+Wickham and Grolemund describe the structure of `facet_wrap` in [R for Data Science 3.5 Facets](https://r4ds.had.co.nz/data-visualisation.html#facets): 
+
+> To facet your plot by a single variable, use `facet_wrap()`. The first argument of `facet_wrap()` should be a formula, which you create with `~` followed by a variable name (here “formula” is the name of a data structure in R, not a synonym for “equation”). The variable that you pass to `facet_wrap()` should be discrete.
 
 ```{r}
 ggplot(data = hfr_mmd) +
   geom_point(mapping = aes(x = date, y = share_tx_mmd.o3mo)) +
   facet_wrap(~psnu)
 ```
-No instead of one jumbled plot, we can view the trends by each district. The ordering here is alphabetically, which isn't terribly meaningful here. And the ordering is futher being messed up because it's interpreting Districts 10 and 11 coming after District 1 and before District 2. We can assign ordering to our faceting using a package in the `tidyverse` called `forcats`. A more meaningful ordering may be to order the districts by their over all (sum) TX_CURR. To do this, we'll wrap `psnu` in the last line within the `fct_reorder()` function.
+Now instead of one jumbled plot, we can view the trends by each district. The default ordering is alphabetical, which isn't terribly meaningful here. And the ordering is further being messed up because it's based on the first digit (i.e. 10 before 2). We can assign ordering to our faceting using a package in the `tidyverse` called `forcats`. A more meaningful ordering may be to order the districts by their over all (sum) TX_CURR. To do this, we'll replace `psnu` in the last line within the `fct_reorder()` function that contains `psnu`.
 
 ```{r}
 ggplot(data = hfr_mmd) +
@@ -176,27 +212,33 @@ ggplot(data = hfr_mmd) +
   geom_bar(mapping = aes(x = date))
 ```
 
-By using `geom_bar` we are getting a count of the number of rows that exist in the dataset. This could be useful for various purposes, but of more import to us is being able to sum up the values patients. 
+By using `geom_bar` we are getting a count of the number of rows that exist in the dataset - in this case collapsing over districts and mechanisms for each date. This could be useful for various purposes, but of more import to us is being able to sum up the total number of patient. 
 
 ```{r}
 ggplot(data = hfr_mmd) +
   geom_bar(mapping = aes(x = date, y = tx_curr), stat = "identity")
 ```
 
-A slightly simpler alternative to `geom_bar` is to use `geom_col`, which defaulted to `stat = "identity"` that you would have to otherwise specify to not get a count when using `geom_bar` 
+A slightly simpler alternative to `geom_bar` is to use `geom_col`, which defaulted to `stat = "identity"` that you would have to otherwise specify to not get a count when using `geom_bar`. The plot below is summing up `tx_curr` over each `date`, aggregating (or collapsing distinctions within) `psnu` and `mech_code`. 
 
 ```{r}
 ggplot(data = hfr_mmd) +
   geom_col(mapping = aes(x = date, y = tx_curr))
 ```
+The other nice aspect about using `geom_col` is that is allows us to easily flip our x and y axis.
 
-We can also quickly tranform this into a stacked bar chart by applying a color fill.
+```{r}
+ggplot(data = hfr_mmd) +
+  geom_col(mapping = aes(x = tx_curr, y = psnu))
+```
+
+We can also quickly transform this into a stacked bar chart by applying a color fill. The fill helps highlight again that `geom_col` is summing up totals across multiple features, like region (`snu1`) in this case/
 
 ```{r}
 ggplot(data = hfr_mmd) +
   geom_col(mapping = aes(x = date, y = tx_curr, fill = snu1))
 ```
-Stacked bar charts aren't ideal. We could create a small multiples plot like we did above, which is preferable, but could also just dodge the columns by changing the `position`.
+Stacked bar charts aren't ideal (we won't get into principles of data visualization here, but if you're interested, you can check out [Steve Wexler's quick talk here](https://www.youtube.com/watch?v=ClMqlGT4V-M)). An alternative would be to create a small multiples plot like we did earlier, which is preferable, but could also just dodge the columns by changing the `position`.
 
 ```{r}
 ggplot(data = hfr_mmd) +
@@ -214,7 +256,7 @@ ggplot(data = hfr_mmd) +
              position = "jitter")
 ```
 
-You can even refine the radius of the jittering by using a function, `position_jitter()`
+You can even refine the radius of the jittering by using a function, `position_jitter()`, allowing us to do a few things like specifying the height and width of the radius of the jitter from the action value as well as to sent a seed so the jitter is not random each time it's run.
 
 ```{r}
 ggplot(data = hfr_mmd) +
@@ -225,20 +267,27 @@ ggplot(data = hfr_mmd) +
 ```
 
 #### Exercises
-  1. Plot a bar graph of TX_CURR over time. Replace `fill = snu1` with `color = snu1` in the aesthetics. What changes in your plot?
   1. Using `geom_bar` graph the number of observations for each period (`date`).
+  1. Plot a bar graph of TX_CURR over time. Rather than using `fill = snu1`, use `color = snu1` in the aesthetics instead. What changes in your plot?
 
 ### Additional Thoughts
 Before closing the book on the basics of plotting using `ggplot`, I wanted to delve hit on a few things.
 
-First up is structure. So far, we have passed in data to `geom_` and then mapped aesthetics. The great thing is that you can keep using that simple structure and layering on more and more geoms and aesthetics. For example, we could add in a `geom_line` to connect the points and even add a static threshold line, `geom_vline`, or even an area to highlight a particular period.
+First up is structure. So far, we have passed in data to `geom_` and then mapped aesthetics. The great thing is that you can keep using that simple structure and layering on more and more geoms and aesthetics. For example, we could add in a `geom_line` to connect the points and even add a static threshold line, `geom_vline`, or even an area to highlight a particular period. `annotate`.
 
 ```{r}
 ggplot(data = hfr_mmd,
-       mapping = aes(x = date, y = share_tx_mmd.o3mo)) +
-  geom_line(mapping = aes(group = mech_code), alpha = .4) +
+       mapping = aes(x = date, y = share_tx_mmd.o3mo)) + #global aes to apply to all geom
+  annotate(geom = "rect", #type of annotation geometry
+           xmin = as.Date("2050-04-01"), #box x coordinates (min)
+           xmax = as.Date("2050-06-01"), #box x coordinates (max)
+           ymin = -Inf, ymax = Inf, #box y coordinates to run length of plot
+           alpha = .2) +
+  geom_line(mapping = aes(group = mech_code), #lines need to know how to connect points
+            alpha = .4) +
   geom_point(alpha = .4) +
-  geom_hline(yintercept = .6, color = "red", linetype = "dashed") +
+  geom_hline(yintercept = .6, color = "red", 
+             linetype = "dashed") + #dashed line
   facet_wrap(~psnu)
 ```
 
@@ -246,16 +295,21 @@ In addition to layer on geoms and facets, we can also clean up the x and y scale
 
 ```{r}
 ggplot(data = hfr_mmd) +
-  geom_point(mapping = aes(x = date, y = share_tx_mmd.o3mo, 
-                           color = share_tx_mmd.o3mo, size = tx_curr),
+  geom_point(mapping = aes(x = date, 
+                           y = share_tx_mmd.o3mo, 
+                           color = share_tx_mmd.o3mo, 
+                           size = tx_curr),
              alpha = .4) +
-  scale_x_date(date_breaks = "1 month", date_labels = "%b") +
-  scale_y_continuous(labels = percent) +
-  scale_size(labels = comma) +
-  scale_color_continuous(type = "viridis", labels = percent, guide = "none") +
+  scale_x_date(date_breaks = "1 month", #date breaks on x axis 
+               date_labels = "%b") + #for conversions run ?strptime 
+  scale_y_continuous(labels = percent) + #in the legend, display values as %
+  scale_size(labels = comma) + #apply comma separator to legend
+  scale_color_continuous(type = "viridis", #color palette
+                         labels = percent, #in the legend, display values as %
+                         guide = "none") + #remove legend for color
   labs(x = "Reporting Period",
        y = "Patients on 3+ months of Rx",
-       size = "TX_CURR\n volume",
+       size = "TX_CURR\n volume", #legend title with line break (\n)
        title = "LARGERS DISTRICTS HAVE MORE PATIENTS ON +3 MONTHS OF RX",
        caption = "Source: HFR FY50")
 ```
@@ -276,11 +330,11 @@ ggplot(data = hfr_mmd) +
        size = "TX_CURR\n volume",
        title = "LARGERS DISTRICTS HAVE MORE PATIENTS ON +3 MONTHS OF RX",
        caption = "Source: HFR FY50") +
-  theme_minimal() +
-  theme(legend.position = "none",
-        plot.title.position = "plot",
-        axis.text = element_text(color = "gray60"),
-        plot.title = element_text(face = "bold"))
+  theme_minimal() + #change the plot theme
+  theme(legend.position = "none", #no legend
+        plot.title.position = "plot", #move the title to right align
+        axis.text = element_text(color = "gray60"), #change x/y axis text color
+        plot.title = element_text(face = "bold")) #change title to be bold
 ```
 
 So far we have just been using `glitr` package to access the `hfr_mmd` data, but the package's function is to apply the [OHA Style Guide](https://issuu.com/achafetz/docs/oha_styleguide) on top of `ggplot`. Since part of the style is a non-standard R font, I am going to load an extra package to load the font. For more information on how to use `extrafont` the first time and install Source Sans Pro, see [this reference](https://usaid-oha-si.github.io/glitr/index.html#what-the-fnt).  
@@ -295,7 +349,7 @@ ggplot(data = hfr_mmd) +
   geom_point(mapping = aes(x = date, y = share_tx_mmd.o3mo, 
                            color = share_tx_mmd.o3mo, size = tx_curr),
              alpha = .4) +
-  scale_x_date(date_breaks = "1 months", date_labels = "%b") +
+  scale_x_date(date_breaks = "1 months", date_labels = "%b") + 
   scale_y_continuous(labels = percent) +
   scale_size(labels = comma) +
   scale_color_si(palette = "scooters", guide = "none") +
