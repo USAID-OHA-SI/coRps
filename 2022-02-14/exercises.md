@@ -1,4 +1,4 @@
-### 1. Exercises
+#### 1. Exercises
 1.  How many rows are in `hfr_mmd`?
 2.  Create a plot to explore the relationship between patient volume (`tx_curr`) and share on over 3 months of treatment dispensing (`share_tx_mmd.3mo`). Looking at the help file and the plot, what makes this plot not very useful to drawing insights from?
 
