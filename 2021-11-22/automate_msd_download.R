@@ -54,7 +54,7 @@
 
   #download MSDs to data folder
   items %>%
-    filter(str_detect(item, "PSNU_IM_FY19.*[:digit:]\\.zip|NAT_SUBNAT|OU_IM|Financial.*\\.zip")) %>%
+    filter(str_detect(item, "PSNU_IM_FY20.*[:digit:]\\.zip|NAT_SUBNAT|OU_IM|Financial.*\\.zip")) %>%
     distinct(path) %>%
     pull(path) %>%
     walk(~pano_download(item_url = .x,
