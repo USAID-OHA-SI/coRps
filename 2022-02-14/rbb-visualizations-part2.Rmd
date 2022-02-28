@@ -1,12 +1,12 @@
 ---
 layout: "post"
 title: "RBBS - 2 Visualizations, Part II"
-date: "2022-02-22"
+date: "2022-02-28"
 author: "Aaron Chafetz"
 categories: [corps, rbbs]
 tags: [r]
 thumbnail: "20220214_rbbs_2-visualization.png"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -30,6 +30,16 @@ You can use this link to access today's recording.
 ### Setup
 For these sessions, we'll be using RStudio which is an IDE, "Integrated development environment" that makes it easier to work with R. For help on getting setup and installing packages, please reference [this guide](https://usaid-oha-si.github.io/corps/rbbs/2022/01/28/rbbs-0-setup.html).
   
+### Load Packages
+
+```{r}
+library(tidyverse) #install.packages("tidyverse")
+```
+```{r, message=F}
+library(scales) #install.packages("scales")
+library(glitr) #remotes::install_github("USAID-OHA-SI/glitr", build_vignettes = TRUE)
+```
+
 ### Transformation
 Last session, we exclusively kept to plotting points, but can do things more sophisticated with the data. For the scatter plots we used, we took the the x and the y values mapped directly from our dataset. We can also used `ggplot` to transform our data, say creating a count or a sum, and displaying the output as a bar chart or histogram. 
 
