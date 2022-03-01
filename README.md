@@ -1,4 +1,4 @@
-<img src="https://user-images.githubusercontent.com/8933069/77067256-0ca28600-69bb-11ea-9143-e606f18ceeb1.png" alt="coRps" width="240" height="278"/>
+# coRps <img src='figures/logo.png' align="right" height="120" />
 
 
 ## About
