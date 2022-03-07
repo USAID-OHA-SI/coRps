@@ -1,0 +1,213 @@
+---
+layout: "post"
+title: "RBBS - 4 Tidy Data"
+date: "2022-02-28"
+author: "Karishma Srikanth"
+categories: [corps, rbbs]
+tags: [r]
+thumbnail: "20220307_rbbs_4-tidy.png"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning=F,
+                      fig.height = 3, fig.width = 6,
+                      fig.retina = 2)
+```
+
+## RBBS 4 - Tidy Data
+For our R Building Blocks session today, we will focus on understanding what tidy data is, why it matters, and how to use `tidyr` in R to wrangle data on your own. This session is modeled after [Chapter 12 of R for Data Science](https://r4ds.had.co.nz/data-visualisation.html).
+
+### Learning Objectives
+    - Learn what tidy data is and the importance of tidy data
+    - Learn how to recognize tidy vs. untidy data
+    - Use `tidyr` to wrangle data in R
+
+### Recording
+You can use [this link](https://drive.google.com/file/d/1i_zg4QpgtcxvK-w1QttSZzFHxp-pvuNA/view?usp=sharing) to access today's recording.
+
+### Setup
+For these sessions, we'll be using RStudio which is an IDE, "Integrated development environment" that makes it easier to work with R. For help on getting setup and installing packages, please reference [this guide](https://usaid-oha-si.github.io/corps/rbbs/2022/01/28/rbbs-0-setup.html).
+  
+### Load Packages
+
+Let's get started by loading some important packages. When we load the `tidyverse`, you'll notice that a couple other packages are being loaded as well, including `tidyr()`, the main set of tools to tidy data. We'll focus more in depth on how to use the `tidyverse` toolkit in next week's session.
+
+```{r}
+library(tidyverse) #install.packages("tidyverse")
+```
+```{r, message=F}
+library(scales) #install.packages("scales")
+library(glitr) #remotes::install_github("USAID-OHA-SI/glitr", build_vignettes = TRUE)
+library(glamr)
+library(here)
+library(readxl)
+
+```
+
+
+### Basics of Tidy Data
+
+In this session, we'll talk about organizing data in an efficient, reproducible, and collaborative way, known as Tidy Data. While this process takes some upfront work and deliberate thought about data structure, this work pays off today and in the long-run. By having data in a tidy format and utilizing the tool in the `tidyverse`, you'll spend less time working on and munging messy data and have more time to focus on the analytic questions.
+
+So what is tidy data?
+
+**Tidy data** is a standard way of mapping the meaning of a dataset to its structure. There are 3 central components to tidy data.
+
+  1. Each variable forms a column
+  2. Each observation forms a row
+  3. Each cell is a measurement
+
+Let's take a look at this visually using sample data from the `glitr` package with `glimpse()`, `head()`, and  `View()`.
+
+```{r}
+#load the dataset in your Global Environment
+data(hts)
+```
+
+
+
+```{r}
+#prints out a preview of your data; indicators run vertically (with type) and data runs horizontally
+glimpse(hts)
+
+head(hts)
+```
+```{r, eval = FALSE}
+#your traditional tabular view
+View(hts)
+
+
+```
+
+This is an example of a tidy dataset. Each row is a distinct reporting period (contained in the variable `period`) with information on where the data were reported (in `operatingunit`) and by whom (`primepartner`). Each column is a variable, showing testing indicators across the Modality/Age/Sex/Result disaggregations and the value in the `value` column.  For more information on the dataset, we can use the `?` to see the documentation through a "help" file. The `?` is extremely useful for getting help files across all functions. 
+
+### Data Structure
+
+Once we have the value, observation, and variable defined, we can start to talk more about how these elements are physically structured in the dataset. Dataset structure refers to the physical layout of the data, both in how it is physically structured and how it appears in the sheet when you open it. 
+
+Data CAN be structured in many ways, but ideally it is structured as either long or wide. 
+
+**Long (stacked/panel)** data stacks the data. For example, the measurement (period) in this dataset have been stored in a cell rather than a column name for `FY49` an `FY50`. Value refers to the number of individuals tested.
+
+
+```{r}
+#prints out a preview of your data; indicators run vertically (with type) and data runs horizontally
+
+head(hts)
+```
+
+**Wide** spreads the data out to the right with many columns. Here, each observation is based on a OU + primepartner + indicator + modality + period_type. Unit of measurement is the number of individuals tested in each quarter. We can use `tidyr::pivot_wider` to pivot this HTS data wide. 
+
+```{r}
+#Pivot data wide
+
+hts_wide <- hts %>% 
+  pivot_wider(names_from= period, values_from = value)
+
+head(hts_wide)
+```
+
+
+What are the advantages of working with **long data**? First, most visualization/statistical software/Excel is designed to work with long data. Long data can easily be filtered, pivoted, or analyzed. Row optimization facilitates analysis. 
+
+As a rule of thumb, if a column name contains data on which you wish to sort, then it should likely be stored in a cell instead of a column name.
+
+Sometimes, you’ll see a mixture of these two styles which is not ideal.
+
+#### Pivoting Data
+
+When you are pivoting a dataset, you are restructuring the physical layout into an manner. Stacking columns into new rows and creating new columns to collect the values that have been transposed. 
+
+The column headers are transposed into one column and the values are all stored in one column now, making the data tidy and easier to work with.
+
+The process of physically altering the layout of a dataset by stacking columns into new rows and creating new columns to collect the values that have been transposed. 
+
+NOTICE: once the date are pivoted to a long format, you can easily filter by the primepartner + period. In the WIDE data, if you are “filtering” on the quarter, you will be turning columns on and off. This is cumbersome if you have many columns and not always transparent. 
+
+To perform pivots in R, there are two primary functions:
+  
+  1. `pivot_longer()` - pivots your data long (stacked)
+  2. `pivot_wider()` - pivots your data wide (columns)
+
+### What about the MSDs?
+
+The MSDs are semi-tidy datasets rather than tidy. This was a conscious decision to strike a balance between row length and a full-long dataset. To play around with it, load the most recent OUxIM dataset.You can manually download it from [PEPFAR Panorama](https://www.pepfar-panorama.org/) or follow the steps in the `glamr` vignette, called ["Data Extraction from Panorama"](https://usaid-oha-si.github.io/glamr/articles/data-extraction-from-panorama.html). 
+
+Two features that are not tidy were (1) periods, which each their own column (qtr1, qtr2, qtr3, qtr4), and (2) categoryoptioncombos, which combined all the useful information like disaggregation, age, sex, status, etc.
+
+As such, if you were performing analytics on the MSD, you may find yourself having to pivot and reshape the data accordingly. Another helpful function built by SI is the `glamr::reshape_msd()` function in the `glamr` package, that transforms the MSD into a tidy format.
+
+
+### Working with Messy Data in R
+
+Now that we know what a tidy dataset looks like, let's dive deeper into some messy data to see if we can identify some key threats to tidy data. The goal of this exercise is not to learn all the ways to tidy the data in R just yet, but rather to give you an intuition about what the barriers to tidyness are and how we could think through fixing these. 
+
+#### UNAIDS Data
+
+Let's start with the UNAIDS 2020 Estimate data, which we often use within our office to answer analytic questions about epidemic control and progress to the 90's/95's goals. Our team munged and tidied this data this year and a detailed understanding of the dataset and data cleaning process can be found on the the [MindTheGap website](https://usaid-oha-si.github.io/mindthegap/).
+
+We'll read in the data in the same format as how it exists on our Google Drive (feel free to download as an .xlsx file and use `readxl::read_xlsx()` or pull directly from Google Drive with `googlesheets4::read_sheet()`), and use the `View()` function to see how the data are imported in R.
+
+```{r, message=FALSE}
+
+file_name <- "HIV_estimates_from_1990-to-present.xlsx"
+
+df <-  readxl::read_xlsx(
+      path = here("2022-03-07",file_name),
+      sheet = 1)
+
+view(df)
+
+head(df, n = 15L)
+
+```
+
+We need to skip quite a few rows, 5 to be exact, since our table header start on row 6. However, we have another issue here, where the indicator is encoded in row 5 (Adults (15-49) prevalence (%)) but the breakdown in estimate and confidence interval is on row 6. As such, if we skip 5 rows with `readxl::read_xlsx(path = here("2022-03-07",file_name), sheet = 1, skip = 5)`, we will lose the meaning of the indicators.
+
+To circumvent this, our team created a indicator names cross walk when we began tidying up this data. For the purpose of this session, the detailed process of how we renamed and joined these elements is less important - for now, let's just take a look at the dataset after addressing the indicator name issue and identify what is left to address to make this data tidy.
+
+```{r, message=FALSE}
+
+file_name <- "unaids-semi-clean.csv"
+
+
+df_semi <-  read_csv(
+      file = here("2022-03-07",file_name))
+
+
+view(df_semi)
+
+head(df_semi, n = 15L)
+
+```
+
+#### Exercises
+  1. Using `View()`, what are some of the elements of this dataset that make it un-tidy?
+  2. How would you begin to think through addressing some of these elements to make the data tidy?
+  
+Another useful function in the `tidyr` package is the `separate` function. As you can see, our UNAIDS data has the age, sex, and statistic type encoded into the indicator name. We can first pivot the data long to have one stacked column for the indicator using `pivot_longer()` and then use the `separate` function to split the variables by the underscore into multiple different columns (indicator, age, sex, and stat)
+
+```{r, message=FALSE}
+
+df_semi %>% 
+  tidyr::pivot_longer(-c(year, iso, country),
+                        names_to = c("indicator")) %>%
+    tidyr::separate(indicator, sep = "_", into = c("indicator", "age", "sex", "stat")) %>% 
+  head()
+
+```
+  
+While this is not perfectly tidy, we are getting closer. There are still a couple other elements to address to tidy this up in its entirety, including:
+
+  1. Encoding the regions as their own variable rather than a row
+  2. Addressing special characters (< or >)
+  3. Addressing missing values
+  4. Breaking down nested columns for stat type
+  
+For a more in-depth dive in how to tidy the UNAIDS data, check out our [CoRps session](https://github.com/USAID-OHA-SI/coRps/blob/main/2021-11-08/02_munge_unaids_function_example.R) about `munge_unaids`, the cleaning and tidying function that we built to tidy this data.
+  
+### Next Up
+
+This session, we covered the foundational elements of tidy data from Chapter 12 of R for Data Science. While this session offers a glimpse of how to tidy data in R, we'll dive deeper next week into learning the ins and outs of Base R and the TidyVerse.
