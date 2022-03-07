@@ -211,3 +211,4 @@ For a more in-depth dive in how to tidy the UNAIDS data, check out our [CoRps se
 ### Next Up
 
 This session, we covered the foundational elements of tidy data from Chapter 12 of R for Data Science. While this session offers a glimpse of how to tidy data in R, we'll dive deeper next week into learning the ins and outs of Base R and the TidyVerse.
+
