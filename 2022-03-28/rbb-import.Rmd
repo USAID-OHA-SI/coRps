@@ -1,0 +1,256 @@
+---
+title: "rbb-import"
+author: "Aaron Chafetz"
+date: "2022-03-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning=F,
+                      fig.height = 3, fig.width = 6,
+                      fig.retina = 2)
+```
+## RBBS 6 - Importing Data
+
+For our R Building Blocks session today, we covering different methods and parameters for importing data into R. This session covers much of the content found in [Chapter 11 of R for Data Science](https://r4ds.had.co.nz/data-import.html) and focuses on using the [`readr` package](https://readr.tidyverse.org/).
+
+### Learning Objectives
+
+  - Know what different packages exist to read in data and when to use them
+  - Understand key parameters useful across different packages
+  - Develop an approach to reviewing and knowing how to import data
+
+### Recording
+
+You can use this link to access today's recording.
+
+### Materials
+
+<iframe src="https://docs.google.com/presentation/d/e/2PACX-1vR7h1Msf1U62kVqdqSL_forq65pv29BmLvnEqQV-llGAQ3RpppwsPY2YkkZ7GIb5x2kH1MT14n5yDQS/embed?start=false&loop=false&delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+
+### Setup
+
+For these sessions, we'll be using RStudio which is an IDE, "Integrated development environment" that makes it easier to work with R. For help on getting setup and installing packages, please reference [this guide](https://usaid-oha-si.github.io/corps/rbbs/2022/01/28/rbbs-0-setup.html).
+
+### Introduction
+
+Over the last few sessions, we've covered the [principles of tidy data](https://usaid-oha-si.github.io/corps/rbbs/2022/03/07/rbb-tidydata.html) and gone over key functions to work with data in base R and the [tidyverse](https://usaid-oha-si.github.io/corps/rbbs/2022/03/21/rbb-tidyverseintro.html). Before you can really apply these tools, you have to be able to know how to bring data into R. If we look at the graphic from the last session, we can see that import is the first step in our data exploration journey and we will rely heavily on `reader`, but we will also cover some other tools along the way.
+
+A quick aside as well, in our office as is true many places, the default way of sharing data is often in Excel spreadsheets. When it comes to R and most stats packages and programming languages, we can read in Excel sheets, but the preference is to use csv files, where csv stands for comma separated value, since they:
+
+  - do not need a specific platform or software to open; 
+  - are faster, less complicated (no user formatting stored); and 
+  - typically consumes less memory.
+  
+### Load packages
+
+```{r}
+library(tidyverse) #install.packages("tidyverse")
+```
+
+```{r, message=F}
+library(readxl)
+library(googlesheets4) #install.packages("googlesheets4")
+library(vroom) #install.packages("vroom")
+library(gophr) #remotes::install_github("USAID-OHA-SI/gophr", build_vignettes = TRUE)
+```
+
+
+### Reading in data
+
+Let's start by reading in a basic csv file. The best first step when reading in any file is to inspect it first to understand its structure and any possible complications. Since this the file is a csv, you can preview it in a text editor or open it up in Excel. Let's open up this file ([simple.csv](https://github.com/USAID-OHA-SI/coRps/blob/main/2022-03-28/simple.csv)) and review it contents.
+
+![csv preview in Excel](20220328_rbbs_csv-preview.png)
+
+By opening up in Excel and inspecting it, we can see that the contents are tidy - there are 6 columns and 27 rows. The data appear to be recording monthly testing (HTS_TST) at a specific site by a specific mechanism and there are no missing values.
+
+Now that we have reviewed the data, we can import into R. The base R function to read in data is `read.table()`, which "reads a file in table format and creates a data frame from it." Instead of using base R, we are going to take advantage of `readr` from the tidyverse. In R for Data Science, Wickham and Grolemund explain:
+
+>>> Compared to read.table and its derivatives, readr functions are: 
+  1. ~ 10 times faster 
+  2. Return tibbles 
+  3. Have more intuitive defaults. No row names, no strings as factors.
+
+Let's give `read_csv()`, "a special [case] of the more general `read_demin()` a go. We just need to provide the file path from our working directory to the file and pass that into the first parameter (`file`) in `read_csv()`.
+
+```{r}
+read_csv("2022-03-28/simple.csv")
+```
+The output displayed in the Console provide us some useful information about the file. We can see the deliminter here was a comma, which we already knew because it was a csv file. If we had used `read_delim`, the function would have guessed the deliminter and displayed it here. The next set of information in the output shows each of the columns and what their column type is. For example, we can see `operatingunit` is being read in as a `chr` or character and `value` is being read in as `dbl` or double/numeric. And then lastly, we can see that `read_csv()` provides a tibble back from what it read in (as well as it's size 27 x 6).
+
+We simply read in the file, but didn't save it anywhere so it will show up in our Console, but not appear in the Environment to use later. If we did want to use this data, we would need to assign it to an object.
+
+```{r}
+df_months <- read_csv("2022-03-28/simple.csv")
+```
+### Export
+
+The `readr` package is also equipt with functions to let us export the data that we have read in (and presumability munged or modeled). We can use `write_csv` to save the data.
+
+```{r eval=F}
+write_csv(df_months, "2022-03-28/simple_out.csv", na = "")
+```
+
+The last parameter in the function about, `na = ""`, allows us to tell R how to store missing values in the output. In this call, missing cells will appear as blank cells in the csv output.
+
+### Diving into the parameters
+
+There are a number of options or parameters for `read_csv()` that we can inspect. We won't go through them all, but it's useful to highlight a few of the ones you may use more frequently. These parameters are mimicked in other import functions, so once you have these down, you can apply them in the different packages/functions as you need. 
+
+![read_csv options](20220328_rbbs_read-csv-options.png)
+
+It's important to be aware of the different options as it can make your life much easier when you are faced with a problematic file to import in the future. 
+
+### Parsing
+
+Importing with `readr` is pretty smart, but it's not always perfect. Usually it does a pretty good job identifying the correct column types (i.e. is it a date? character? logical? double?), but you can actually provide the precise column type to the `col_types` parameter as an option.  Here are the different column times you can pass in:
+
+  - c = character
+  - i = integer
+  - n = number
+  - d = double
+  - l = logical
+  - f = factor
+  - D = date
+  - T = date time
+  - t = time
+  - ? = guess
+  - _ or - = skip
+  
+I'm not doing `readr`'s ability to guess justitice, so I would highly recommend reading the [parsing section in Chapter 11 of R4DS](https://r4ds.had.co.nz/data-import.html#parsing-a-vector). 
+
+I typically see an issue when there are thousands of lines in a column that are missing and then there are values at the bottom. We can replicate this by forcing `read_csv()` to only guess base on the first. Let's look at the `missing.csv` dataset, which has many of the value rows missing, and just guess based on the first few lines.
+
+```{r}
+read_csv("2022-03-28/missing.csv", guess_max = 5)
+
+readr::problems()
+```
+
+We can see that if we just use the first 5 lines to guess what the column type is, it expected `value` to be a logical, when in fact there are numeric values in the column, which we can see when we print out the errors.  
+
+Let's take a look at another example of guessing and column types before we get in the resolution. If we look at back our `df_months`, we can see that `mech_code` was read in as a double. Technically yes, `mech_code` is comprised of digits, but it not a value we ever want to sum or use as a filter (i.e. filter where `mech_code` is greater than 12000).  
+
+```{r}
+str(df_months)
+```
+We can change the column type to avoid any errors with using it in the dataset and allow us to take advantage of `tidyselect` statements using `where(is.double)`, which should just specify your targets, results, and cumulative (assuming we also change `fiscal_year` in the MSD to be stored as an integer)). We can specify column types by passing a list into `col_types` to tell it how you want the column read in. Let's adjust `mech_code` to be a character ("c" or `col_character`).
+
+```{r}
+ read_csv("2022-03-28/simple.csv",
+          col_types = cols(mech_code = "c"))
+```
+
+Sometimes the best strategy when there are issues is to read in all the data as characters and then diagnose when in R. Rather than specify each column, you can define a default.
+
+```{r}
+ read_csv("2022-03-28/simple.csv",
+          col_types = cols(.default = "c"))
+```
+
+### Different packages and functions
+
+So far, we've justed used `readr` to read in and write csv files. This package can usually take us pretty far, but we can get data in a variety of formats and sizes. So let's look at a table of some other functions and when we should use them over `read_csv`.
+
+
+| package       | function          | description                                 |
+|---------------|-------------------|---------------------------------------------|
+| readr         | read_csv()        | read in small/medium sized csv              |
+| readr         | read_tsv()        | read in small/medium sized tsv              |
+| readxl        | read_excel()      | read in an Excel file                       |
+| googlesheets4 | read_sheet()      | read small Google Sheet                     |
+| googlesheets4 | range_speedread() | read large Google Sheet                     |
+| data.table    | fread()           | read in large csv very fast                 |
+| vroom         | vroom()           | read in large csv fast                      |
+| haven         | read_dta()        | read in SAS/Stata/SPSS file                 |
+| gophr         | read_msd()        | read in MER Structured Dataset/Genie output |
+| tameDP        | tame_dp()         | read in PEPFAR Data Pack                    |
+
+
+With `read_excel()`, the set up is pretty similar to `read_csv`, but allows you to read in an Excel file. The key here is you typically want to tell it what sheet to read in (`sheet`) or you can specify a range (`range`). If you want to read in multiple sheets, you can take advantage of the `purrr::map_dfr()` to iterate the import function over all the tabs you're interested in.
+
+Let's apply the ability to read in a specific sheet and take advantage of something else we didn't disuss earlier: the ability to skip rows. We'll look at the `hfr.xlsx` file, which has High Frequency Reporting data (monthly data at the site level). We can use `readxl::excel_sheets()` to identify the sheet in the workbook first.
+
+```{r}
+excel_sheets("2022-03-28/hfr.xlsx")
+```
+
+If we had opened the file first, we would have seen that the first row contained human readable headers, not machine readable ones, which are actually found on line 2. We can skip the first row and start reading in from the second by providing the parameter `skip = 1.`
+
+```{r}
+read_excel("2022-03-28/hfr.xlsx", sheet = "HFR", skip = 1)
+```
+
+We can iterate over the sheets and combine them into one data frame using `purrr::map_dfr()`. We can use the same function, but provide both tabs to apply it to, pulling from the `excel_sheets()` function above (there is a meta tab we also need to drop).
+
+```{r}
+excel_sheets("2022-03-28/hfr.xlsx") %>% 
+  str_subset("HFR") %>% 
+  map_dfr(.f = ~read_excel("2022-03-28/hfr.xlsx", 
+                                  sheet = .x, 
+                                  skip = 1))
+```
+
+Since we work in the GSuite space, we can also take advantage of directly accessing files stored in GDrive using the `googlesheets4` (and `googledrive`) package. You will need to authenticate your session each time (check out the [credential management vignette in `glamr`(https://usaid-oha-si.github.io/glamr/articles/credential-management.html#store-credentials) to learn how to store your USAID email for this purpose to make things easier). The other difference is that you will need to provide the function with the file id rather than a file path on a local machine. 
+
+```{r}
+gs4_auth() #only need to authenticate once per session
+read_sheet(as_sheets_id("1B_DcG1WqZv6xo_eBBye-Q31tMGq_DjCBcjlWs3xINOw"))
+```
+
+Using `vroom()` is a pretty powerful tool to read in large datasets, similar to `fread()`, but it is within the tidyverse. It's also nice because you can pass in multiple files to the same vroom statement and it will read them in and store them as one tibble. 
+
+The last two functions are specific to PEPFAR, working with a MSD/Genie file or a Data Pack and are pretty straight forward. The benefit of using `read_msd()` over `vroom()` for a MSD/Genie file is that you are returned with the correct structure for every column (and it cleans up some of the extra genie files).
+
+### Homework
+
+Problem: Using what you’ve learned, import in all the [data from the HIV estimates](https://github.com/USAID-OHA-SI/coRps/raw/main/2022-03-28/unaids_more_messy.xlsx) to create a tidy dataset.
+
+  - Data do not start on the first row
+  - Columns are not uniquely named and have special character
+  - There are multiple tabs (hint: purrr::map_dfr)
+  - Missing values are written as “…”
+  - Values cells often contain characters (eg “<”) and thousand separators are spaces
+  - Upper and lower bounds should be separate columns
+  
+Originally sourced from [here](https://www.unaids.org/en/resources/documents/2021/HIV_estimates_with_uncertainty_bounds_1990-present).
+
+
+### Homework solution
+
+```{r}
+library(janitor)
+
+xl_path <- "2022-03-28/unaids_more_messy.xlsx"
+
+excel_sheets(xl_path) %>% 
+  map_dfr(~read_excel(xl_path, 
+                      sheet = .x, 
+                      na = "...",
+                      skip = 4,
+                      col_types = "text",
+                      .name_repair = janitor::make_clean_names)) %>% 
+  rename(year = x,
+         iso = country,
+         country = country_2,
+         prev_adults_pct = percent_prevalence_adults,
+         plhiv_adults =  estimated_plhiv_adults) %>% 
+  mutate(across(matches("plhiv"), ~ str_remove_all(. ," ")), 
+         across(matches("prev|percent|plhiv"), ~ str_remove_all(., "<")),
+         across(.fns = ~ na_if(., "...,..."))) %>% 
+  separate(percent_prevalence_bounds, c("prev_lower", "prev_upper"), sep = ",") %>% 
+  separate(estimated_plhiv_bounds, c("plhiv_lower", "plhiv_upper"), sep = ",") %>% 
+  mutate(across(matches("prev|plhiv"), as.numeric))
+```
+
+
+### Additional Resource
+
+ - [Chapter 11 of R for Data Science](https://r4ds.had.co.nz/data-import.html) for some really useful information both covered and not covered here. 
+ - Check out the RStudio [Import Cheat Sheet](https://raw.githubusercontent.com/rstudio/cheatsheets/main/tidyr.pdf).
+ - Read through the packages pages, to check out all the functions, parameters, and examples/vignettes.
+
+
+
+
