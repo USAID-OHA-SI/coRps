@@ -1,13 +1,17 @@
 ---
-title: "rbb-import"
-author: "Aaron Chafetz"
+layout: "post"
+title: "RBBS - 7 Importing Data"
 date: "2022-03-28"
-output: html_document
+author: "Aaron Chafetz"
+categories: [corps, rbbs]
+tags: [r]
+thumbnail: "20220328_rbbs_7-importing-data.png"
+output: github_document
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
-                      warning=F,
                       fig.height = 3, fig.width = 6,
                       fig.retina = 2)
 ```
@@ -23,7 +27,7 @@ For our R Building Blocks session today, we covering different methods and param
 
 ### Recording
 
-You can use this link to access today's recording.
+You can use [this link]() to access today's recording.
 
 ### Materials
 
@@ -46,11 +50,11 @@ A quick aside as well, in our office as is true many places, the default way of 
 ### Load packages
 
 ```{r}
-library(tidyverse) #install.packages("tidyverse")
+library(tidyverse) #install.packages("tidyverse"); contains readr and purrr
 ```
 
 ```{r, message=F}
-library(readxl)
+library(readxl) #install.packages("readxl")
 library(googlesheets4) #install.packages("googlesheets4")
 library(vroom) #install.packages("vroom")
 library(gophr) #remotes::install_github("USAID-OHA-SI/gophr", build_vignettes = TRUE)
@@ -59,7 +63,7 @@ library(gophr) #remotes::install_github("USAID-OHA-SI/gophr", build_vignettes = 
 
 ### Reading in data
 
-Let's start by reading in a basic csv file. The best first step when reading in any file is to inspect it first to understand its structure and any possible complications. Since this the file is a csv, you can preview it in a text editor or open it up in Excel. Let's open up this file ([simple.csv](https://github.com/USAID-OHA-SI/coRps/blob/main/2022-03-28/simple.csv)) and review it contents.
+Let's start by reading in a basic csv file. The best first step when reading in any file is to inspect it first to understand its structure and any possible complications. Since this the file is a csv, you can preview it in a text editor or open it up in Excel. Let's open up this file ([simple.csv](https://github.com/USAID-OHA-SI/coRps/blob/main/simple.csv)) and review it contents.
 
 ![csv preview in Excel](20220328_rbbs_csv-preview.png)
 
@@ -67,29 +71,29 @@ By opening up in Excel and inspecting it, we can see that the contents are tidy 
 
 Now that we have reviewed the data, we can import into R. The base R function to read in data is `read.table()`, which "reads a file in table format and creates a data frame from it." Instead of using base R, we are going to take advantage of `readr` from the tidyverse. In R for Data Science, Wickham and Grolemund explain:
 
->>> Compared to read.table and its derivatives, readr functions are: 
-  1. ~ 10 times faster 
-  2. Return tibbles 
-  3. Have more intuitive defaults. No row names, no strings as factors.
+> Compared to read.table and its derivatives, readr functions are: 
+>  1. ~ 10 times faster 
+>  2. Return tibbles 
+>  3. Have more intuitive defaults. No row names, no strings as factors.
 
-Let's give `read_csv()`, "a special [case] of the more general `read_demin()` a go. We just need to provide the file path from our working directory to the file and pass that into the first parameter (`file`) in `read_csv()`.
+Let's give `read_csv()`, "a special [case] of the more general `read_demin()` a go. We just need to provide the file path from our working directory to the file and pass that into the first parameter (`file`) in `read_csv()`. With  R, if you are working on a PC, you will need to change the backslashes ("\") in your file path to forward slashes ("/"). (The data for this session can be found [here](https://github.com/USAID-OHA-SI/coRps/tree/main/2022-03-28)).
 
 ```{r}
-read_csv("2022-03-28/simple.csv")
+read_csv("simple.csv")
 ```
 The output displayed in the Console provide us some useful information about the file. We can see the deliminter here was a comma, which we already knew because it was a csv file. If we had used `read_delim`, the function would have guessed the deliminter and displayed it here. The next set of information in the output shows each of the columns and what their column type is. For example, we can see `operatingunit` is being read in as a `chr` or character and `value` is being read in as `dbl` or double/numeric. And then lastly, we can see that `read_csv()` provides a tibble back from what it read in (as well as it's size 27 x 6).
 
 We simply read in the file, but didn't save it anywhere so it will show up in our Console, but not appear in the Environment to use later. If we did want to use this data, we would need to assign it to an object.
 
 ```{r}
-df_months <- read_csv("2022-03-28/simple.csv")
+df_months <- read_csv("simple.csv")
 ```
 ### Export
 
 The `readr` package is also equipt with functions to let us export the data that we have read in (and presumability munged or modeled). We can use `write_csv` to save the data.
 
 ```{r eval=F}
-write_csv(df_months, "2022-03-28/simple_out.csv", na = "")
+write_csv(df_months, "simple_out.csv", na = "")
 ```
 
 The last parameter in the function about, `na = ""`, allows us to tell R how to store missing values in the output. In this call, missing cells will appear as blank cells in the csv output.
@@ -123,7 +127,7 @@ I'm not doing `readr`'s ability to guess justitice, so I would highly recommend 
 I typically see an issue when there are thousands of lines in a column that are missing and then there are values at the bottom. We can replicate this by forcing `read_csv()` to only guess base on the first. Let's look at the `missing.csv` dataset, which has many of the value rows missing, and just guess based on the first few lines.
 
 ```{r}
-read_csv("2022-03-28/missing.csv", guess_max = 5)
+read_csv("missing.csv", guess_max = 5)
 
 readr::problems()
 ```
@@ -138,14 +142,14 @@ str(df_months)
 We can change the column type to avoid any errors with using it in the dataset and allow us to take advantage of `tidyselect` statements using `where(is.double)`, which should just specify your targets, results, and cumulative (assuming we also change `fiscal_year` in the MSD to be stored as an integer)). We can specify column types by passing a list into `col_types` to tell it how you want the column read in. Let's adjust `mech_code` to be a character ("c" or `col_character`).
 
 ```{r}
- read_csv("2022-03-28/simple.csv",
+ read_csv("simple.csv",
           col_types = cols(mech_code = "c"))
 ```
 
 Sometimes the best strategy when there are issues is to read in all the data as characters and then diagnose when in R. Rather than specify each column, you can define a default.
 
 ```{r}
- read_csv("2022-03-28/simple.csv",
+ read_csv("simple.csv",
           col_types = cols(.default = "c"))
 ```
 
@@ -173,21 +177,21 @@ With `read_excel()`, the set up is pretty similar to `read_csv`, but allows you 
 Let's apply the ability to read in a specific sheet and take advantage of something else we didn't disuss earlier: the ability to skip rows. We'll look at the `hfr.xlsx` file, which has High Frequency Reporting data (monthly data at the site level). We can use `readxl::excel_sheets()` to identify the sheet in the workbook first.
 
 ```{r}
-excel_sheets("2022-03-28/hfr.xlsx")
+excel_sheets("hfr.xlsx")
 ```
 
 If we had opened the file first, we would have seen that the first row contained human readable headers, not machine readable ones, which are actually found on line 2. We can skip the first row and start reading in from the second by providing the parameter `skip = 1.`
 
 ```{r}
-read_excel("2022-03-28/hfr.xlsx", sheet = "HFR", skip = 1)
+read_excel("hfr.xlsx", sheet = "HFR", skip = 1)
 ```
 
 We can iterate over the sheets and combine them into one data frame using `purrr::map_dfr()`. We can use the same function, but provide both tabs to apply it to, pulling from the `excel_sheets()` function above (there is a meta tab we also need to drop).
 
 ```{r}
-excel_sheets("2022-03-28/hfr.xlsx") %>% 
-  str_subset("HFR") %>% 
-  map_dfr(.f = ~read_excel("2022-03-28/hfr.xlsx", 
+excel_sheets("hfr.xlsx") %>% 
+  str_subset("HFR") %>% #identify any sheets that contains "HFR"
+  map_dfr(.f = ~read_excel("hfr.xlsx", 
                                   sheet = .x, 
                                   skip = 1))
 ```
@@ -205,7 +209,7 @@ The last two functions are specific to PEPFAR, working with a MSD/Genie file or 
 
 ### Homework
 
-Problem: Using what you’ve learned, import in all the [data from the HIV estimates](https://github.com/USAID-OHA-SI/coRps/raw/main/2022-03-28/unaids_more_messy.xlsx) to create a tidy dataset.
+Problem: Using what you’ve learned, import in all the [data from the HIV estimates](https://github.com/USAID-OHA-SI/coRps/raw/main/unaids_more_messy.xlsx) to create a tidy dataset.
 
   - Data do not start on the first row
   - Columns are not uniquely named and have special character
@@ -222,7 +226,7 @@ Originally sourced from [here](https://www.unaids.org/en/resources/documents/202
 ```{r}
 library(janitor)
 
-xl_path <- "2022-03-28/unaids_more_messy.xlsx"
+xl_path <- "unaids_more_messy.xlsx"
 
 excel_sheets(xl_path) %>% 
   map_dfr(~read_excel(xl_path, 
@@ -252,5 +256,7 @@ excel_sheets(xl_path) %>%
  - Read through the packages pages, to check out all the functions, parameters, and examples/vignettes.
 
 
+### Next up
 
+Now that we have a variety of tools for getting our data into R, we'll spend our next couple of sessions talking about how to transform and clean it.  
 
