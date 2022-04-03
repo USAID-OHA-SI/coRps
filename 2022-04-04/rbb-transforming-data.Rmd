@@ -1,0 +1,306 @@
+---
+layout: "post"
+title: "RBBS - 7 Transforming Data"
+date: "2022-04-04"
+author: "Joshua Davis"
+categories: [corps, rbbs]
+tags: [r]
+thumbnail: "20220404_rbbs_7-transformation.png"
+output: github_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      fig.height = 3, fig.width = 6,
+                      fig.retina = 2)
+```
+## RBBS 7 - Transforming
+
+For our R Building Blocks session today, we are covering different methods and functions for transforming data in R using `gophr`, `tidyr`, and `dplyr`. This session covers much of the content found in [Chapter 5 of R for Data Science](https://r4ds.had.co.nz/data-import.html).
+
+### Learning Objectives
+
+  - Cover a few key methods that we use frequently to transform and manipulate data and their corresponding packages
+  - Understand key parameters useful across different packages
+  - Demonstrate ways to incorporate these into your workflow
+
+### Recording
+
+You can use [this link]() to access today's recording.
+
+### Materials
+
+<iframe src="https://docs.google.com/presentation/d/1rNFNj00Z1lFfSnfyZsgCL7HXDlLOmCe5d_oD4X67UHQ/edit#slide=id.g11ec7e63285_0_6" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+
+### Setup
+
+For these sessions, we'll be using RStudio which is an IDE, "Integrated development environment" that makes it easier to work with R. For help on getting setup and installing packages, please reference [this guide](https://usaid-oha-si.github.io/corps/rbbs/2022/01/28/rbbs-0-setup.html).
+
+### Introduction
+
+Over the last few sessions, we've covered the [principles of tidy data](https://usaid-oha-si.github.io/corps/rbbs/2022/03/07/rbb-tidydata.html) and gone over key functions to work with data in base R and the [tidyverse](https://usaid-oha-si.github.io/corps/rbbs/2022/03/21/rbb-tidyverseintro.html). After learning the basics of reading data into R, we want to explore how do transformations on that data to do the analysis we need to do. There are many different kinds of transformation and manipulation we may want to do, and everyone has a preference for how they want to work with data, but for today we will work with the functions that further the use of data following tidy principles.
+
+### Load packages
+
+```{r}
+library(tidyverse) #install.packages("tidyverse"); contains readr and purrr
+library(gophr) #remotes::install_github("USAID-OHA-SI/gophr", build_vignettes = TRUE)
+```
+
+```{r, message=F}
+library(googledrive) #install.packages("googlesheets4")
+```
+
+
+### Reading in the data for today
+First download the data for today from googledrive, you will have to authenticate
+```{r}
+googledrive::drive_download(file = as_id("1OADaKvnrUIHAs03PTAsLjwOlxiwn5WEq"))
+
+#or
+
+glamr::import_drivefile(filename = as_id("1OADaKvnrUIHAs03PTAsLjwOlxiwn5WEq"),
+                        folderpath = "2022-04-04")
+
+```
+
+Next, we're going to read in the file to memory using `read_msd` which is similar to what we covered
+last week with `readr`
+
+```{r}
+df <- read_msd("MER_Structured_TRAINING_Datasets_PSNU_IM_FY18-20_20200214_v1_1.zip") %>% 
+    filter(psnu == "Dione")
+
+```
+
+Without digressing too much into the MSDs, let's have a look at how the time periods and quantitative information (results and targets) are natively stored
+
+![have a look](MSD_native.png)
+
+We see that the fiscal_year, targets, results, and cumulative are all stored in columns which (without going too much into the history of this) is the format used to optimze storage of these files and the ability to open some of them up in excel.
+
+
+We're going to explore the different formats that `reshape_msd` function offers us. The four options are
+-"long"
+-"wide"
+-"semi-wide"
+-"quarters"
+Each of these serves a different purpose depending on what you are trying to do with your analysis and each has trade-offs. There is no perfect form, it really just depends
+
+Let's look at `"long"` first. We're going to create a new df for each example
+
+```{r}
+
+df_long <- df %>%
+  gophr::reshape_msd(direction = "long")
+
+```
+
+What we've done here is had `reshape_msd` convert the msd from its native format to 'true' long or 'tidy' format where every row is an observation and every column is a variable. We now have period, period_type, and value replacing fiscal_year, targets, results, qtr1-4, and cumulative.
+![have a look](msd_long.png)
+You can get a closer look at what happened by looking at the distinct values of the new vars; I usally like to arrange them too so it's a bit easier to see
+
+```{r}
+
+df_long %>% distinct(period, period_type) %>% arrange(period)
+
+```
+
+Now lets do the same thing with the other options for 'direction'
+
+```{r}
+
+df_semi <- df %>% 
+  gophr::reshape_msd(direction = "semi-wide")
+
+
+```
+
+Semi-wide here creates a period plus a targets, results, and cumulative columns with the values for each of the observations by period in those columns. You'll note with this one, there are a number of 'null' values created during the transformation since there is not a cumulative value for any quarter, so `reshape_msd` doesn't create one.
+![have a look](msd_semi.png)
+
+Now lets look at quarters
+```{r}
+
+df_quarters <- df %>% 
+  gophr::reshape_msd(direction = "quarters")
+
+##and look to see what's happening
+
+df_quarters %>% distinct(fiscal_year, period) %>% arrange(fiscal_year)
+
+df_quarters2 <- df %>% 
+  gophr::reshape_msd(direction = "quaters",
+                     qtrs_keep_cumulative = "TRUE")
+
+```
+
+With 'quarters' there are two options: the default creates a fiscal_year and a period column with the values stored in targets, results, results_cumulative. The other option is to set `qtrs_keep_cumulative` to `TRUE`. This creates a column called `period` where the fiscal_year and period_type values are combined.
+
+### In conclusion
+As we said at the beginning, there is no ideal structure it entirely depends on what you are trying to do. If for example, you are exporting your MSD as a csv to use in excel, you may prefer the "long" format as this is the easiest to use with a pivot table. Or, if you are going to be doing a trend analysis you may choose "quarters" since that will not have an observation for year that would mess up your trend.
+
+
+### Diving into the parameters
+
+There are a number of options or parameters for `read_csv()` that we can inspect. We won't go through them all, but it's useful to highlight a few of the ones you may use more frequently. These parameters are mimicked in other import functions, so once you have these down, you can apply them in the different packages/functions as you need. 
+
+![read_csv options](20220328_rbbs_read-csv-options.png)
+
+It's important to be aware of the different options as it can make your life much easier when you are faced with a problematic file to import in the future. 
+
+### Parsing
+
+Importing with `readr` is pretty smart, but it's not always perfect. Usually it does a pretty good job identifying the correct column types (i.e. is it a date? character? logical? double?), but you can actually provide the precise column type to the `col_types` parameter as an option.  Here are the different column times you can pass in:
+
+  - c = character
+  - i = integer
+  - n = number
+  - d = double
+  - l = logical
+  - f = factor
+  - D = date
+  - T = date time
+  - t = time
+  - ? = guess
+  - _ or - = skip
+  
+I'm not doing `readr`'s ability to guess justitice, so I would highly recommend reading the [parsing section in Chapter 11 of R4DS](https://r4ds.had.co.nz/data-import.html#parsing-a-vector). 
+
+I typically see an issue when there are thousands of lines in a column that are missing and then there are values at the bottom. We can replicate this by forcing `read_csv()` to only guess base on the first. Let's look at the `missing.csv` dataset, which has many of the value rows missing, and just guess based on the first few lines.
+
+```{r}
+read_csv("missing.csv", guess_max = 5)
+
+readr::problems()
+```
+
+We can see that if we just use the first 5 lines to guess what the column type is, it expected `value` to be a logical, when in fact there are numeric values in the column, which we can see when we print out the errors.  
+
+Let's take a look at another example of guessing and column types before we get in the resolution. If we look at back our `df_months`, we can see that `mech_code` was read in as a double. Technically yes, `mech_code` is comprised of digits, but it not a value we ever want to sum or use as a filter (i.e. filter where `mech_code` is greater than 12000).  
+
+```{r}
+str(df_months)
+```
+We can change the column type to avoid any errors with using it in the dataset and allow us to take advantage of `tidyselect` statements using `where(is.double)`, which should just specify your targets, results, and cumulative (assuming we also change `fiscal_year` in the MSD to be stored as an integer)). We can specify column types by passing a list into `col_types` to tell it how you want the column read in. Let's adjust `mech_code` to be a character ("c" or `col_character`).
+
+```{r}
+ read_csv("simple.csv",
+          col_types = cols(mech_code = "c"))
+```
+
+Sometimes the best strategy when there are issues is to read in all the data as characters and then diagnose when in R. Rather than specify each column, you can define a default.
+
+```{r}
+ read_csv("simple.csv",
+          col_types = cols(.default = "c"))
+```
+
+### Different packages and functions
+
+So far, we've justed used `readr` to read in and write csv files. This package can usually take us pretty far, but we can get data in a variety of formats and sizes. So let's look at a table of some other functions and when we should use them over `read_csv`.
+
+
+| package       | function          | description                                 |
+|---------------|-------------------|---------------------------------------------|
+| readr         | read_csv()        | read in small/medium sized csv              |
+| readr         | read_tsv()        | read in small/medium sized tsv              |
+| readxl        | read_excel()      | read in an Excel file                       |
+| googlesheets4 | read_sheet()      | read small Google Sheet                     |
+| googlesheets4 | range_speedread() | read large Google Sheet                     |
+| data.table    | fread()           | read in large csv very fast                 |
+| vroom         | vroom()           | read in large csv fast                      |
+| haven         | read_dta()        | read in SAS/Stata/SPSS file                 |
+| gophr         | read_msd()        | read in MER Structured Dataset/Genie output |
+| tameDP        | tame_dp()         | read in PEPFAR Data Pack                    |
+
+
+With `read_excel()`, the set up is pretty similar to `read_csv`, but allows you to read in an Excel file. The key here is you typically want to tell it what sheet to read in (`sheet`) or you can specify a range (`range`). If you want to read in multiple sheets, you can take advantage of the `purrr::map_dfr()` to iterate the import function over all the tabs you're interested in.
+
+Let's apply the ability to read in a specific sheet and take advantage of something else we didn't disuss earlier: the ability to skip rows. We'll look at the `hfr.xlsx` file, which has High Frequency Reporting data (monthly data at the site level). We can use `readxl::excel_sheets()` to identify the sheet in the workbook first.
+
+```{r}
+excel_sheets("hfr.xlsx")
+```
+
+If we had opened the file first, we would have seen that the first row contained human readable headers, not machine readable ones, which are actually found on line 2. We can skip the first row and start reading in from the second by providing the parameter `skip = 1.`
+
+```{r}
+read_excel("hfr.xlsx", sheet = "HFR", skip = 1)
+```
+
+We can iterate over the sheets and combine them into one data frame using `purrr::map_dfr()`. We can use the same function, but provide both tabs to apply it to, pulling from the `excel_sheets()` function above (there is a meta tab we also need to drop).
+
+```{r}
+excel_sheets("hfr.xlsx") %>% 
+  str_subset("HFR") %>% #identify any sheets that contains "HFR"
+  map_dfr(.f = ~read_excel("hfr.xlsx", 
+                                  sheet = .x, 
+                                  skip = 1))
+```
+
+Since we work in the GSuite space, we can also take advantage of directly accessing files stored in GDrive using the `googlesheets4` (and `googledrive`) package. You will need to authenticate your session each time (check out the [credential management vignette in `glamr`(https://usaid-oha-si.github.io/glamr/articles/credential-management.html#store-credentials) to learn how to store your USAID email for this purpose to make things easier). The other difference is that you will need to provide the function with the file id rather than a file path on a local machine. 
+
+```{r}
+gs4_auth() #only need to authenticate once per session
+read_sheet(as_sheets_id("1B_DcG1WqZv6xo_eBBye-Q31tMGq_DjCBcjlWs3xINOw"))
+```
+
+Using `vroom()` is a pretty powerful tool to read in large datasets, similar to `fread()`, but it is within the tidyverse. It's also nice because you can pass in multiple files to the same vroom statement and it will read them in and store them as one tibble. 
+
+The last two functions are specific to PEPFAR, working with a MSD/Genie file or a Data Pack and are pretty straight forward. The benefit of using `read_msd()` over `vroom()` for a MSD/Genie file is that you are returned with the correct structure for every column (and it cleans up some of the extra genie files).
+
+### Homework
+
+Problem: Using what you’ve learned, import in all the [data from the HIV estimates](https://github.com/USAID-OHA-SI/coRps/raw/main/unaids_more_messy.xlsx) to create a tidy dataset.
+
+  - Data do not start on the first row
+  - Columns are not uniquely named and have special character
+  - There are multiple tabs (hint: purrr::map_dfr)
+  - Missing values are written as “…”
+  - Values cells often contain characters (eg “<”) and thousand separators are spaces
+  - Upper and lower bounds should be separate columns
+  
+Originally sourced from [here](https://www.unaids.org/en/resources/documents/2021/HIV_estimates_with_uncertainty_bounds_1990-present).
+
+
+### Homework solution
+
+```{r}
+library(janitor)
+
+xl_path <- "unaids_more_messy.xlsx"
+
+excel_sheets(xl_path) %>% 
+  map_dfr(~read_excel(xl_path, 
+                      sheet = .x, 
+                      na = "...",
+                      skip = 4,
+                      col_types = "text",
+                      .name_repair = janitor::make_clean_names)) %>% 
+  rename(year = x,
+         iso = country,
+         country = country_2,
+         prev_adults_pct = percent_prevalence_adults,
+         plhiv_adults =  estimated_plhiv_adults) %>% 
+  mutate(across(matches("plhiv"), ~ str_remove_all(. ," ")), 
+         across(matches("prev|percent|plhiv"), ~ str_remove_all(., "<")),
+         across(.fns = ~ na_if(., "...,..."))) %>% 
+  separate(percent_prevalence_bounds, c("prev_lower", "prev_upper"), sep = ",") %>% 
+  separate(estimated_plhiv_bounds, c("plhiv_lower", "plhiv_upper"), sep = ",") %>% 
+  mutate(across(matches("prev|plhiv"), as.numeric))
+```
+
+
+### Additional Resource
+
+ - [Chapter 11 of R for Data Science](https://r4ds.had.co.nz/data-import.html) for some really useful information both covered and not covered here. 
+ - Check out the RStudio [Import Cheat Sheet](https://raw.githubusercontent.com/rstudio/cheatsheets/main/tidyr.pdf).
+ - Read through the packages pages, to check out all the functions, parameters, and examples/vignettes.
+
+
+### Next up
+
+Now that we have a variety of tools for getting our data into R, we'll spend our next couple of sessions talking about how to transform and clean it.  
+
