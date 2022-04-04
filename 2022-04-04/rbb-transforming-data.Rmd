@@ -141,6 +141,24 @@ With 'quarters' there are two options: the default creates a fiscal_year and a p
 ### In conclusion
 As we said at the beginning, there is no ideal structure it entirely depends on what you are trying to do. If for example, you are exporting your MSD as a csv to use in excel, you may prefer the "long" format as this is the easiest to use with a pivot table. Or, if you are going to be doing a trend analysis you may choose "quarters" since that will not have an observation for year that would mess up your trend.
 
+### How's it work?
+Reshape_msd is a very sophisticated wrapper for pivot_longer and pivot_wider. Most stats packages have some version of this functionality. In R these are relatively new and replaced spread and gather. These functions provide a robust set of tools options for transforming your data. There are additional arguments that will help you set the names or class of your destination columns but we’re not covering them now for the sake of time. One thing to remember is that the class of the data you are transforming needs to be correct, for example if you are pivoting wider, the values_from vars will need to be numeric class, not character. 
+
+Let's look at an example
+![have a look](wide_2_long.png)
+```{r}
+
+foo <- tibble::tibble(id = 1:2,
+                      x = c("a","b"),
+                      y = c("c", "d"),
+                      z = c("e", "f")) %>% view()
+
+foo_but_long <- foo %>% 
+  pivot_longer(cols = x:z,
+               names_to = "key",
+               values_to = 'val') %>% view()
+```
+
 
 ### Diving into the parameters
 
