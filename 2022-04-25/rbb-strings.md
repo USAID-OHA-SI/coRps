@@ -77,7 +77,8 @@ Any value that is written within a pair of single or double quotes in R
 is treated as a string. Unlike most other coding languages, R does not
 make a distinction between the single or double quotes when creating a
 string, but it’s important to note that R will always store strings
-within double quotes. As such, double quotes are preferred when
+within double quotes. As such, it is generally best practice to use
+double quotes when creating strings.
 
 ``` r
 a <- "Starting and ending string with double quote"
@@ -126,10 +127,10 @@ c("storing", "multiple", "strings")
 While base R has numerous functions that are useful to working with
 strings, they can be inconsistent and difficult to remember. For this
 session, we’ll focus on functions in the `stringr` package in the
-Tidyverse. All of this functions begin with the `str` naming convention,
-making them more intuitive to use and remember.
+Tidyverse. All of these functions begin with the `str` naming
+convention, making them more intuitive to use and remember.
 
-#### String Length -
+#### String Length
 
 To count the number of characters in a string (including spaces), use
 `str_length()`
@@ -140,7 +141,7 @@ str_length(c("OHA", "r building block", NA))
 
     ## [1]  3 16 NA
 
-#### Concatenating Strings -
+#### Concatenating Strings
 
 To combine two or more strings, use `str_c()`
 
@@ -151,7 +152,7 @@ str_c("a", "b", "c")
     ## [1] "abc"
 
 We can also use the `sep` argument to control how the strings will be
-separated.
+separated when they are combined.
 
 ``` r
 str_c("x", "y", sep = ",")
@@ -159,15 +160,16 @@ str_c("x", "y", sep = ",")
 
     ## [1] "x,y"
 
-`str_c()` is also vectorized, meaning that will output shorter vectors
-based on a character vector. Let’s take a look at an example that we
-would use with PEPFAR data.
+`str_c()` is also vectorized, meaning that it will output shorter
+vectors based on a character vector. Let’s take a look at an example
+that we might see with PEPFAR data.
 
 Let’s say that we are working with some country-level data and we want
-to create a naming convention so that each output is consistently named.
+to create a naming convention so that each output file has a consistent
+naming convention.
 
 We’d first want to store the countries that we are working with as a
-character vector. We can then use `str_c()` and get a unique string
+character vector. We can then use `str_c()` and generate a unique string
 vector output for each file name.
 
 ``` r
@@ -185,7 +187,7 @@ OVC data.
 
 If we include an `if()` statement in this `str_c()` function for OVC
 (where OVC is TRUE in only Q2 and Q4), what will the output look like?
-What would it look like if we changed the period to Q1? Try change the
+What would it look like if we changed the period to Q1? Try changing the
 code for the period and see what happens\!
 
 ``` r
@@ -202,7 +204,7 @@ str_c(
 
     ## [1] "output/Tanzania-Q2-data-report-with-ovc.csv"
 
-#### Subsetting Strings -
+#### Subsetting Strings
 
 To extract parts of a string, use `str_sub()` using the `start` and
 `end` arguments to assign the position of the string you want to subset.
@@ -218,7 +220,7 @@ str_sub(period, start = 1, end = 4)
 
     ## [1] "FY19" "FY20" "FY21"
 
-#### Changing the case -
+#### Changing the case
 
 To manipulate the case of the strings, we can use:
 
@@ -247,17 +249,17 @@ You can think of regular expressions as the language that describes the
 patterns in strings. They are constructed in a similar manner to
 arithmetic expressions, by using special characters and various
 operators to combine smaller expressions. While these can be daunting to
-learn at first, but can ultimately be very useful your ability to
+learn at first, they can ultimately be very useful to your ability to
 wrangle and manipulate strings.
 
 In R, regular expressions are written as strings - however, some
-characters can be be represented directly as an R string, and instead
-are represented as **special characters**, which are patterns that hold
-specific meaning:
+characters can be be represented directly as an R string, and some are
+instead represented as **special characters**, which are patterns that
+hold specific meaning:
 
 Let’s start with some basic matching, using `str_view()`. In its
 simplest form, we can use regular expressions to match exact strings.
-You’ll notice here that the “io” pattern of each string is highlighted
+You’ll notice here that the “io” pattern in each string is highlighted
 using `str_view()`
 
 ``` r
@@ -267,7 +269,7 @@ str_view(x, "io")
 
 <img src="rbb-strings_files/figure-gfm/unnamed-chunk-12-1.png" width="576" />
 
-#### Period (.) - matches any character
+#### Period (`.`) - matches any character
 
 Time to introduce our first special character\! In regular expressions,
 the **period** matches any character. In the example below, we are
@@ -281,7 +283,7 @@ str_view(x, ".o.")
 
 <img src="rbb-strings_files/figure-gfm/unnamed-chunk-13-1.png" width="576" />
 
-#### Escape () - backslash used to escape special behavior
+#### Escape (`\`) - backslash used to escape special behavior
 
 You might be wondering, if the period notation matches any characters,
 how do I match the character “.” specifically? In these cases, we can
@@ -300,7 +302,7 @@ str_view(x, "a\.")
 
 We see here that R is unable to recognize the escape character - since
 we use strings to represent regular expressions, and the backslash is
-also uses as an escape for strings, we need to use the string `\\.` as
+also used as an escape for strings, we need to use the string `\\.` as
 our escape character.
 
 ``` r
@@ -338,7 +340,7 @@ str_view(ou, "Region$")
 
 <img src="rbb-strings_files/figure-gfm/unnamed-chunk-16-2.png" width="576" />
 
-#### Additional Characters -
+#### Additional Characters
 
 There are countless special characters that match to more than one
 character. Here’s an abbreviated list of some helpful characters to
@@ -389,9 +391,9 @@ certain pattern or not. `str_detect()` will return a logical vector of
 the same length as the original input.
 
 Let’s take a look at the example we used earlier - if we wanted to
-identify the strings that matches with just the HTS (testing)
-indicators, we could use `str_detect()` and the anchoring regular
-expression `^` to match every string that starts with the pattern “HTS”.
+identify the strings that match with just the HTS (testing) indicators,
+we could use `str_detect()` and the anchoring regular expression `^` to
+match every string that starts with the pattern “HTS”.
 
 ``` r
 indicator <- c("HTS_TST", "TX_CURR", "HTS_TST_POS")
@@ -487,30 +489,20 @@ library(lubridate)
 
 There are 3 main types of data and time data:
 
-  - **Date**: printed as <date>
-  - **Time**: printed as <time>
-  - **Date-time**: date plus a time, printed as <dttm>
+  - **Date**: printed as `<date>`
+  - **Time**: printed as `<time>`
+  - **Date-time**: date plus a time, printed as `<dttm>`
 
 Let’s illustrate this using two functions from the `lubridate` package:
 `today()` which tells you the current day and `now()` which tells you
 the current day and time. These functions can be tremendous useful when
-you are trying to perform date / time calculations as a part of your
+you are trying to perform date/time calculations as a part of your
 analysis.
 
 ``` r
 today()
-```
-
-    ## [1] "2022-04-26"
-
-``` r
 #> [1] "2022-04-26"
 now()
-```
-
-    ## [1] "2022-04-26 19:25:56 EDT"
-
-``` r
 #> [1] "2022-04-26 19:17:05 EDT"
 ```
 
@@ -527,11 +519,16 @@ For example, let’s say we had the string **“April 25, 2022”**. This
 string is in “Month Day, Year” format - as such, we can use `mdy()` to
 parse this string into a proper date-format.
 
-Similar, we can use `ymd()` for strings with “Year Month Day” format or
-`dmy()` for strings with “Day Month Year”.
+Similarly, we can use `ymd()` for strings with “Year Month Day” format
+or `dmy()` for strings with “Day Month Year”.
 
-These functions also work with unquoted number if you have numeric data
+These functions also work with unquoted numbers if you have numeric data
 instead:
+
+``` r
+ymd(20220426)
+#> [1] "2022-04-26"
+```
 
 To add the date-time element, we can add the suffix "\_hms" for “hours,
 months, seconds” to these parsing functions (`ymd_hms()`). To specify
@@ -540,18 +537,14 @@ zones, use `OlsonNames()`.
 
 ``` r
 mdy_hms("04/26/22 18:36:59", tz = "EST")
-```
-
-    ## [1] "2022-04-26 18:36:59 EST"
-
-``` r
 #> [1] "2022-04-25 18:36:59 EST"
 ```
 
 #### From individual columns in the dataset
 
 Sometimes, we’ll see individual components of a date spread across
-multiple columns using `make_date()` or `make_date_time()`.
+multiple columns - we can manipulate this into a date format using
+`make_date()` or `make_date_time()`.
 
 Let’s create an example tibble of 3 dates spread out across multiple
 columns.

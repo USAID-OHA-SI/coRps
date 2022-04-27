@@ -206,7 +206,15 @@ While this is not perfectly tidy, we are getting closer. There are still a coupl
   3. Addressing missing values
   4. Breaking down nested columns for stat type
   
-For a more in-depth dive in how to tidy the UNAIDS data, check out our [CoRps session](https://github.com/USAID-OHA-SI/coRps/blob/main/2021-11-08/02_munge_unaids_function_example.R) about `munge_unaids`, the cleaning and tidying function that we built to tidy this data.
+For a more in-depth dive in how to tidy the UNAIDS data, check out our [CoRps session](https://drive.google.com/file/d/1DhtpDU3mTXZlLhb5yqyzjupOGJ_7rhhf/view) about `munge_unaids`, the cleaning and tidying function that we built to tidy this data.
+
+### Additional Resources
+
+For more practice with Tidy Datasets, check out our CoRps session on [Working with Messy Datasets](https://usaid-oha-si.github.io/corps/2021/03/15/Working-with-Messy-Spreadsheets.html).
+
+For a good guide on how to use the `tidyr` functions, see [this cheatsheet](https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf).
+
+For some additional reading about tidy data, check out [Hadley Wickham's journal article about tidy data](https://www.jstatsoft.org/article/view/v059i10) and [Data Organization in Spreadsheets- Karl W. Broman & Kara H. Woo (2018)](https://www.tandfonline.com/doi/full/10.1080/00031305.2017.1375989).
   
 ### Next Up
 
