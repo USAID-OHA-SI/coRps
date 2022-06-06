@@ -5,7 +5,7 @@ date: "2022-06-06"
 author: "Baboyma Kagniniwa"
 categories: [corps, rbbs]
 tags: [r, maps]
-thumbnail: "20220606_rbbs_11-Mapping.png"
+thumbnail: "20220606_rbbs_11-mapping.png"
 # output: 
 #   ioslides_presentation:
 #     incremental: false
