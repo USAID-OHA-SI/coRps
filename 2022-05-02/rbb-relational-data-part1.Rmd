@@ -16,6 +16,8 @@ knitr::opts_chunk$set(echo = TRUE,
                       fig.retina = 2)
 ```
 
+Relational Data - Part one: Combining data sets through R/Dplyr Joins.
+
 ## Introduction
 
 For today's session, we are covering **Relational Data**.
@@ -34,7 +36,7 @@ Part 1
 
 ## Recordings and Materials
 
-Today's recordings, code, and materials will be shared through the `coRps Presentations & Recordings` Google Spreadsheet, accessible through coRps calendar invite.
+Today's [recordings](https://drive.google.com/file/d/1bppRmdZBjUIyo5UUCYxBXO875ocFCR0m/view?usp=sharing), [code](https://github.com/USAID-OHA-SI/coRps/tree/main/2022-05-02), and materials will be shared through the `coRps Presentations & Recordings` Google Spreadsheet, accessible through coRps calendar invite.
 
 ## Relational Data?
 
@@ -43,7 +45,7 @@ What is `Relational Data`?
 Most data analyses, if not all, involve more than 1 data set and a lot of cleaning / munging.
 This process will also lead to combining a lot data sets / tables, conduct your analysis in order to answer an analytic question. Because the information needed is usually spread among multiple tables of data [hence the need to combine them], so collectively they are called `relational data`.
 
-A good example of a rational data are `MER Structured Dataset (MSD)`
+A good example of a relational data are `MER Structured Dataset (MSD)`
 
 **Note**: MSDs are outputs (products) of a process of combining relational data from a DATIM's Database Tables.
 

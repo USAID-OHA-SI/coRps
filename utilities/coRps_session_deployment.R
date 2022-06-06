@@ -12,8 +12,8 @@ library(fs)
 #library(git2r)
 
 # Inputs ----
-input_dir <- "2022-02-28"
-corps_session <- "project-workflow.Rmd"
+input_dir <- "2022-05-09"
+corps_session <- "rbb-relational-data-part2.Rmd"
 
 # Config / Files ---
 input_file <- paste0(input_dir, "/", corps_session)
