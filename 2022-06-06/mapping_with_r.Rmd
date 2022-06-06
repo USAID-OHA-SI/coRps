@@ -1,0 +1,353 @@
+---
+layout: "post"
+title: "RBBS - 11 Making maps with R"
+date: "2022-06-06"
+author: "Baboyma Kagniniwa"
+categories: [corps, rbbs]
+tags: [r, maps]
+thumbnail: "20220606_rbbs_11-Mapping.png"
+# output: 
+#   ioslides_presentation:
+#     incremental: false
+#     toc: true
+#     widescreen: true
+#     smaller: true
+#output: powerpoint_presentation
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning=F,
+                      fig.height = 3, 
+                      fig.width = 6,
+                      fig.retina = 2,
+                      out.width = "100%")
+```
+
+Making maps with R, the level field for most data analysts ...
+
+##
+
+```{r, echo=F, out.width = "100%", out.height="auto"}
+knitr::include_graphics("20220606_rbbs_11-mapping.png")
+```
+
+## Introduction
+
+This session of the RBBS covers the Introduction to Mapping and Geospatial Analytics with R and some its most popular packages - sp, sf, raster, osmdata, rnaturalearth, and gisr.
+
+The session agenda is below:
+
+1) R Packages for Geospatial Analytics
+2) Spatial Data Acquisition
+3) Spatial Data Visualization
+
+[Here](https://drive.google.com/file/d/1i_zg4QpgtcxvK-w1QttSZzFHxp-pvuNA/view?usp=sharing) is the recording of the session.
+
+## R Spatial Packages
+
+Let's install couple R Packages useful for Mapping and Spatial Analytics. Each of these packages has it's strength and weaknesses: 
+
+- `sp` is good for spatial data manipulation
+- `sf` is good for vector data processing and works well with tidyverse and ggplot2 
+- `raster` is good for raster data (imagery) processing and allows for Geodata Extraction and Manipulation
+- `rnaturalearth` vector & raster data and we've used it to download country - administrative boundaries
+- `osmdata` roads network data from **Open Street Map**
+- `gisr` is a SI R package that we've put together to organize some of the most recurrent geo-related functions
+
+
+## Installing Packages
+
+```{r echo=T, eval=F}
+# Grand father of all Spatial Data Packages
+install.packages("sp")
+# Simple Feature for R
+install.packages("sf")
+# Spatial Data manipulation
+install.packages("raster")
+# Good resource for vector and raster data
+install.packages("rnaturalearth")
+install.packages("rnaturalearthdata")
+install.packages("osmdata")
+# SI Packages for Mapping and Spatial Analytics
+devtools::install_github("USAID-OHA-SI/gisr")
+# Data munging and visualization
+install.packages("tidyverse")
+```
+
+## Spatial Data Acquisition
+
+`raster` package allows users to download country boundaries geodata from [gadm](https://gadm.org/data.html)
+
+The package will download rds files to users' local directory (User or R Project root directory) as `sp` and `SpatialPolygonsDataFrame` data format.
+
+There are multiple types of dataset available through this package
+
+- `GADM`: Vector data
+- `SRTM`: Topography data
+- `alt`: Elevation data
+- `worldclim`: raster data
+
+
+## Spatial Data Acquisition
+
+```{r echo=T, message=F, eval=F}
+
+library(glamr)
+library(raster)
+
+# Setup folder
+glamr::folder_setup(folder_list = list("geodata"))
+
+dir_geodata <- "geodata"
+
+# Download Admins boundaries
+
+# Level 0 - National Boundaries
+adm0 <- getData("GADM", country = "CIV", level = 0, 
+                download = TRUE, path = dir_geodata)
+
+# Level 1 - Regions / province
+adm1 <- getData("GADM", country = "CIV", level = 1, 
+                download = TRUE, path = dir_geodata)
+
+adm2 <- getData("GADM", country = "CIV", level = 2, 
+                download = TRUE, path = dir_geodata)
+
+```
+
+## Spatial Data Acquisition
+
+`rnaturaleath` package also allows users to extract geodata from [Natural Earth](https://www.naturalearthdata.com/)
+
+The difference here is that data is directly loaded into memory and not saved on local directory, and available as `sf` and `data.frame`.
+
+
+```{r echo=T, message=F, eval=F}
+
+library(rnaturalearth)
+
+## National Boundaries
+civ0 <- ne_countries(country = "Ivory Coast", scale = "small", returnclass = "sf")
+
+## Regions / province
+civ1 <- ne_states(country = "Ivory Coast", returnclass = "sf")
+
+```
+
+## Spatial Data Acquisition
+
+`osmdata` is a bit broad but is mostly used for roads network datasets. This package allows users to extract roads network geodata from [Open Street Map](https://www.openstreetmap.org/#map=5/38.007/-95.844) through the [Overpass API](https://wiki.openstreetmap.org/wiki/Overpass_API)
+
+Data is also loaded directly into memory.
+
+
+## Spatial Data Acquisition
+
+Below are a couple of examples for `OSM` Data extraction.
+
+```{r echo=T, message=F, eval=F}
+
+library(osmdata)
+
+# Define a boundary
+bbx1 = c(51.1, 0.1, 51.2, 0.2)
+# Initiate a query
+query1 <- opq(bbox = bbx1)
+# Add features
+query1 %>% add_osm_feature(key = "highway") %>% osmdata_sf()
+
+query1 %>% add_osm_features(features = c("\"amenity\"=\"restaurant\"")) %>% osmdata_sf()
+
+# Use of exisiting futures
+civ1 %>% 
+  dplyr::filter(name == "Savanes") %>% 
+  sf::st_bbox() %>% 
+  unname() %>% 
+  opq(bbox = .) %>% 
+  add_osm_feature(key = "highway", value = "street") %>% 
+  osmdata_sf()
+
+```
+
+## Download Admins boundaries - with GISR
+
+Can you download geodata with `gisr` package? Yes.
+
+gisr has wrapper functions for facilitate the use of others spatial data packages.
+
+```{r echo=T, message=F, eval=F}
+
+library(gisr)
+
+# from rnaturalearth - we extract national and region boundaries of Togo
+get_admin0(countries = "Togo")
+get_admin1(countries = "Togo")
+
+# from raster package - we do the same as obove
+get_adm_boundaries(country_code = "TGO", geo_path = dir_geodata)
+
+# OSM - we extract roads network for Cote d'Ivoire
+extract_roads(aoi = civ0)
+
+```
+
+
+## Read PEPFAR Orgunit/Boundaries - with GISR
+
+`gisr` has functions to help users extract specific boundaries from PEPFAR `VcPepfarPolygones`
+
+This [GISR Article](https://usaid-oha-si.github.io/gisr/articles/extract-geodata.html) provides more details on how to manipulate spatial data.
+
+```{r echo=T, message=F, eval=F}
+
+library(gisr)
+library(glamr)
+library(dplyr)
+        
+# Vector Paths
+dir_vector <- glamr::si_path(type = "path_vector")
+
+# this works for the perfect setup with the default parameters values
+spdf_pepfar <- get_vcpolygons(path = file.path('..', dir_vector)) 
+
+# for custom use, you will need to specify the path and name of the file
+spdf_pepfar <- get_vcpolygons(path = "geodata", name = "pepfar.shp")
+
+```
+
+## Extract PEPFAR Orgunit/Boundaries - with GISR
+
+Here we extract specific boundaries
+
+```{r echo=T, message=F, eval=F}
+
+library(gisr)
+library(sf)
+library(glamr)
+library(dplyr)
+        
+cntry <- "Zambia"
+cntry_uid <- glamr::get_ouuid(cntry)
+
+# Country boundaries - query from datim
+spdf_cntry <- spdf_pepfar %>% 
+  extract_boundaries(country = cntry, level = 3)
+
+# Country boundaries - with a simple filter
+spdf_cntry <- spdf_pepfar %>% 
+  filter(uid == cntry_uid)
+```
+
+## Extract PEPFAR Orgunit/Boundaries - with GISR
+
+Here were extract all boundaries for a specific country. 
+
+```{r echo=T, message=F, eval=F}
+
+library(gisr)
+library(sf)
+library(glamr)
+library(dplyr)
+        
+cntry <- "South Africa"
+cntry_uid <- glamr::get_ouuid(cntry)
+
+# All country boundaries
+spdf_cntry_orgs <- spdf_pepfar %>% 
+  gisr::cntry_polygons(cntry)
+
+# Explore results - list of all available features
+# snu1, community", prioritization", country
+spdf_cntry_orgs %>% names()
+spdf_cntry_orgs$country %>% gview()
+spdf_cntry_orgs$snu1 %>% gview()
+spdf_cntry_orgs$community %>% gview()
+```
+
+## Spatial Data Visualization
+
+There are multiple ways to visualize geodata: `plot` or `ggplot` or `gisr`
+
+```{r echo=T, message=F, eval=F}
+library(gisr)
+library(sf)
+library(tidyverse)
+library(glitr)
+
+# plotting sp data
+plot(adm0, main = "Cote d'Ivoire")
+
+# transform sp to sf
+cntry <- st_as_sf(adm0)
+
+regions <- st_as_sf(adm1)
+
+# Transform geodata with dplyr
+regions <- regions %>% 
+  dplyr::select(name = NAME_1)
+
+# Visualize sf data with ggplot
+ggplot(data = regions) +
+  geom_sf(aes(fill = name), show.legend = F)
+
+```
+
+## Spatial Data Visualization
+
+```{r echo=T, message=F, eval=F}
+# Change default style and remove theme
+ggplot(data = regions) +
+  geom_sf(aes(fill = name), color = "white", size = .5, show.legend = FALSE) +
+  labs(title = "Cote d'Ivoire - Regional sub-divisions") +
+  theme_void()
+
+# Cartographic?
+ggplot() +
+  geom_sf(data = cntry, fill = NA, color = glitr::grey70k, size = 1) +
+  geom_sf(data = regions, fill = NA, color = glitr::grey50k, size = .3, linetype = "dotted") +
+  geom_sf(data = cntry, fill = NA, color = glitr::grey30k, size = .3, show.legend = FALSE) +
+  labs(title = "Cote d'Ivoire - Regional sub-divisions") +
+  si_style_map()
+  
+```
+
+## Spatial Data Visualization with gisr
+
+```{r echo=T, message=F, eval=F}
+
+countryname <- "Nigeria"
+
+adm0 <- gisr::get_admin0(countries = countryname) %>% 
+  dplyr::select(admin)
+
+adm1 <- gisr::get_admin1(countries = countryname) %>% 
+  dplyr::select(name)
+
+adm0 %>% gisr::gview()
+
+```
+
+## Spatial Data Visualization with gisr
+
+```{r echo=T, message=F, eval=F}
+
+adm1 %>% 
+  gisr::gview() + 
+  ggplot2::geom_sf_text(data = adm1, ggplot2::aes(label = name), size = 3)
+
+```
+
+## Spatial Data Visualization with gisr
+
+```{r echo=T, message=F, eval=F}
+
+terrain_map(countries = countryname, 
+            adm0 = adm0,
+            adm1 = adm1,
+            mask = TRUE,
+            terr = file.path("..", glamr::si_path("path_raster"))) +
+  geom_sf(data = adm1, fill = NA)
+
+```
