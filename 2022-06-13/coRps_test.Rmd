@@ -2,10 +2,10 @@
 title: "coRps Test"
 author: "Tim Essam | SI"
 date: "6/10/2022"
-output: html_document
+output: word_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
@@ -23,6 +23,6 @@ summary(cars)
 
 You can also embed plots, for example:
 
-```{r pressure, echo=TRUE}
+```{r pressure, echo=FALSE, include = TRUE}
 plot(pressure)
 ```

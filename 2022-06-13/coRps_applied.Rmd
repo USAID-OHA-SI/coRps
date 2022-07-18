@@ -4,9 +4,9 @@ author: "Tim Essam | SI"
 date: "6/9/2022"
 output: html_document
 params:
-  indicator: HTS_TST_POS
+  indicator: HTS_TST
   period: FY50
-  period_type: targets
+  period_type: cumulative
 ---
 
 ```{r setup, include=FALSE}
@@ -20,6 +20,7 @@ knitr::opts_chunk$set(echo = FALSE)
 glue::glue("Parameters used {params$indicator}, {params$period}, {params$period_type}")
 ```
 
+Presentation recording: https://drive.google.com/file/d/1bICxJN_7x2ZaMT8xDCCB6rOTV5nwjBit/view
 
 
 ## This is a level two header
@@ -77,4 +78,4 @@ hts_viz %>%
 #### Dynamic text based on R code
 You can use R code inside the markdown chunk to generate a dynamic value. Below we nest the code `hts_viz %>% filter(modality == "Index") %>% summarize(total = comma(sum(value)))` to generate a dynamic result for Index totals.
 
-The total number of Index tests in `r params$period` for `r params$indicator` is `r hts_viz %>% filter(modality == "Index") %>% summarize(total = comma(sum(value)))`
+The total number of Index test ``r params$period_type`` in `r params$period` for `r params$indicator` is `r hts_viz %>% filter(modality == "Index") %>% summarize(total = comma(sum(value)))`
