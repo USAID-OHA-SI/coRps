@@ -16,5 +16,12 @@
   2. How would you reorder `mech_code` order in the second small multiples graphic so that they were ordered by the partner who had the highest (max) TX_CURR to the lowest?
   
 #### 4. Exercises
-  1. Using `geom_bar` graph the number of observations for each period (`date`).
-  2. Plot a bar graph of TX_CURR over time. Rather than using `fill = snu1`, use `color = snu1` in the aesthetics instead. What changes in your plot?
+  1. Plot a bar graph of TX_CURR over time. Rather than using `fill = snu1`, use `color = snu1` in the aesthetics instead. What changes in your plot?
+
+
+   2. Change the following code to make a small multiples plot with a facet for region (`snu1`)
+  ```
+  ggplot(data = hfr_mmd) +
+  geom_col(mapping = aes(x = date, y = tx_curr, fill = snu1),
+           position = "dodge")
+   ```
