@@ -1,7 +1,17 @@
-RBBS - 4 Tidy Data
-================
-Karishma Srikanth
-2022-02-28
+---
+title: "RBBS - 4 Tidy Data"
+author: "Karishma Srikanth"
+date: '2022-03-07'
+layout: post
+categories:
+- corps
+- rbbs
+tags: r
+thumbnail: 20220307_rbbs_4-tidy.png
+---
+
+Part 4 of the coRps R Building Blocks Series (RBBS). All content can be found on this blog under the `rbbs` category as well as on the [USAID-OHA-SI/coRps GitHub repo](https://github.com/USAID-OHA-SI/coRps).
+
 
 ## RBBS 4 - Tidy Data
 
@@ -21,6 +31,10 @@ for Data Science](https://r4ds.had.co.nz/data-visualisation.html).
 You can use [this
 link](https://drive.google.com/file/d/1i_zg4QpgtcxvK-w1QttSZzFHxp-pvuNA/view?usp=sharing)
 to access today’s recording.
+
+### Materials
+
+<iframe src="https://docs.google.com/presentation/d/e/2PACX-1vQEUv1LwmSMkvpE5G-fRBbrLOykd2fNe7OVblF0u-m2GVr7ExYFZwh8OUPAG-JUh6rDZQX1jaWPflQ1/embed?start=false&loop=false&delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
 
 ### Setup
 
@@ -401,9 +415,24 @@ including:
 
 For a more in-depth dive in how to tidy the UNAIDS data, check out our
 [CoRps
-session](https://github.com/USAID-OHA-SI/coRps/blob/main/2021-11-08/02_munge_unaids_function_example.R)
+session](https://drive.google.com/file/d/1DhtpDU3mTXZlLhb5yqyzjupOGJ_7rhhf/view)
 about `munge_unaids`, the cleaning and tidying function that we built to
 tidy this data.
+
+### Additional Resources
+
+For more practice with Tidy Datasets, check out our CoRps session on
+[Working with Messy
+Datasets](https://usaid-oha-si.github.io/corps/2021/03/15/Working-with-Messy-Spreadsheets.html).
+
+For a good guide on how to use the `tidyr` functions, see [this
+cheatsheet](https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf).
+
+For some additional reading about tidy data, check out [Hadley Wickham’s
+journal article about tidy
+data](https://www.jstatsoft.org/article/view/v059i10) and [Data
+Organization in Spreadsheets- Karl W. Broman & Kara H. Woo
+(2018)](https://www.tandfonline.com/doi/full/10.1080/00031305.2017.1375989).
 
 ### Next Up
 
