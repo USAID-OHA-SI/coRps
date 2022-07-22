@@ -1,0 +1,81 @@
+---
+title: "Intro to R Markdown"
+author: "Tim Essam | SI"
+date: "6/9/2022"
+output: html_document
+params:
+  indicator: HTS_TST
+  period: FY50
+  period_type: cumulative
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+#knitr::opts_chunk$set(echo = params$show_code)
+```
+#### This is a level four header - This is going to provide me a summary of the parameters used
+
+```{r}
+# Summary of parameters used in the document
+glue::glue("Parameters used {params$indicator}, {params$period}, {params$period_type}")
+```
+
+Presentation recording: https://drive.google.com/file/d/1bICxJN_7x2ZaMT8xDCCB6rOTV5nwjBit/view
+
+
+## This is a level two header
+Here is where I describe the r chunk below. This chunk will load the libraries we need to make a dynamic document.
+
+```{r load packages and testing data, message = FALSE, warning = FALSE, echo = TRUE}
+library(glitr)
+library(glamr)
+library(gophr)
+library(tidyverse)
+library(tidytext)
+library(extrafont)
+library(glue)
+library(scales)
+library(gt)
+```
+
+### This is a level three header
+Below, we load the `hts` dataset and filter it based on the parameters we defined in the YAML chunk at the top. 
+Then, we create a ggplot object based on the new data frame. You could also use parameters in the ggplot call to produce a set of plots.
+
+```{r}
+hts_viz <- hts %>% 
+  filter(indicator == params$indicator, period_type == params$period_type, period == params$period) %>% 
+  mutate(mod_order = reorder_within(modality, value, prime_partner_name))
+
+hts_viz %>% 
+  ggplot(aes(x = value, y = mod_order)) + 
+  geom_col() +
+  scale_y_reordered() +
+  facet_wrap(~prime_partner_name, scales = "free_y") +
+  si_style(facet_space = 0.5, text_scale = 0.65) +
+  scale_x_continuous(labels = comma) +
+  labs(title = glue("TESTING {str_to_upper(params$period_type)} FOR {params$indicator} IN {params$period}"),
+       caption = glue("Source: glitr::hts dataset; Created on {Sys.Date()}"))
+```
+
+
+## Including Tables
+
+You can also embed tables a document. For example, we can use `gt` to create a summary table. 
+
+```{r pressure, echo=FALSE}
+hts_viz %>% 
+  select(-mod_order) %>% 
+  pivot_wider(names_from = modality) %>% 
+  gt(groupname_col = "indicator") %>% 
+  cols_hide(columns = c(1, 3, 4, 5)) %>% 
+  tab_options(table.font.size = 10) %>% 
+  sub_missing(columns = everything(), missing_text = "-") %>% 
+  fmt_number(columns = where(is.numeric), sep_mark = ",", decimals = 0) %>% 
+  tab_header(title = glue("{params$period_type} for {params$indicator} in {params$period}") %>% str_to_upper)
+  
+```
+#### Dynamic text based on R code
+You can use R code inside the markdown chunk to generate a dynamic value. Below we nest the code `hts_viz %>% filter(modality == "Index") %>% summarize(total = comma(sum(value)))` to generate a dynamic result for Index totals.
+
+The total number of Index test ``r params$period_type`` in `r params$period` for `r params$indicator` is `r hts_viz %>% filter(modality == "Index") %>% summarize(total = comma(sum(value)))`
