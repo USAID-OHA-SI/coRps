@@ -11,11 +11,6 @@
   library(tidyverse)
   library(gagglr)
   library(glue)
-  # library(scales)
-  # library(extrafont)
-  # library(tidytext)
-  # library(patchwork)
-  # library(ggtext)
   library(googlesheets4)
   library(lubridate)
   
