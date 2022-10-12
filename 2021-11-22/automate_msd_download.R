@@ -3,13 +3,13 @@
 # PURPOSE:  quarterly MSD update
 # LICENSE:  MIT
 # DATE:     2021-11-22
-# UPDATED:
+# UPDATED:  2022-08-22
 
 # DEPENDENCIES ------------------------------------------------------------
 
   library(tidyverse)
-  library(glamr)
-  library(gophr)
+  library(gagglr)
+  library(grabr)
 
 # GLOBAL VARIABLES --------------------------------------------------------
 
@@ -19,21 +19,21 @@
   #establish session
   sess <- pano_session(username = pano_user(), password = pano_pwd())
 
-  #downloads address
-  url <- "https://pepfar-panorama.org/forms/downloads/"
+  # #downloads address
+  # url <- "https://pepfar-panorama.org/forms/downloads/"
 
 
 # IDENTIFY CURRENT PERIOD -------------------------------------------------
 
-   recent_fldr <- url %>%
-    pano_content(session = sess) %>%
-    pano_elements() %>%
-    filter(str_detect(item, "^MER")) %>%
-    pull(item)
+   # recent_fldr <- url %>%
+   #  pano_content(session = sess) %>%
+   #  pano_elements() %>%
+   #  filter(str_detect(item, "^MER")) %>%
+   #  pull(item)
 
-  curr_status <- ifelse(str_detect(recent_fldr, "Post"), "clean", "initial")
-  curr_fy <- str_extract(recent_fldr, "[:digit:]{4}") %>% as.numeric()
-  curr_qtr <- str_extract(recent_fldr, "(?<=Q)[:digit:]") %>% as.numeric()
+  # curr_status <- ifelse(str_detect(recent_fldr, "Post"), "clean", "initial")
+  # curr_fy <- str_extract(recent_fldr, "[:digit:]{4}") %>% as.numeric()
+  # curr_qtr <- str_extract(recent_fldr, "(?<=Q)[:digit:]") %>% as.numeric()
 
 
 # IDENTIFY FILES ----------------------------------------------------------
@@ -42,11 +42,6 @@
   items <- map2_dfr(c("mer", "mer", "financial"),
                     c(TRUE, FALSE, FALSE),
                    ~ pano_extract(item = .x,
-                                  version = curr_status,
-                                  fiscal_year = curr_fy,
-                                  quarter = curr_qtr,
-                                  username = pano_user(),
-                                  password = pano_pwd(),
                                   unpack = .y))
 
 
@@ -64,15 +59,15 @@
 
 # CONVERT TO RDS ----------------------------------------------------------
 
-  #remove old files
-  list.files(si_path(), "rds", full.names = TRUE) %>%
-    unlink()
-
-  #identify new files to unzip
-  files <- list.files(si_path(), "zip", full.names = TRUE)
-
-  #unzip and store as rds
-  walk(files,
-       ~read_msd(.x, save_rds = TRUE, remove_txt = TRUE))
+  # #remove old files
+  # list.files(si_path(), "rds", full.names = TRUE) %>%
+  #   unlink()
+  # 
+  # #identify new files to unzip
+  # files <- list.files(si_path(), "zip", full.names = TRUE)
+  # 
+  # #unzip and store as rds
+  # walk(files,
+  #      ~read_msd(.x, save_rds = TRUE, remove_txt = TRUE))
 
 

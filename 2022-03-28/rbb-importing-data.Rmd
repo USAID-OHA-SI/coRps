@@ -76,7 +76,7 @@ Now that we have reviewed the data, we can import into R. The base R function to
 >  2. Return tibbles 
 >  3. Have more intuitive defaults. No row names, no strings as factors.
 
-Let's give `read_csv()`, "a special [case] of the more general `read_demin()` a go. We just need to provide the file path from our working directory to the file and pass that into the first parameter (`file`) in `read_csv()`. With  R, if you are working on a PC, you will need to change the backslashes ("\") in your file path to forward slashes ("/"). (The data for this session can be found [here](https://github.com/USAID-OHA-SI/coRps/tree/main/2022-03-28)).
+Let's give `read_csv()`, "a special [case] of the more general `read_demin()` a go. We just need to provide the file path from our working directory to the file and pass that into the first parameter (`file`) in `read_csv()`. With  R, if you are working on a PC, you will need to change the backslashes ("\\\") in your file path to forward slashes ("/"). (The data for this session can be found [here](https://github.com/USAID-OHA-SI/coRps/tree/main/2022-03-28)).
 
 ```{r}
 read_csv("simple.csv")
