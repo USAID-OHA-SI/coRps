@@ -1,13 +1,16 @@
 ---
-title: '2022-10-19: Reporting Calendar Exercise Solution'
-output: github_document
+title: '2022-10-19: coRps Reporting Calendar Exercise Solution'
+output:
+  github_document:
+    toc: true
+    toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Introduction
+### Introduction
 
 A large part of coding is just figuring out how to apply business rules/conditions to return the data you need. And coding helps in lots of ways, not just working with large datasets; it can be super useful in solving manual work (and reduces errors). I'll give you an example. Last week, we had to update the reporting calendar for HFR and we were able to code out the solution rather than manually flipping through a calendar. It definitely took more work to set up, but it means next year, I can just swap out the year and be done.
 
@@ -112,9 +115,45 @@ glamr::load_secrets("email")
 
 ### Step 6: Determine what days are business days
 
-*explain why we are creating a tibble*
-*run through wday function and how you can call variables with $*
+Now that we have the dates for the whole fiscal calendar year stored as `fy_date`, we can start determining which of these days are business days. Right now, `fy_date` is stored as a vector - to work with this data as a dataframe, we need to use the `tibble()` function to construct a data frame.
 
+```{r}
+tibble(date = fy_date)
+```
+
+After we have our dataframe, we can begin to use helper functions in the `lubridate` package to determine which days are weekends and holidays (from the OPM code above), thus allowing us to filter down which dates are business days.
+
+We'll use the `dplyr::mutate()` to create these flags, but let's first run through some helpful `lubridate` functions to solve this problem:
+
+#### `wday()`
+`wday` returns the day of the week as a number according to ISO conventions, where 1 means Monday and 7 means Sunday.
+
+We can pass the `date` through the `wday` function and use the `week_start` parameter to specify what day of the week the week starts on.
+
+Let's take today's date for instance. If we call `wday` on today's date (Wednesday, October 19th 2022) and specify that the week begins on Monday, the function will return the number `3`, as this is the 3rd day in the week from Monday.
+
+```{r}
+wday("2022-10-19", week_start = 1)
+```
+We then know that Saturday will be equal to 6 and Sunday will be 7. As such, we can create a conditional statement that returns `is.weekend = TRUE` if the number from `wday` is greater than 5.
+
+`is.weekend = wday(date, week_start = 1) > 5`
+
+#### `month()` and `day()`
+
+The `month()`and `day()` functions simply return the month and day respectively for a given date input. We can use this metadata for each date to group by the month later, to identify what the reporting date will be for each month and filter the days to on or after the 15th of every month.
+
+```{r}
+month("2022-10-19")
+day("2022-10-19")
+```
+
+
+Putting all these pieces together, using the `opm_holiday` dataframe we created early, we can also create a flag that returns `is.holiday = TRUE` if the date occurs in the OPM holiday dataframe.
+
+Finally, we can identify which dates are business days using these 2 flags: where `is.weekend == FALSE & is.holiday == FALSE`.
+
+Here's what the code looks like with all of these steps together:
 
 ```{r, message = FALSE}
 #determine which dates business days 
@@ -124,11 +163,32 @@ glamr::load_secrets("email")
            is.businessday = is.weekend == FALSE & is.holiday == FALSE,
            month = month(date),
            day = day(date))
+
+head(df_cal)
 ```
 
 ### Step 7: Filter for business days that are at least the 15th to identify reporting date
 
-*explain the group_by and slice logic*
+We're almost there! We know HFR submissions are due on the 15th of every month, unless the date falls on a weekend or holiday - in those cases, it's the next closest business day.
+
+By this logic, for each month we need to filter to only dates that are business days (using the flag we created in Step 6) and dates that are on or after the 15th of the month.
+
+To achieve this, we will utilize `dplyr::group_by()` to group our filter by the `month` and then filter to where `is.businessday == TRUE` and the `day` variable we created in Step 6 is greater than or equal to 15.
+
+```{r}
+df_cal %>%
+    group_by(month) %>%
+    filter(is.businessday,
+           day >= 15)
+```
+
+You'll notice that, for November, the first date that meets both of those conditions is November 15, 2021. As such, the reporting date for November 2021 will be November 15, 2021. 
+
+We want to grab the first date for each month that meets these conditions. To do so, we can `slice_head()` from the `dplyr` package, which allows you to select the first row of a dataframe. Since we are still grouping by `month`, `slice_head()` will index the first row in this dataframe by each month.
+
+Once we are done with this step, we are ready to `ungroup()`. We'll also `arrange()` by the `date` to make it easier to see each reporting date in chronological order.
+
+Here's what it all looks like put together:
 
 
 ```{r, message = FALSE}
@@ -140,10 +200,20 @@ glamr::load_secrets("email")
     slice_head() %>%
     ungroup() %>%
     arrange(date)
+
+  head(df_subm)
   
+```
+
+And there we have it! We can pull the list of the all the reporting dates using `pull()`.
+
+```{r}
   #pull list of dates
   df_subm %>% 
     pull(date)
 ```
 
+### Review Materials
 
+* [Lubridate Cheatsheet](https://github.com/rstudio/cheatsheets/blob/main/lubridate.pdf)
+* [dplyr Cheatsheet](chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://nyu-cdsc.github.io/learningr/assets/data-transformation.pdf)

@@ -1,7 +1,23 @@
-2022-10-19: Reporting Calendar Exercise Solution
+2022-10-19: coRps Reporting Calendar Exercise Solution
 ================
 
-## Introduction
+  - [Introduction](#introduction)
+  - [Step 1: Load necessary libraries](#step-1-load-necessary-libraries)
+  - [Step 2: Set up some global
+    variables](#step-2-set-up-some-global-variables)
+  - [Step 3: Import OPM Data](#step-3-import-opm-data)
+  - [Step 4: Transform OPM data so dates are in a date
+    format](#step-4-transform-opm-data-so-dates-are-in-a-date-format)
+  - [Step 5: Create a sequence for fiscal year
+    calendar](#step-5-create-a-sequence-for-fiscal-year-calendar)
+  - [Step 6: Determine what days are business
+    days](#step-6-determine-what-days-are-business-days)
+  - [Step 7: Filter for business days that are at least the 15th to
+    identify reporting
+    date](#step-7-filter-for-business-days-that-are-at-least-the-15th-to-identify-reporting-date)
+  - [Review Materials](#review-materials)
+
+### Introduction
 
 A large part of coding is just figuring out how to apply business
 rules/conditions to return the data you need. And coding helps in lots
@@ -150,8 +166,93 @@ and how to use them*
 
 ### Step 6: Determine what days are business days
 
-*explain why we are creating a tibble* *run through wday function and
-how you can call variables with $*
+Now that we have the dates for the whole fiscal calendar year stored as
+`fy_date`, we can start determining which of these days are business
+days. Right now, `fy_date` is stored as a vector - to work with this
+data as a dataframe, we need to use the `tibble()` function to construct
+a data frame.
+
+``` r
+tibble(date = fy_date)
+```
+
+    ## # A tibble: 364 x 1
+    ##    date      
+    ##    <date>    
+    ##  1 2021-11-01
+    ##  2 2021-11-02
+    ##  3 2021-11-03
+    ##  4 2021-11-04
+    ##  5 2021-11-05
+    ##  6 2021-11-06
+    ##  7 2021-11-07
+    ##  8 2021-11-08
+    ##  9 2021-11-09
+    ## 10 2021-11-10
+    ## # ... with 354 more rows
+
+After we have our dataframe, we can begin to use helper functions in the
+`lubridate` package to determine which days are weekends and holidays
+(from the OPM code above), thus allowing us to filter down which dates
+are business days.
+
+We’ll use the `dplyr::mutate()` to create these flags, but let’s first
+run through some helpful `lubridate` functions to solve this problem:
+
+#### `wday()`
+
+`wday` returns the day of the week as a number according to ISO
+conventions, where 1 means Monday and 7 means Sunday.
+
+We can pass the `date` through the `wday` function and use the
+`week_start` parameter to specify what day of the week the week starts
+on.
+
+Let’s take today’s date for instance. If we call `wday` on today’s date
+(Wednesday, October 19th 2022) and specify that the week begins on
+Monday, the function will return the number `3`, as this is the 3rd day
+in the week from Monday.
+
+``` r
+wday("2022-10-19", week_start = 1)
+```
+
+    ## [1] 3
+
+We then know that Saturday will be equal to 6 and Sunday will be 7. As
+such, we can create a conditional statement that returns `is.weekend =
+TRUE` if the number from `wday` is greater than 5.
+
+`is.weekend = wday(date, week_start = 1) > 5`
+
+#### `month()` and `day()`
+
+The `month()`and `day()` functions simply return the month and day
+respectively for a given date input. We can use this metadata for each
+date to group by the month later, to identify what the reporting date
+will be for each month and filter the days to on or after the 15th of
+every month.
+
+``` r
+month("2022-10-19")
+```
+
+    ## [1] 10
+
+``` r
+day("2022-10-19")
+```
+
+    ## [1] 19
+
+Putting all these pieces together, using the `opm_holiday` dataframe we
+created early, we can also create a flag that returns `is.holiday =
+TRUE` if the date occurs in the OPM holiday dataframe.
+
+Finally, we can identify which dates are business days using these 2
+flags: where `is.weekend == FALSE & is.holiday == FALSE`.
+
+Here’s what the code looks like with all of these steps together:
 
 ``` r
 #determine which dates business days 
@@ -161,11 +262,72 @@ how you can call variables with $*
            is.businessday = is.weekend == FALSE & is.holiday == FALSE,
            month = month(date),
            day = day(date))
+
+head(df_cal)
 ```
+
+    ## # A tibble: 6 x 6
+    ##   date       is.weekend is.holiday is.businessday month   day
+    ##   <date>     <lgl>      <lgl>      <lgl>          <dbl> <int>
+    ## 1 2021-11-01 FALSE      FALSE      TRUE              11     1
+    ## 2 2021-11-02 FALSE      FALSE      TRUE              11     2
+    ## 3 2021-11-03 FALSE      FALSE      TRUE              11     3
+    ## 4 2021-11-04 FALSE      FALSE      TRUE              11     4
+    ## 5 2021-11-05 FALSE      FALSE      TRUE              11     5
+    ## 6 2021-11-06 TRUE       FALSE      FALSE             11     6
 
 ### Step 7: Filter for business days that are at least the 15th to identify reporting date
 
-*explain the group\_by and slice logic*
+We’re almost there\! We know HFR submissions are due on the 15th of
+every month, unless the date falls on a weekend or holiday - in those
+cases, it’s the next closest business day.
+
+By this logic, for each month we need to filter to only dates that are
+business days (using the flag we created in Step 6) and dates that are
+on or after the 15th of the month.
+
+To achieve this, we will utilize `dplyr::group_by()` to group our filter
+by the `month` and then filter to where `is.businessday == TRUE` and the
+`day` variable we created in Step 6 is greater than or equal to 15.
+
+``` r
+df_cal %>%
+    group_by(month) %>%
+    filter(is.businessday,
+           day >= 15)
+```
+
+    ## # A tibble: 134 x 6
+    ## # Groups:   month [12]
+    ##    date       is.weekend is.holiday is.businessday month   day
+    ##    <date>     <lgl>      <lgl>      <lgl>          <dbl> <int>
+    ##  1 2021-11-15 FALSE      FALSE      TRUE              11    15
+    ##  2 2021-11-16 FALSE      FALSE      TRUE              11    16
+    ##  3 2021-11-17 FALSE      FALSE      TRUE              11    17
+    ##  4 2021-11-18 FALSE      FALSE      TRUE              11    18
+    ##  5 2021-11-19 FALSE      FALSE      TRUE              11    19
+    ##  6 2021-11-22 FALSE      FALSE      TRUE              11    22
+    ##  7 2021-11-23 FALSE      FALSE      TRUE              11    23
+    ##  8 2021-11-24 FALSE      FALSE      TRUE              11    24
+    ##  9 2021-11-26 FALSE      FALSE      TRUE              11    26
+    ## 10 2021-11-29 FALSE      FALSE      TRUE              11    29
+    ## # ... with 124 more rows
+
+You’ll notice that, for November, the first date that meets both of
+those conditions is November 15, 2021. As such, the reporting date for
+November 2021 will be November 15, 2021.
+
+We want to grab the first date for each month that meets these
+conditions. To do so, we can `slice_head()` from the `dplyr` package,
+which allows you to select the first row of a dataframe. Since we are
+still grouping by `month`, `slice_head()` will index the first row in
+this dataframe by each month.
+
+Once we are done with this step, we are ready to `ungroup()`. We’ll also
+`arrange()` by the `date` to make it easier to see each reporting date
+in chronological order.
+
+Here’s what it all looks like put together:
 
 ``` r
 #group by month and filter for business days that are at least the 15th & slice first day
@@ -176,7 +338,24 @@ how you can call variables with $*
     slice_head() %>%
     ungroup() %>%
     arrange(date)
-  
+
+  head(df_subm)
+```
+
+    ## # A tibble: 6 x 6
+    ##   date       is.weekend is.holiday is.businessday month   day
+    ##   <date>     <lgl>      <lgl>      <lgl>          <dbl> <int>
+    ## 1 2021-11-15 FALSE      FALSE      TRUE              11    15
+    ## 2 2021-12-15 FALSE      FALSE      TRUE              12    15
+    ## 3 2022-01-18 FALSE      FALSE      TRUE               1    18
+    ## 4 2022-02-15 FALSE      FALSE      TRUE               2    15
+    ## 5 2022-03-15 FALSE      FALSE      TRUE               3    15
+    ## 6 2022-04-15 FALSE      FALSE      TRUE               4    15
+
+And there we have it\! We can pull the list of the all the reporting
+dates using `pull()`.
+
+``` r
   #pull list of dates
   df_subm %>% 
     pull(date)
@@ -185,3 +364,10 @@ how you can call variables with $*
     ##  [1] "2021-11-15" "2021-12-15" "2022-01-18" "2022-02-15" "2022-03-15"
     ##  [6] "2022-04-15" "2022-05-16" "2022-06-15" "2022-07-15" "2022-08-15"
     ## [11] "2022-09-15" "2022-10-17"
+
+### Review Materials
+
+  - [Lubridate
+    Cheatsheet](https://github.com/rstudio/cheatsheets/blob/main/lubridate.pdf)
+  - [dplyr
+    Cheatsheet](chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://nyu-cdsc.github.io/learningr/assets/data-transformation.pdf)
