@@ -52,7 +52,7 @@
     coord_cartesian(expand = F) +
     labs(x = NULL, y = NULL, title = "")
   
-  ggsave("../../My Pictures/FY21Q1_budget_tbds_remake_part1.svg",
+  ggsave("../../My Pictures/FY21Q1_budget_tbds_remake_part1.png",
     width = 10,
     height = 2.625,
     dpi = "retina"
@@ -62,6 +62,8 @@
 
 # PLOT BUDGET TBD ---------------------------------------------------------
 
+  # add in example to show how to order manually
+  
   budget_tbd %>%
     mutate(time = fct_reorder(time, order)) %>%
     ggplot(aes(x = time, y = value)) +

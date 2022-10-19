@@ -122,7 +122,9 @@ glamr::load_secrets("email")
 
 ### Step 3: Import OPM Data
 
-*explain why we are specifying col\_type*
+When we read in the data, we are going to specify that the col_types are treated as characters. 
+If we do not do this, you'll notice that the date field is quite jacked up. It becomes a mix
+of POSIX dates and characters. 
 
 ``` r
 #read opm holiday from GDrive, need to treat as string b/c issue reading date
@@ -131,18 +133,29 @@ glamr::load_secrets("email")
 
 ### Step 4: Transform OPM data so dates are in a date format
 
-*quick run through of differences between base R date functions and
-lubridate* *str\_extract and mutating the holidays - why these functions
-and how to use them*
-
+Set up a vector of months we would like to extract from the OPM data -- (all of them!)
 ``` r
 #list of months to find in the date column
   month.list <- month.name %>%
     paste(collapse = "|") %>%
     paste0("(", ., ")")
-  
-  #extact dates as actual date
-  opm_holiday <- df_opm %>%
+```
+
+Base R is lovely in that it has a few built in objects that can make your life easier. The `month.name ` is one such object we can use to quickly generate a vector of months.
+
+``` r
+month.name
+
+# What does this look like?
+  month.list
+
+```
+
+Now that we have our months in an object, we can start to manipulate the OPM dataframe to build some dates.
+
+``` r
+  #extract dates as actual date
+  opm_holiday <- df_opm %>% 
     rename_all(tolower) %>%
     mutate(month = date %>%
              str_extract(month.list) %>%
@@ -153,14 +166,53 @@ and how to use them*
     select(date_holiday_obs, holiday)
 ```
 
+You may also notice the call to `lubridate::make_date()`. If we look at the documentation for this, we see that it takes a series of inputs and returns a date. For example, if we wanted to create today's date, we would do the following:
+
+```r
+# make_date -- what does it do -- produces objects of class Data
+  make_date(year = 2022, month = 10, day = 19) %>% class()
+
+# Not the same as above / above is a Date class
+  "2022-10-19" %>% class()
+
+# If we want to extract the months from the date column, we can do the following
+# match() is a base 
+  months <- df_opm$date %>% str_extract(month.list) %>% match(month.name)
+  str(months)
+```
+
+As we move through the code chunk above, you'll see a a line that creates the day column. Similar to how we used `str_extract()` to pluck out the month, we are going to use a regular expression to pluck out the day of the month.
+
+```r
+
+# Two ways of extracting days
+days <- df_opm$date %>% str_extract(., "\\d{2}")
+days2 <- df_opm$date %>% str_extract(., "[:digit:]{2}")
+
+days == days2
+
+make_date(year = 2022, month = months, day = days) %>% str()
+
+```
+
+
+
+
 ### Step 5: Create a sequence for fiscal year calendar
 
-*explain seq.date and use case for it here*
+The next step is to build an object that contains every date from November 1, 2022 through October 30, 2023. Because the first HFR reporting period is not until November of each fiscal year, we start at November 1. 
+
+The `seq.Date()` function is our friend here. It allows us to create a sequence of dates, much like we'd create a sequence of numbers using the base `seq()` function. Let's see this in action.
 
 ``` r
+  # General idea is that we can build a vector quickly with base R functions. 
+  seq(from = 0, to = 10, by = 2)
+  seq(0, 100, 5)
+
+
   #create a sequence of dates for the whole fiscal calendar year
-  fy_date <- seq.Date(make_date(metadata$curr_fy-1, 11, 1), 
-                      make_date(metadata$curr_fy, 10, 30), 
+  fy_date <- seq.Date(make_date(metadata$curr_fy, 11, 1), 
+                      make_date(metadata$curr_fy+1, 10, 30), 
                       by = 1)
 ```
 
