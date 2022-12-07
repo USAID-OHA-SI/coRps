@@ -1,0 +1,219 @@
+---
+title: '2022-10-19: coRps Reporting Calendar Exercise Solution'
+output:
+  github_document:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Introduction
+
+A large part of coding is just figuring out how to apply business rules/conditions to return the data you need. And coding helps in lots of ways, not just working with large datasets; it can be super useful in solving manual work (and reduces errors). I'll give you an example. Last week, we had to update the reporting calendar for HFR and we were able to code out the solution rather than manually flipping through a calendar. It definitely took more work to set up, but it means next year, I can just swap out the year and be done.
+
+I thought this would be an excellent exercise for you all to get your hands dirty with and we will review in our next session, Wednesday, Oct 19. 
+
+**Problem**
+HFR submissions are due on the 15th of every month unless the date falls on a weekend or holiday, then it's the next closest business day. For example submissions for FY22 Dec were due last January 18, 2022 because Jan 15 fell on a Saturday and then Monday, Jan 17 was a federal holiday. What days should submissions be due for each month in FY23?
+
+**Hints**
+
+* HFR reports are due on the 15th of the following month unless the 15th falls on a weekend or federal holiday and then it is due on the next closest business day
+* A fiscal year runs from Oct - Sept; reportings will then occur from Nov - Oct
+* Suggested libraries -  base R, `dplyr`, `lubridate`, `tibble`, `googlesheets4`
+* Figure out how to create a sequence of dates for the whole fiscal year
+* Identify if a date is a business day
+* Identify weekends vs weekday based on `lubridate::wday()`
+* Exclude federal holidays (read in using `googlesheets4::read_sheet()` and extract months and days from the date column and combine with the year in order to use `lubridate::makedate()`)
+* Group by months and use dplyr::slice_head() for the first observation
+
+***
+
+Let's break this problem down step by step.
+
+### Step 1: Load necessary libraries
+
+For this exercise, we will be heavily relying on the `tidyverse` functions for our data wrangling and `lubridate` for working with dates. We will also load `gagglr` to load all the OHA packages and `glue` to make it easier to glue strings together in R. Lastly, we'll use `googlesheets4` to read in the federal holiday data from Google Drive.
+
+```{r load libraries, warning = FALSE, message = FALSE}
+  library(tidyverse)
+  library(gagglr)
+  library(glue)
+  library(googlesheets4)
+  library(lubridate)
+```
+
+
+### Step 2: Set up some global variables
+
+Before starting your script, we want to be thinking about information that we can store in the beginning of our workflow that we will call on later - not only does this save time, but it also reduces the amount of repetition you have in your code.
+
+For example, we know we need to read in data from Google Drive for the federal holiday calendar. We can store the google ID credentials for the data using `googlesheets4::as_sheets_id()`. This global object will be called on when we are reading in the data.
+
+Similarly, we are likely going to be referencing the current year multiple times throughout our script, so it makes sense to save this as a global object as well. In this example, we are using a new function in the `gophr` package called `get_metadata()` that stores various pieces of metadata information from a given file. In our case, we will be using this function to store the current year.
+
+```{r store globals, message= FALSE}
+gdrive_id <- as_sheets_id("1IOlSO1j8tzVIKMPWeERNa7O0Ren-28BEw5WiDjzpfGI")
+gophr::get_metadata()
+```
+```{r show metadata}
+metadata$curr_fy
+```
+
+Lastly, to read in the data from google drive, you'll want to load your google drive credentials into your R session using `glamr::load_secrets()`. If you do not have your credentials stored, please see this [vignette](https://usaid-oha-si.github.io/glamr/articles/credential-management.html) to walk you through credential management in R.
+
+```{r load credentials, message= FALSE}
+glamr::load_secrets("email")
+```
+
+### Step 3: Import OPM Data
+
+*explain why we are specifying col_type*
+
+```{r, message = FALSE}
+#read opm holiday from GDrive, need to treat as string b/c issue reading date
+  df_opm <- read_sheet(gdrive_id, col_types = "c")
+```
+
+### Step 4: Transform OPM data so dates are in a date format
+
+*quick run through of differences between base R date functions and lubridate*
+*str_extract and mutating the holidays - why these functions and how to use them*
+
+
+```{r, message = FALSE}
+#list of months to find in the date column
+  month.list <- month.name %>%
+    paste(collapse = "|") %>%
+    paste0("(", ., ")")
+  
+  #extact dates as actual date
+  opm_holiday <- df_opm %>%
+    rename_all(tolower) %>%
+    mutate(month = date %>%
+             str_extract(month.list) %>%
+             match(month.name),
+           day = str_extract(date, "[:digit:]{2}"),
+           date_holiday_obs = make_date(year, month, day),
+           holiday = str_replace(holiday, "\x92", "'")) %>%
+    select(date_holiday_obs, holiday)
+```
+
+### Step 5: Create a sequence for fiscal year calendar
+
+*explain seq.date and use case for it here*
+
+```{r, message = FALSE}
+  #create a sequence of dates for the whole fiscal calendar year
+  fy_date <- seq.Date(make_date(metadata$curr_fy-1, 11, 1), 
+                      make_date(metadata$curr_fy, 10, 30), 
+                      by = 1)
+```
+
+### Step 6: Determine what days are business days
+
+Now that we have the dates for the whole fiscal calendar year stored as `fy_date`, we can start determining which of these days are business days. Right now, `fy_date` is stored as a vector - to work with this data as a dataframe, we need to use the `tibble()` function to construct a data frame.
+
+```{r}
+tibble(date = fy_date)
+```
+
+After we have our dataframe, we can begin to use helper functions in the `lubridate` package to determine which days are weekends and holidays (from the OPM code above), thus allowing us to filter down which dates are business days.
+
+We'll use the `dplyr::mutate()` to create these flags, but let's first run through some helpful `lubridate` functions to solve this problem:
+
+#### `wday()`
+`wday` returns the day of the week as a number according to ISO conventions, where 1 means Monday and 7 means Sunday.
+
+We can pass the `date` through the `wday` function and use the `week_start` parameter to specify what day of the week the week starts on.
+
+Let's take today's date for instance. If we call `wday` on today's date (Wednesday, October 19th 2022) and specify that the week begins on Monday, the function will return the number `3`, as this is the 3rd day in the week from Monday.
+
+```{r}
+wday("2022-10-19", week_start = 1)
+```
+We then know that Saturday will be equal to 6 and Sunday will be 7. As such, we can create a conditional statement that returns `is.weekend = TRUE` if the number from `wday` is greater than 5.
+
+`is.weekend = wday(date, week_start = 1) > 5`
+
+#### `month()` and `day()`
+
+The `month()`and `day()` functions simply return the month and day respectively for a given date input. We can use this metadata for each date to group by the month later, to identify what the reporting date will be for each month and filter the days to on or after the 15th of every month.
+
+```{r}
+month("2022-10-19")
+day("2022-10-19")
+```
+
+
+Putting all these pieces together, using the `opm_holiday` dataframe we created early, we can also create a flag that returns `is.holiday = TRUE` if the date occurs in the OPM holiday dataframe.
+
+Finally, we can identify which dates are business days using these 2 flags: where `is.weekend == FALSE & is.holiday == FALSE`.
+
+Here's what the code looks like with all of these steps together:
+
+```{r, message = FALSE}
+#determine which dates business days 
+  df_cal <- tibble(date = fy_date) %>%
+    mutate(is.weekend = wday(date, week_start = 1) > 5,
+           is.holiday = date %in% opm_holiday$date_holiday_obs,
+           is.businessday = is.weekend == FALSE & is.holiday == FALSE,
+           month = month(date),
+           day = day(date))
+
+head(df_cal)
+```
+
+### Step 7: Filter for business days that are at least the 15th to identify reporting date
+
+We're almost there! We know HFR submissions are due on the 15th of every month, unless the date falls on a weekend or holiday - in those cases, it's the next closest business day.
+
+By this logic, for each month we need to filter to only dates that are business days (using the flag we created in Step 6) and dates that are on or after the 15th of the month.
+
+To achieve this, we will utilize `dplyr::group_by()` to group our filter by the `month` and then filter to where `is.businessday == TRUE` and the `day` variable we created in Step 6 is greater than or equal to 15.
+
+```{r}
+df_cal %>%
+    group_by(month) %>%
+    filter(is.businessday,
+           day >= 15)
+```
+
+You'll notice that, for November, the first date that meets both of those conditions is November 15, 2021. As such, the reporting date for November 2021 will be November 15, 2021. 
+
+We want to grab the first date for each month that meets these conditions. To do so, we can `slice_head()` from the `dplyr` package, which allows you to select the first row of a dataframe. Since we are still grouping by `month`, `slice_head()` will index the first row in this dataframe by each month.
+
+Once we are done with this step, we are ready to `ungroup()`. We'll also `arrange()` by the `date` to make it easier to see each reporting date in chronological order.
+
+Here's what it all looks like put together:
+
+
+```{r, message = FALSE}
+#group by month and filter for business days that are at least the 15th & slice first day
+  df_subm <- df_cal %>%
+    group_by(month) %>%
+    filter(is.businessday,
+           day >= 15) %>%
+    slice_head() %>%
+    ungroup() %>%
+    arrange(date)
+
+  head(df_subm)
+  
+```
+
+And there we have it! We can pull the list of the all the reporting dates using `pull()`.
+
+```{r}
+  #pull list of dates
+  df_subm %>% 
+    pull(date)
+```
+
+### Review Materials
+
+* [Lubridate Cheatsheet](https://github.com/rstudio/cheatsheets/blob/main/lubridate.pdf)
+* [dplyr Cheatsheet](chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://nyu-cdsc.github.io/learningr/assets/data-transformation.pdf)
