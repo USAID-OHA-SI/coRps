@@ -1,0 +1,122 @@
+---
+title: "Extracting Targets Using tameDP"
+date: "1/9/2023"
+output:
+  github_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## tameDP package overview
+
+Over the last few years, the SI team has maintained a package for working with the Data Pack called [`tameDP`](https://github.com/USAID-OHA-SI/tameDP).
+
+The main function of `tameDP` is to bring import a COP Data Pack into R and make it tidy. The function aggregates the fiscal year targets up to the mechanism level, imports the mechanism information from DATIM, and breaks out the data elements to make the dataset more usable. There are a number of useful features including adding in the additional HTS modalities (from VMMC, PMTCT, TB, and index), breaking out the `indicatorcode` column into discrete usable/filterable pieces, providing mechanism/partner info, and creating a HTS_TST_POS indicator. 
+
+### Set up
+
+Our package is hosted on a site called GitHub rather than CRAN, R’s central software repository. As a result, we will need to utilize a function from the `remotes` package to install `tameDP` rather than repeating the `install.packages()`. Copy and paste the line below to install `tameDP` from GitHub. If your console asks you to install updates, you can skip this by simply hitting return/enter.
+
+```{r install packages, eval= FALSE}
+#install
+#install.packages("remotes")
+remotes::install_github("USAID-OHA-SI/tameDP")
+```
+
+Then, you can load the package:
+
+```{r load libraries, warning = FALSE}
+#load library
+library(tameDP)
+library(tidyverse)
+```
+
+
+### Extracting Targets
+
+The first thing you will want to do after your load `tameDP` is to tell R where your Data Pack is located on your computer. Copy your file path to your clipboard and paste the copied path into your R script to store the path as an object in R.
+
+We will call the object, dp_filepath. It is important to note that Windows filepaths have their slash in the wrong direction. You will need to replace all backslashes (“/") in your filepath with forward slashes (”/“). The command to store the file path object will look like the code below, where you have replaced the file path with the path to your own file.
+
+```{r store filepath}
+dp_filepath <- "C:/Users/ksrikanth/Documents/Github/coRps/2023-01-11/tools/DataPack_Jupiter_20500101.xlsx"
+```
+
+The main function is pretty easy to run, providing just the file path to the data pack you're working with.
+
+The first is extracting all the targets from their relevant tabs. The data here will be at the PSNU level, broken out by the relevant disaggregate (e.g. Age/Sex/HIVStatus). In the function below, we have used the filepath we stored above to pass that into the function. This function will take a few seconds or minutes to run depending on the size of your data pack.
+
+```{r import data pack}
+df_sat <- tame_dp(dp_filepath)
+
+head(df_sat)
+```
+
+
+When we view our data, you'll see the structure is very similar to a MER Structured Dataset (MSD). You have the following columns: `operatingunit`, `countryname`, `snu1`, `psnu`, `psnuuid`, `fiscal_year`, `indicator`, `standardizeddisaggregate`, `numeratordenom`, `ageasentered`, `sex`, `modality`, `statushiv`, `otherdisaggregate`, `targets.` The output is a bit more manageable to work with than using it in the Data Pack.
+
+## Other Data Options
+
+In the function above, we provided the filepath and the function returned the the data frame of targets from the Data Pack. Function in R often have multiple parameters. Take a minute to look at the help file for `tame_dp()`. You'll notice there are few parameters.
+
+```{r help documentation, eval = FALSE}
+?tame_dp
+```
+
+In `tame_dp()`, there is a parameter called `type` which allows us to return different tabs of the data pack.
+
+For example, you can return the `PLHIV` tab like this:
+
+```{r plhiv tab}
+#return PLHIV data
+df_plhiv <- tame_dp(dp_filepath, type = "PLHIV")
+
+
+```
+
+If you wanted to get all the targets from all of the tabs, you can use `type = "ALL"`
+
+```{r all tabs}
+#return PLHIV data
+df_all <- tame_dp(dp_filepath, type = "ALL")
+```
+
+Finally, to get the data from the PSNUxIM tab of the data pack, use `type = "PSNUxIM"`. This will pull the data at the PSNU and mechanism level, with `mech_code` included.
+
+```{r PSNUxIM}
+df_dp_mech <- tame_dp(dp_filepath, type = "PSNUxIM")
+
+str(df_dp_mech)
+```
+
+Let's look at the PSNUxIM output more closely. Notice that the mechanism data is missing from the dataframe. This is because the DataPack doesnt include mechanism level or prime partner data so these columns are left blank.
+
+As such, `tame_dp()` has a parameter called `map_names` which will pull down mechanism level data from DATIM using your DATIM username and password.
+
+```{r map_names param, eval = FALSE}
+df_dp_mech <- tame_dp(dp_filepath, type = "PSNUxIM", map_names = TRUE)
+
+```
+
+Lastly, we can use the `psnu_lvl` parameter to aggregate the data up to the PSNU level if you are working with the PSNUxIM data.
+
+
+```{r, eval = FALSE}
+df_dp_psnu <- tame_dp(dp_filepath, type = "PSNUxIM", psnu_lvl = TRUE)
+```
+
+
+## Iterating over multiple files
+
+To iterate over multiple DataPacks at once, you can use one of the `map()` functions from the `purrr` package to read in multiple DataPacks and combine them, rather than working one by one.
+
+
+## Example: How to work with the DataPack in a tidy format
+
+## Exporting Data
+
+## SGAC alternative package
