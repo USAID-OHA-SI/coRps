@@ -43,7 +43,7 @@ The first thing you will want to do after your load `tameDP` is to tell R where 
 We will call the object, dp_filepath. It is important to note that Windows filepaths have their slash in the wrong direction. You will need to replace all backslashes (“/") in your filepath with forward slashes (”/“). The command to store the file path object will look like the code below, where you have replaced the file path with the path to your own file.
 
 ```{r store filepath}
-dp_filepath <- "C:/Users/ksrikanth/Documents/Github/coRps/2023-01-11/tools/DataPack_Jupiter_20500101.xlsx"
+dp_filepath <- "coRps/2023-01-11/tools/DataPack_Jupiter_20500101.xlsx"
 ```
 
 The main function is pretty easy to run, providing just the file path to the data pack you're working with.
