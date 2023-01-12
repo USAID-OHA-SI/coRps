@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Over the last few years, the SI team has maintained a package for working with the Data Pack called [`tameDP`](https://github.com/USAID-OHA-SI/tameDP).
 
-The main function of `tameDP` is to bring import a COP Data Pack into R and make it tidy. The function aggregates the fiscal year targets up to the mechanism level, imports the mechanism information from DATIM, and breaks out the data elements to make the dataset more usable. There are a number of useful features including adding in the additional HTS modalities (from VMMC, PMTCT, TB, and index), breaking out the `indicatorcode` column into discrete usable/filterable pieces, providing mechanism/partner info, and creating a HTS_TST_POS indicator. 
+The main function of `tameDP` is to import a COP Data Pack into R and make it tidy. The function aggregates the fiscal year targets up to the mechanism level, imports the mechanism information from DATIM, and breaks out the data elements to make the dataset more usable. There are a number of useful features including adding in the additional HTS modalities (from VMMC, PMTCT, TB, and index), breaking out the `indicatorcode` column into discrete usable/filterable pieces, providing mechanism/partner info, and creating a HTS_TST_POS indicator. 
 
 ### Set up
 
@@ -43,7 +43,7 @@ The first thing you will want to do after your load `tameDP` is to tell R where 
 We will call the object, dp_filepath. It is important to note that Windows filepaths have their slash in the wrong direction. You will need to replace all backslashes (“/") in your filepath with forward slashes (”/“). The command to store the file path object will look like the code below, where you have replaced the file path with the path to your own file.
 
 ```{r store filepath}
-dp_filepath <- "C:/Users/ksrikanth/Documents/Github/coRps/2023-01-11/tools/DataPack_Jupiter_20500101.xlsx"
+dp_filepath <- "2023-01-11/tools/DataPack_Jupiter_20500101.xlsx"
 ```
 
 The main function is pretty easy to run, providing just the file path to the data pack you're working with.
@@ -75,7 +75,6 @@ For example, you can return the `PLHIV` tab like this:
 #return PLHIV data
 df_plhiv <- tame_dp(dp_filepath, type = "PLHIV")
 
-
 ```
 
 If you wanted to get all the targets from all of the tabs, you can use `type = "ALL"`
@@ -105,18 +104,116 @@ df_dp_mech <- tame_dp(dp_filepath, type = "PSNUxIM", map_names = TRUE)
 Lastly, we can use the `psnu_lvl` parameter to aggregate the data up to the PSNU level if you are working with the PSNUxIM data.
 
 
-```{r, eval = FALSE}
+```{r psnu_lvl rollup, eval = FALSE}
 df_dp_psnu <- tame_dp(dp_filepath, type = "PSNUxIM", psnu_lvl = TRUE)
 ```
 
 
 ## Iterating over multiple files
 
-To iterate over multiple DataPacks at once, you can use one of the `map()` functions from the `purrr` package to read in multiple DataPacks and combine them, rather than working one by one.
+To iterate over multiple Data Packs at once, you can use one of the `map()` functions from the `purrr` package to read in multiple files and combine them, rather than working one by one. First, let's get a list of files we would like to iterate over. We can do this using the `list.files()` command. We will use the `full.names = TRUE` setting because the files live outside of our repo. The `pattern = "P|pack"` argument tells the function to only look for files that contain the word "Pack or pack" in the the file name. 
+
+```{r batching data packs}
+# Identify all Data Pack files
+  files <- list.files(path = "../../../Documents/DataPacks/", pattern = "P|pack", full.names = TRUE)
+  
+# List the contents of the object files
+  files
+```
+
+Next, we can use the `map()` function combined with `list_rbind()` to read in all of the datapacks and combine them, by row, into a single data frame.
+```{r mapping over multiple data packs}
+# Read in all Data Packs and combine them into one data frame -- New guidance from purrr update
+# There is a new argument in the map() function that shows progress. This can be useful if iterating over many files.
+  df_all <-
+    map(
+      .x = files,
+      .f = ~ tame_dp(.x, map_names = FALSE),
+      .progress = TRUE
+    ) %>%
+    list_rbind()
+
+# Above is equivalent to running the old purrr syntax
+  # df_all <- map_dfr(.x = files,
+  #                  .f = ~ tame_dp(.x, map_names = FALSE))
+```
 
 
-## Example: How to work with the DataPack in a tidy format
+To check if all the operating units made it into the data frame, we can use the `count()` function (or you could visually inspect the resulting data frame).
 
-## Exporting Data
+```{r check batched output}
+  df_all %>% count(operatingunit, fiscal_year)
+```
+
+What if you wanted to loop over all the Data Packs and pull out the PLHIV numbers? You could do this by modifying the code chunk above, setting `type = "PLHIV")`. 
+
+```{r batch only PLHIV}
+  df_plhiv_all <-
+    map(
+      .x = files,
+      .f = ~ tame_dp(.x, map_names = FALSE, type = "PLHIV"),
+      .progress = TRUE
+    ) %>%
+    list_rbind()
+```
+
 
 ## SGAC alternative package
+An SGAC alternative to tameDP is `datapackr`.. You can read more about steps for installing and running the package on the package github [repo](https://github.com/pepfar-datim/datapackr). To run this package, you will need to have your DATIM credentials handy or stored in the `keyring` package via `glamr` ([full instructions](https://usaid-oha-si.github.io/glamr/articles/credential-management.html) here).
+
+```{r load datapackr, warning = FALSE, echo = FALSE}
+# To install datapackr do the following:
+  library(devtools)
+  #install_github(repo = "https://github.com/pepfar-datim/datapackr.git", ref = "master")
+  library(datapackr)
+  library(gagglr)
+```
+
+Once you have the package installed and loaded, you can run `load_secrets()` to populate your DATIM credentials. We can then use arguments from `glamr` to pass to the `loginToDATIM()` function that is part of `datimutils`.
+
+```{r authenticate, eval = FALSE}
+  glamr::load_secrets()
+
+  # populate the arguments below with appropriate values
+  datimutils::loginToDATIM(base_url = base_url, username = datim_username, password = datim_pw)
+```
+
+Click on the `d2_default_session()` object to check your credentials (or type it in the Console). With authentication complete, we can move forward with loading a Data Pack. Similar to above, we'll establish an object that points at where the file lives. We then use the `loadDataPack()` function to load the file into R. 
+
+```{r selecting and loading a data pack, eval = F}
+# Set the filepath
+  dp_filepath2 <- "../../../Documents/DataPacks/Data Pack_Zambia_20211118122255.xlsx"
+
+# Load the datapack
+  d <- loadDataPack(dp_filepath2)
+```
+The next step is to unpack everything. This step takes a bit of time to run. The end result is a large list of datasets from the Data Pack.
+
+```{r unpack a data pack, eval = F, cache = TRUE}
+  dp_zmb <- unPackDataPack(d = d)
+```
+
+
+
+To view a summary of what is in each element of the list use a `map()` function with `names()`.
+```{r, cache = TRUE, eval = FALSE}
+  # Return a summary of the elements in the list
+  map(dp_zmb, ~names(.x))
+```
+
+View the analytics dataset stored in the the list object.
+```{r, eval = FALSE}
+  # Data of interest
+  View(dp_zmb$data$analytics)
+```
+  
+
+
+
+
+
+
+
+
+
+
