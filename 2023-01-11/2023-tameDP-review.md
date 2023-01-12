@@ -337,7 +337,7 @@ object that points at where the file lives. We then use the
   d <- loadDataPack(dp_filepath2)
 ```
 
-![](datapackr_congrats_message.PNG "Congratulations message printed from successfully loading a data pack."")
+![](images/datapackr_congrats_message.PNG "Congratulations message printed from successfully loading a data pack.")
 
 The next step is to unpack everything. This step takes a bit of time to
 run. The end result is a large list of datasets from the Data Pack.
@@ -346,7 +346,7 @@ run. The end result is a large list of datasets from the Data Pack.
   dp_zmb <- unPackDataPack(d = d)
 ```
 
-![](upack_output.PNG "Summary of actions conducted by datapackr when unpacking a datapack.")
+![](images/upack_output.PNG "Summary of actions conducted by datapackr when unpacking a datapack.")
 
 To view a summary of what is in each element of the list use a `map()`
 function with `names()`.
@@ -356,7 +356,7 @@ function with `names()`.
   map(dp_zmb, ~names(.x))
 ```
 
-![](datapackr_list_elements_output.PNG "List of element names stored from running datapackr.")
+![](images/datapackr_list_elements_output.PNG "List of element names stored from running datapackr.")
 
 View the analytics dataset stored in the the list object.
 
