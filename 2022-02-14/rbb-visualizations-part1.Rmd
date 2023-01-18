@@ -9,6 +9,7 @@ thumbnail: "20220214_rbbs_2-visualization.png"
 output: html_document
 ---
 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
                       warning=F,
@@ -50,11 +51,16 @@ With a sense of the IDE and what packages are, we're ready to start working. Ope
 
 
 ```{r}
-library(tidyverse) #install.packages("tidyverse")
+#install.packages("tidyverse")
+library(tidyverse) 
 ```
 ```{r, message=F}
-library(scales) #install.packages("scales")
-library(glitr) #remotes::install_github("USAID-OHA-SI/glitr", build_vignettes = TRUE)
+#install.packages("scales")
+library(scales) 
+#install.packages("remotes")
+library(remotes)
+#remotes::install_github("USAID-OHA-SI/glitr")
+library(glitr)
 ```
 
 ### Viewing the data
