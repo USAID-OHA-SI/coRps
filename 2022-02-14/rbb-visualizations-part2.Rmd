@@ -82,7 +82,7 @@ ggplot(data = hfr_mmd) +
            position = "dodge")
 ```
 
-In mentioning the position, it may be useful to back to our scatter plots from above. In the plots, many of our points were overlapping and couldn't be seen without adjusting the shapes' opacity. Another option would have been to adjust the placement of the points by jittering them slightly to help with the overplotting. We can adjust the position by using `position = jitter`). 
+In mentioning the position, it may be useful to back to our scatter plots from part 1. In the plots, many of our points were overlapping and couldn't be seen without adjusting the shapes' opacity. Another option would have been to adjust the placement of the points by jittering them slightly to help with the overplotting. We can adjust the position by using `position = jitter`). 
 
 ```{r}
 ggplot(data = hfr_mmd) +
@@ -92,7 +92,7 @@ ggplot(data = hfr_mmd) +
              position = "jitter")
 ```
 
-You can even refine the radius of the jittering by using a function, `position_jitter()`, allowing us to do a few things like specifying the height and width of the radius of the jitter from the action value as well as to sent a seed so the jitter is not random each time it's run.
+You can even refine the radius of the jittering by using a function, `position_jitter()`, allowing us to do a few things like specifying the height and width of the radius of the jitter from the action value as well as to set a seed so the jitter is not random each time it's run.
 
 ```{r}
 ggplot(data = hfr_mmd) +
@@ -103,11 +103,18 @@ ggplot(data = hfr_mmd) +
 ```
 
 #### Exercises
-  1. Using `geom_bar` graph the number of observations for each period (`date`).
   1. Plot a bar graph of TX_CURR over time. Rather than using `fill = snu1`, use `color = snu1` in the aesthetics instead. What changes in your plot?
 
+  2. Change the following code to make a small multiples plot with a facet for region (`snu1`)
+  ```
+  ggplot(data = hfr_mmd) +
+  geom_col(mapping = aes(x = date, y = tx_curr, fill = snu1),
+           position = "dodge")
+   ```
+
+
 ### Additional Thoughts
-Before closing the book on the basics of plotting using `ggplot`, I wanted to delve hit on a few things.
+Before closing the book on the basics of plotting using `ggplot`, I wanted to hit on a few things.
 
 First up is structure. So far, we have passed in data to `geom_` and then mapped aesthetics. The great thing is that you can keep using that simple structure and layering on more and more geoms and aesthetics. For example, we could add in a `geom_line` to connect the points and even add a static threshold line, `geom_vline`, or even an area to highlight a particular period. `annotate`.
 
