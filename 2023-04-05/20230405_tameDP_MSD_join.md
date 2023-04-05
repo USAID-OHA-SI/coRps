@@ -1,4 +1,4 @@
-Combining tameDP targts with MSD Historical Results/Targets
+Combining tameDP targets with MSD Historical Results/Targets
 ================
 4/5/2023
 
