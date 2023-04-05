@@ -1,5 +1,5 @@
 ---
-title: "Combining tameDP targts with MSD Historical Results/Targets"
+title: "Combining tameDP targets with MSD Historical Results/Targets"
 date: "4/5/2023"
 output:
   github_document:
