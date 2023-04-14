@@ -94,7 +94,7 @@ the MSD.
 msd_filepath <- glamr::si_path() %>%
   glamr::return_latest("MER_Structured_Datasets_PSNU_IM_FY21-23_20230210_v1_1_Mozambique")
 #read in MSD
-df_msd <- read_psd(msd_filepath)
+df_msd <- gophr::read_psd(msd_filepath)
 ```
 
 ### Aligning MSD with DP extract
@@ -300,7 +300,7 @@ The basic idea is to `left_join()` the `age_band_crosswalk` to your
 collapsed MSD output from `align_msd_disagg`.
 
 ``` r
- df %>%
+ df_align %>%
     dplyr::left_join(tameDP::age_band_crosswalk, by = c("ageasentered" = "age_msd")) 
 ```
 
@@ -350,8 +350,10 @@ Now that we have an MSD output that aligns with the DP, we can then
 append or bind this with onto the MSD data frame.
 
 ``` r
-df_msd_dp <- msd_final %>% 
-  bind_rows(df_dp)
+df_msd_dp <- df_dp %>% 
+  clean_indicator() %>%
+  filter(fiscal_year == 2024) %>% 
+  bind_rows(msd_final)
 
 df_msd_dp %>% glimpse()
 ```
@@ -368,6 +370,8 @@ df_tx_trend <- df_msd_dp %>%
   filter(indicator == "TX_CURR",
          standardizeddisaggregate == "Age/Sex/HIVStatus") %>% 
   count(fiscal_year, indicator, ageasentered, wt = targets, name = "targets") 
+
+#write_csv(df_msd_dp, "Dataout/msd_dp_join.csv")
 ```
 
 Finally, we can reshape the data to get it into an easy table to view
