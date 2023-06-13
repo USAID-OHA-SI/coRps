@@ -1,0 +1,66 @@
+---
+title: "Quarto Example"
+author: "Tim Essam & Karishma Srikanth"
+format:
+  html:
+    code-tools: true
+    code-fold: true
+    theme: cosmic
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+#| echo: true
+#| message: false
+#| warning: false
+library(gagglr)
+library(tidyverse)
+library(gt)
+library(gtExtras)
+
+# Create a table of all the Asia Region countries
+
+pepfar_country_list %>% 
+  select(operatingunit, operatingunit_iso, country, country_iso) %>% 
+  filter(operatingunit  == "Asia Region") %>% 
+  gt(groupname_col = "operatingunit") %>% 
+  gt_theme_nytimes()
+```
+
+You can embed ggplot2 outputs
+
+```{r}
+#| echo: true
+#| warning: false
+
+  # Required libraries
+  library(palmerpenguins) 
+  library(tidyverse)
+  library(glue)
+
+  ref_id <- "A139E6"
+
+# Create a mock up plot
+ penguins %>% 
+    summarise(ave_bill_length = mean(bill_length_mm, na.rm = T), .by = "species") %>% 
+    mutate(species_order = fct_reorder(species, ave_bill_length)) %>% 
+    ggplot(aes(y = ave_bill_length, x = species_order, fill = glitr::si_palettes$old_rose[1:3])) +
+    geom_col(width = 0.5) +
+    #glitr::si_style_ygrid() +
+    scale_fill_identity() +
+    labs(caption = glue("SI graph | {ref_id}"),
+         title = "Chinstrap penguins have the longest bill length, on average",
+         subtitle = "Height of bar represented bill length (in mm)",
+         x = NULL, y = NULL)
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+You can also insert images / media to documents ![](https://user-images.githubusercontent.com/5873344/100870163-2661fb80-346c-11eb-8114-bf677f8cc6fb.png)
