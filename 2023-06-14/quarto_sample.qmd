@@ -5,12 +5,14 @@ format:
   html:
     code-tools: true
     code-fold: true
+    toc: true
+    number-sections: true
     theme: cosmic
 ---
 
 ## Quarto
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+**Quarto** enables you to weave together content and executable code into a finished document. To learn more about [Quarto](https://quarto.org) see <https://quarto.org>.
 
 ## Running Code
 
@@ -20,6 +22,7 @@ When you click the **Render** button a document will be generated that includes 
 #| echo: true
 #| message: false
 #| warning: false
+
 library(gagglr)
 library(tidyverse)
 library(gt)
@@ -34,11 +37,13 @@ pepfar_country_list %>%
   gt_theme_nytimes()
 ```
 
-You can embed ggplot2 outputs
+You can embed ggplot2 outputs as @fig-peng using cross-referencing.
 
 ```{r}
+#| label: fig-peng
 #| echo: true
 #| warning: false
+#| fig-cap: Penguins height
 
   # Required libraries
   library(palmerpenguins) 
@@ -64,3 +69,7 @@ You can embed ggplot2 outputs
 The `echo: false` option disables the printing of code (only output is displayed).
 
 You can also insert images / media to documents ![](https://user-images.githubusercontent.com/5873344/100870163-2661fb80-346c-11eb-8114-bf677f8cc6fb.png)
+
+## HTML Themes
+
+You can change the theme of your quarto document by setting the theme in your YAML. [Here](https://quarto.org/docs/output-formats/html-themes.html) is a list of the 25 themes embedded in Quarto. You can learn more about creating custom themes [here](https://quarto.org/docs/output-formats/html-themes-more.html) as well.
