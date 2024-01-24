@@ -49,17 +49,17 @@ A great example is the `resources` endpont of the DATIM API where users can extr
 
   library(httr)
 
-  help("GET")
+  #help("GET")
   
-  GET(url = "https://datim.org")
+  GET(url = "https://final.datim.org")
   
-  GET(url = "https://www.datim.org/api/resources")
+  GET(url = "https:/final.datim.org/api/resources")
   
-  GET(url = "https://www.datim.org/api/resources", 
+  GET(url = "https://final.datim.org/api/resources", 
       authenticate(user = glamr::datim_user(), 
                    password = glamr::datim_pwd()))
   
-  GET(url = "https://www.datim.org/api/resources", 
+  GET(url = "https://final.datim.org/api/resources", 
       authenticate(user = glamr::datim_user(), 
                    password = glamr::datim_pwd())) |>
     content("text") |>
@@ -80,7 +80,7 @@ To make our lives easier, we've wrapped these steps under a couple of functions 
 
   library(grabr)
 
-  res_url <- "https://www.datim.org/api/resources"
+  res_url <- "https://final.datim.org/api/resources"
 
   datim_execute_query(url = res_url,
                       username = glamr::datim_user(), 
@@ -147,9 +147,9 @@ The above code is simple enough because PEPFAR country list data has already bee
 ```{r}
 
   # Look up org levels
-  get_ouorglabel(operatingunit = cntry, org_level = 4)
+  get_ouorglabel(operatingunit = cntry, org_level = 5)
 
-  1:10 %>% map(~get_ouorglabel(operatingunit = cntry, org_level = .x)) %>% unlist()
+  1:5 %>% map(~get_ouorglabel(operatingunit = cntry, org_level = .x)) %>% unlist()
   
   #get_ouorglabel
   
@@ -201,7 +201,7 @@ Some of us are great at memorizing uids, levels, and other complicated strings. 
 
 ```
 
-DHIS leverage `dimensions` to build complex datasets. Let's look at what DATIM has to offer.
+DHIS2 leverage `dimensions` to build complex datasets. Let's look at what DATIM has to offer.
 
 ```{r}
 
@@ -242,7 +242,7 @@ Knowing how to look up element of specific dimensions can help you build a compl
     value = "MER Targets",         # From dimension: Targets / Results
     disaggs = "Age/Sex/HIVStatus", # From dimension: Disaggregation Type
     dimensions = c("Sex", "Age: Semi-fine age"),         # Additional dimension: Sex
-    baseurl = "https://datim.org/",
+    baseurl = "https://final.datim.org/",
     verbose = TRUE                 # display notification
   )
   
