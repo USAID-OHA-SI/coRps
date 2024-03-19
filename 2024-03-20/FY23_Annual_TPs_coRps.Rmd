@@ -2,10 +2,10 @@
 title: "FY23 OHA Annual Top Talking Points - Snippet"
 output: html_document
 date: "3/18/2024"
-
 ---
+
 ```{r option, include=FALSE, echo=FALSE}
-options(scipen=999)
+options(scipen=999) #option to remove scientific notation formatting globally
 ```
 
 ```{r setup, include=FALSE}
@@ -29,6 +29,7 @@ knitr::opts_chunk$set(echo = TRUE)
 load_secrets()
   
 ```
+
 # Purpose
 
 Last Updated: 3/18/2024
@@ -37,20 +38,26 @@ Previously used for: Data for World AIDS Day 2022, 2022 OHA Top Talking Points, 
 
 Audience: The public, Agency stakeholders, partners, HIV/AIDS stakeholders/activists, the development community
 
-Purpose: The purpose of this document is to create one place for the data points that can be shared by OHA leadership at events, in presentations, etc. 
+Purpose: The purpose of this document is to create one place for the data points that can be shared by OHA leadership at events, in presentations, etc.
 
 ```{r data, include=FALSE, echo=FALSE}
 #Current MSD
 filepath <- si_path() %>% 
-  return_latest("MER_Structured_Datasets_OU_IM_FY21-24")
+  return_latest("MER_Structured_Datasets_OU_IM_FY21-24") #chnage data source to whatever MSD you need
 
-# Grab metadata
+# Grab metadata from MSD
 get_metadata(filepath) 
-
-# MSD PREP --------------------------------------
 
 #read MSD
 df_msd <- read_psd(filepath)
+
+```
+
+```{r data_qual_munging, include=FALSE, echo=FALSE}
+# SPECIFIC  PREP --------------------------------------
+  # in q4, nigeria and tanzania did not have TX values in DATIM
+  # the following code addresses these data quality issues to match values in Pano
+  # NOTE: no need to run this unless you are trying to replicate FY23Q4 values globally
 
 #read NGA genie file
 df_nga <- si_path() %>% 
@@ -188,9 +195,9 @@ pull_kp <- function(indic, clean = FALSE) {
 load_secrets()
 ```
 
-
 ```{r prevention_prep, echo=FALSE, include = FALSE}
 
+# pulling out overall USAID PrEP numbers
 prep_val <- df_final %>%
   filter(funding_agency == "USAID",
          standardizeddisaggregate %in% c("Total Numerator"),
@@ -200,6 +207,7 @@ prep_val <- df_final %>%
   mutate(cumulative = clean_number(cumulative)) %>% 
   pull(cumulative)
 
+#pulling # of countries with PrEP_NEW in 2023
 prep_val_country <- df_final %>% 
   filter(funding_agency == "USAID",
          standardizeddisaggregate %in% c("Total Numerator"),
@@ -207,6 +215,8 @@ prep_val_country <- df_final %>%
          fiscal_year == metadata$curr_fy) %>%
   distinct(country) %>% nrow()
 
+#grabbing local partner PrEP numbers
+  # rounded value, raw value, % share
 lp_prep_val_clean <- grab_lp_results("PrEP_NEW", "value", clean = TRUE) 
 lp_prep_val <- grab_lp_results("PrEP_NEW", "value", clean = FALSE) 
 lp_prep_share <- grab_lp_results("PrEP_NEW", "share")
@@ -242,8 +252,9 @@ prep_agyw_val_clean <- df_final %>%
 
 **Prevention**
 
-1. In 2023, USAID initiated pre-exposure prophylaxis (PrEP) for HIV prevention in over **`r prep_val`** people across **`r prep_val_country`** countries. USAID, with PEPFAR resources, supports the UNAIDS goal of having 10 million people on PrEP globally by 2025. 
+1.  In 2023, USAID initiated pre-exposure prophylaxis (PrEP) for HIV prevention in over **`r prep_val`** people across **`r prep_val_country`** countries. USAID, with PEPFAR resources, supports the UNAIDS goal of having 10 million people on PrEP globally by 2025.
 
-2. USAID Local Partners initiated oral PrEP in almost **`r lp_prep_val_clean`** [**`r lp_prep_val`**] individuals in 2023, representing **`r lp_prep_share`** of all USAID PrEP initiations. 
+2.  USAID Local Partners initiated oral PrEP in almost **`r lp_prep_val_clean`** [**`r lp_prep_val`**] individuals in 2023, representing **`r lp_prep_share`** of all USAID PrEP initiations.
 
-3. USAID initiated PrEP in more than **`r kp_prep_val_clean`** [**`r kp_prep_val`**] members of key populations (including sex workers, transgender people, men who have sex with men, people in prisons, and people who inject drugs) and more than **`r prep_agyw_val_clean`** [**`r prep_agyw_val`**] adolescent girls and young women (AGYW) aged 15-24 years in 2023. Together, key populations (KP) and AGYW constitute more than half of all USAID PrEP initiations.
+3.  USAID initiated PrEP in almost **`r kp_prep_val_clean`** [**`r kp_prep_val`**] members of key populations (including sex workers, transgender people, men who have sex with men, people in prisons, and people who inject drugs) and almost **`r prep_agyw_val_clean`** [**`r prep_agyw_val`**] adolescent girls and young women (AGYW) aged 15-24 years in 2023. Together, key populations (KP) and AGYW constitute more than half of all USAID PrEP initiations.
+
