@@ -1,0 +1,41 @@
+## Packages
+- Package Overview
+  - Why a package over a script?
+  - Who can create a package?
+  - What resources are available to me?
+    - Tomas Westlake's ["Writing an R package from scratch"](https://r-mageddon.netlify.app/post/writing-an-r-package-from-scratch/)
+    - Shannon Pileggi's ["Your first R package in 1 hour"](https://www.pipinghotdata.com/posts/2020-10-25-your-first-r-package-in-1-hour/)
+    - Hadley Wickham and Jennifer Bryan's ["R Packages (2e)"](https://r-pkgs.org/)
+  - Hosting on GitHub
+- Showcase: [themask](https://usaid-oha-si.github.io/themask/)
+  - Purpose/what does it do?
+    - creates a masked dataset
+    - allows users to download/read masked dataset
+  - What is included?
+    - Functions
+    - Data
+    - Vignette
+  - More than meets the eye
+    - Sub-function
+    - Internal functions
+    - NEWS/versioning
+    - Built in error checks
+    - testthat
+  - Why is this useful to me?
+- Getting Started
+  - create_package()
+  - Review file structure
+  - use_r()
+  - Roxygen aka help file
+  - document()
+  - load_all()/CTRL + SHIFT + L
+  - description
+  - use_mit_license()
+  - use_git()
+    - [Using conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#summary)
+  - use_github()
+  - use_vignette()
+  - use_version()
+  - use_news()
+  - use_github_pages()
+
