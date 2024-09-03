@@ -1,115 +1,163 @@
-# [introduce yourself to git](https://happygitwithr.com/hello-git)
+# git credentials
+### [introduce yourself to git](https://happygitwithr.com/hello-git)
 
 git config --global user.name "Jane Doe"
+
 git config --global user.email "jane@example.com"
+
 git config --global --list
 
 
-# create a PAT (for HTTPS)
-# [](https://github.com/settings/tokens)
-# {r} usethis::create_github_token()
+### create a PAT (for HTTPS)
+  - [GH PAT](https://github.com/settings/tokens)
+  - {r} usethis::create_github_token()
 
+# Initiate Project
 
-# create a repo on GitHub
-# [](https://github.com/orgs/USAID-OHA-SI/repositories#) 
-# New repository > Name, Description, Public,  Initialize with ReadME, add .gitignore, choose a license (MIT)
-
-# Clone locally /Open in RStudio
-# Create Project > Version Control > Git 
-# paste url
-
-
-# setup
-# {r} glamr::si_setup()
-
-# Open the terminal ALT + SHIFT + M
+###create a repo on GitHub
+  - [USAID-OHA-SI Repos](https://github.com/orgs/USAID-OHA-SI/repositories#) 
+  -  New repository > Name, Description, Public,  Initialize with ReadME, add .gitignore, choose a license (MIT)
+  - Copy web URL (look for the green buttom labeled <> Code; you want the HTTPS url)
+  
+### Local setup
+  - Clone locally /Open in RStudio
+  - Create Project > Version Control > Git 
+  - paste url (HTTPS)
+  
+# Local workflow
+  - {r} glamr::si_setup()
+  - Open the terminal ALT + SHIFT + M
 
 git status
+
 git diff
+
 q
+
 git add
+
 git add .gitignore
+
 git status
+
 git -m "add more specific gitignore files for safety"
+
 git status
+
 git add .
+
 git commit -m "init proj and readme"
 
-# create a script
+  - create a script
 
 git push
+
 git add .
+
 git commit -m "useful script"
+
 git push
 
-# update script
+  - update script
+  
 git status
+
 git restore test.R
+
 git commit -am "add something"
 
 git log
+
 q
 
-# look at commits on GitHub
+  - look at commits on GitHub
 
 git fetch
+
 git pull
 
-# create an issue
+  -  create an issue
 
 git branch dev_hotfix
+
 git branch
+
 git switch dev_hotfix
+
 git push
+
 git push --set-upstream origin dev_hotfix
 
-# create code fix
+  - create code fix
 
 git status
+
 git push
 
-# look at issue on GitHub
+  - look at issue on GitHub
 
 git switch main
+
 git merge dev_hotfix
+
 git branch -d dev_hotfix
+
 git push
+
 git branch
 
 git branch dev_dos
+
 git switch dev_dos
+
 git push --set-upstream origin dev_dos
 
-#change R file
+  - change R file
+  
 git status
+
 git commit -am "change something"
+
 git push
+
 git status
 
-#create PR on GitHub
-#merge PR on GitHub
+  - create PR on GitHub
+  - merge PR on GitHub
 
-git swith main
+git switch main
+
 git fetch
+
 git pull
+
 git branch -d dev_dos
 
-#edit README on GitHub
+  - edit README on GitHub
+
 git status
 
-#look at readme locally
-#edit readme locally
+  - look at readme locally
+  - edit readme locally
+
 git status
+
 git commit -am "cool things added"
 
-#OH NO!
+  - OH NO! Errors Abound!
+  
 git fetch
+
 git pull
 
-#manually resolve merge conflict between arrows
+  - manually resolve merge conflict between arrows
+  
 git commit -am "resolve merge conflict"
+
 git push
+
 git log
+
 q
 
 
