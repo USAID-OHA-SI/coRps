@@ -5,6 +5,7 @@
     - 9 Personal Access Token for HTTPS
   - [Pro Git (Scott Chacon and Ben Straub)](https://git-scm.com/book/en/v2)
   - [Atlassian Tutorials and Documentation](https://www.atlassian.com/git/tutorials)
+  - [Draft OHA R Analysts Manual - Version control](https://docs.google.com/document/d/1Q9IFBLV8pl-X8qhhYKHuNLpYGL-RImCcbliPE_Kfg_w/edit#heading=h.8he19ljfb47m)
   - Your friendly LLM
 
 # git credentials
