@@ -1,3 +1,12 @@
+# Resources
+  - [Happy Git and GitHub for the useR](https://happygitwithr.com/)
+    - 1 Why Git
+    - 7 Introduce yourself to Git
+    - 9 Personal Access Token for HTTPS
+  - [Pro Git (Scott Chacon and Ben Straub)](https://git-scm.com/book/en/v2)
+  - [Atlassian Tutorials and Documentation](https://www.atlassian.com/git/tutorials)
+  - Your friendly LLM
+
 # git credentials
 ### [introduce yourself to git](https://happygitwithr.com/hello-git)
 
