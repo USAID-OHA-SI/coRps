@@ -1,0 +1,260 @@
+---
+title: "FY23 OHA Annual Top Talking Points - Snippet"
+output: html_document
+date: "3/18/2024"
+---
+
+```{r option, include=FALSE, echo=FALSE}
+options(scipen=999) #option to remove scientific notation formatting globally
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+  library(tidyverse)
+  library(glitr)
+  library(glamr)
+  library(gophr)
+  library(systemfonts)
+  library(scales)
+  library(tidytext)
+  library(patchwork)
+  library(ggtext)
+  library(glue)
+  library(janitor)
+  library(lubridate)
+  library(googlesheets4)
+  library(mindthegap)
+
+load_secrets()
+  
+```
+
+# Purpose
+
+Last Updated: 3/18/2024
+
+Previously used for: Data for World AIDS Day 2022, 2022 OHA Top Talking Points, PPR
+
+Audience: The public, Agency stakeholders, partners, HIV/AIDS stakeholders/activists, the development community
+
+Purpose: The purpose of this document is to create one place for the data points that can be shared by OHA leadership at events, in presentations, etc.
+
+```{r data, include=FALSE, echo=FALSE}
+#Current MSD
+filepath <- si_path() %>% 
+  return_latest("MER_Structured_Datasets_OU_IM_FY21-24") #chnage data source to whatever MSD you need
+
+# Grab metadata from MSD
+get_metadata(filepath) 
+
+#read MSD
+df_msd <- read_psd(filepath)
+
+```
+
+```{r data_qual_munging, include=FALSE, echo=FALSE}
+# SPECIFIC  PREP --------------------------------------
+  # in q4, nigeria and tanzania did not have TX values in DATIM
+  # the following code addresses these data quality issues to match values in Pano
+  # NOTE: no need to run this unless you are trying to replicate FY23Q4 values globally
+
+#read NGA genie file
+df_nga <- si_path() %>% 
+  return_latest("All indicators_FY23Q4_Nigeria") %>% 
+  read_csv()
+
+#select only names in MSD
+names_to_keep <- names(df_msd)
+setdiff(names(df_msd), names(df_nga)) #only qtrs
+setdiff(names(df_nga), names(df_msd))
+
+#select all names from NGA file that match MSD (minus qtr1-qtr4)
+df_nga_new <- df_nga %>% 
+  select(any_of(names_to_keep))
+
+#rbind together removing TZ and NGA for FY23 ONLY
+df <- df_msd %>% 
+  filter(!(operatingunit=="Nigeria" & fiscal_year=="2023"),
+         !(operatingunit=="Tanzania" & fiscal_year=="2023")) %>% 
+  select(-c(qtr1:qtr4)) %>% 
+  rbind(df_nga_new)
+
+#Q4 TZA Daily Genie 
+df_TZA <- si_path() %>%
+  return_latest("Genie-OUByIMs-Tanzania-Daily-2024-02-07") %>%
+  read_psd()
+
+#exclude extra columns 
+df_msd_TZA <- df_TZA %>% 
+  select(-c(qtr1:qtr4)) 
+
+#bind TZA data to clean MSD w/ NGA file
+df_final <- df %>% 
+  rbind(df_msd_TZA)
+
+# load source functions
+#source("Scripts/archive/99_utilities.R")
+
+```
+
+```{r data_prep_functions, include=FALSE, echo=FALSE}
+
+#LOCAL PARTNER PREP
+#Read in the google sheet hyperfile with local partner
+sheet_id <- "1MQviknJkJDttGdNEJeNaYPKmHCw6BqPuJ0C5cslV5IE"
+
+df_partner <- read_sheet(sheet_id, sheet = "MechID-PartnerType", range = "A:B") %>% 
+  clean_names() %>% 
+  rename(mech_code = mechanism_id) %>% 
+  mutate(mech_code = as.character(mech_code),
+         partner_type = case_when(partner_type == "Regional" ~ "Local",
+                                  partner_type == "TBD Local" ~ "Local", TRUE ~ partner_type))
+
+#FUNCTIONS----------------------------------------------------------------------
+
+#clean number function
+clean_number <- function(x, digits = 0){
+  dplyr::case_when(x >= 1e9 ~ glue("{round(x/1e9, digits)} billion"),
+                   x >= 1e6 ~ glue("{round(x/1e6, digits)} million"),
+                   x >= 1e3 ~ glue("{round(x/1e3, digits)} thousand"),
+                   TRUE ~ glue("{x}"))
+}
+
+#LP Function - grabs local partner share of results
+#result_type = value or share
+#(clean = TRUE formats the value)
+grab_lp_results <- function(indic, result_type, clean = FALSE) {
+  
+  df_munge <- suppressMessages(df_final %>% 
+                                 # bind_rows(df_arch) %>%
+                                 left_join(df_partner, by = c("mech_code")) %>%
+                                 filter(funding_agency == "USAID",
+                                        indicator == indic,
+                                        standardizeddisaggregate == "Total Numerator") %>% 
+                                 group_by(funding_agency, fiscal_year, indicator, partner_type) %>% 
+                                 summarise(across(cumulative, sum, na.rm = TRUE)) %>%
+                                 ungroup() %>% 
+                                 filter(partner_type != "TBD") %>%
+                                 #filter(fiscal_year != 2022) %>%
+                                 pivot_wider(names_from = partner_type, values_from = cumulative) %>%
+                                 group_by(fiscal_year) %>%
+                                 mutate(Total = International + Local,
+                                        share = Local / Total)  %>%
+                                 pivot_longer(cols = International:Total, names_to = "partner_type"))
+  
+  title_info_lp <- df_munge %>% 
+    filter(partner_type == "Local", fiscal_year == metadata$curr_fy) %>% 
+    select(fiscal_year, indicator, value, share) %>% 
+    mutate(
+      value = value,#change to 1 if you want 1 decimal accuracy
+      share = percent(round(share, 2))) %>% 
+    pull(result_type)
+  
+  if (clean ==  TRUE) {
+    title_info_lp <- df_munge %>% 
+      filter(partner_type == "Local", fiscal_year == metadata$curr_fy) %>% 
+      select(fiscal_year, indicator, value, share) %>% 
+      mutate(
+        value = value %>% clean_number(1),#change to 1 if you want 1 decimal accuracy
+        share = percent(round(share, 2))) %>% 
+      pull(result_type)
+  }
+    
+    return(title_info_lp)
+}
+
+
+# pull KP share of MER results (clean = TRUE formats the value)
+pull_kp <- function(indic, clean = FALSE) {
+  
+  kp_val <- df_final %>%
+    filter(funding_agency == "USAID",
+           str_detect(standardizeddisaggregate, "KeyPop(?!\\/Status)"),
+           indicator %in% c("PrEP_NEW", "TX_CURR", "KP_PREV"),
+           fiscal_year == metadata$curr_fy) %>%
+    count(indicator, wt = cumulative) 
+  
+
+  
+  if (clean == TRUE) {
+   kp_val <- kp_val %>% 
+    mutate(n = clean_number(n, 1)) %>% 
+    pivot_wider(names_from = indicator, values_from = "n") %>% 
+    pull(indic)  
+  } else {
+    
+    kp_val <- kp_val %>% 
+      pivot_wider(names_from = indicator, values_from = "n") %>% 
+      pull(indic)  
+  }
+  
+  return(kp_val)
+}
+
+load_secrets()
+```
+
+```{r prevention_prep, echo=FALSE, include = FALSE}
+
+# pulling out overall USAID PrEP numbers
+prep_val <- df_final %>%
+  filter(funding_agency == "USAID",
+         standardizeddisaggregate %in% c("Total Numerator"),
+         indicator %in% c("PrEP_NEW"),
+         fiscal_year == metadata$curr_fy) %>%
+  summarise(across(starts_with("cumulative"), sum, na.rm = T)) %>% 
+  mutate(cumulative = clean_number(cumulative)) %>% 
+  pull(cumulative)
+
+#pulling # of countries with PrEP_NEW in 2023
+prep_val_country <- df_final %>% 
+  filter(funding_agency == "USAID",
+         standardizeddisaggregate %in% c("Total Numerator"),
+         indicator %in% c("PrEP_NEW"),
+         fiscal_year == metadata$curr_fy) %>%
+  distinct(country) %>% nrow()
+
+#grabbing local partner PrEP numbers
+  # rounded value, raw value, % share
+lp_prep_val_clean <- grab_lp_results("PrEP_NEW", "value", clean = TRUE) 
+lp_prep_val <- grab_lp_results("PrEP_NEW", "value", clean = FALSE) 
+lp_prep_share <- grab_lp_results("PrEP_NEW", "share")
+
+#kp prep
+kp_prep_val_clean <- pull_kp("PrEP_NEW", clean = TRUE)
+kp_prep_val <- pull_kp("PrEP_NEW", clean = FALSE)
+
+#AGYW prep
+prep_agyw_val <- df_final %>%
+  filter(funding_agency == "USAID",
+         standardizeddisaggregate %in% c("Age/Sex"),
+         indicator %in% c("PrEP_NEW"),
+         fiscal_year == metadata$curr_fy,
+         sex == "Female",
+         age_2019 %in% c("10-14","15-19", "20-24")) %>%
+  summarise(across(starts_with("cumulative"), sum, na.rm = T)) %>% 
+  pull(cumulative)
+
+prep_agyw_val_clean <- df_final %>%
+  filter(funding_agency == "USAID",
+         standardizeddisaggregate %in% c("Age/Sex"),
+         indicator %in% c("PrEP_NEW"),
+         fiscal_year == metadata$curr_fy,
+         sex == "Female",
+         age_2019 %in% c("10-14","15-19", "20-24")) %>%
+  summarise(across(starts_with("cumulative"), sum, na.rm = T)) %>% 
+  mutate(cumulative = clean_number(cumulative, 0)) %>%
+  pull(cumulative)
+```
+
+**FY23 OHA Top Talking Points**
+
+**Prevention**
+
+1.  In 2023, USAID initiated pre-exposure prophylaxis (PrEP) for HIV prevention in over **`r prep_val`** people across **`r prep_val_country`** countries. USAID, with PEPFAR resources, supports the UNAIDS goal of having 10 million people on PrEP globally by 2025.
+
+2.  USAID Local Partners initiated oral PrEP in almost **`r lp_prep_val_clean`** [**`r lp_prep_val`**] individuals in 2023, representing **`r lp_prep_share`** of all USAID PrEP initiations.
+
+3.  USAID initiated PrEP in almost **`r kp_prep_val_clean`** [**`r kp_prep_val`**] members of key populations (including sex workers, transgender people, men who have sex with men, people in prisons, and people who inject drugs) and almost **`r prep_agyw_val_clean`** [**`r prep_agyw_val`**] adolescent girls and young women (AGYW) aged 15-24 years in 2023. Together, key populations (KP) and AGYW constitute more than half of all USAID PrEP initiations.
+
