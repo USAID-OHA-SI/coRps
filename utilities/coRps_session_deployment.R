@@ -12,11 +12,11 @@ library(fs)
 #library(git2r)
 
 # Inputs ----
-input_dir <- "2022-06-06"
-corps_session <- "rbbs-mapping_with_r.Rmd"
+input_dir <- "2024-01-24"
+corps_session <- "coRps_query_datim_through_dhis2_api.Rmd"
 
 # Config / Files ---
-input_file <- paste0(input_dir, "/", corps_session)
+input_file <- file.path(input_dir, corps_session)
 
 output_file <- input_file %>% 
   str_replace("Rmd$", "md") %>% 
