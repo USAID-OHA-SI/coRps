@@ -1,16 +1,17 @@
 # PROJECT:  thrt_lvl_mdnght
-# PURPOSE:
-# AUTHOR:   A.Chafetz | USAID
+# PURPOSE:  demo OHA workflow + functions
+# AUTHOR:   A.Chafetz + B.Kagniniwa | USAID
 # REF ID:   61a3fb5d
 # LICENSE:  MIT
 # DATE:     2024-10-28
-# UPDATED:
+# UPDATED:  2024-10-30
 
 # DEPENDENCIES ------------------------------------------------------------
 
   #general
   library(tidyverse)
   library(glue)
+  library(sf)
   #oha
   library(gagglr) ##install.packages('gagglr', repos = c('https://usaid-oha-si.r-universe.dev', 'https://cloud.r-project.org'))
   library(selfdestructin5)
@@ -54,7 +55,7 @@
 
 # HTS_POS ACHIEVEMENT -----------------------------------------------------
 
-  #aggregate annual agency HTS_POS for calculating achvievement
+  #aggregate annual agency HTS_POS for calculating achievement
   df_achv <- df_msk %>%
     filter(indicator == "HTS_TST_POS") %>%
     gophr::pluck_totals() %>%
@@ -62,15 +63,16 @@
     summarise(across(c(targets, cumulative), \(x) sum(x, na.rm = TRUE)),
               .groups = "drop")
 
-  #clean funding agency for easier reability and calculate achievement based on curr quarter
+  #clean funding agency for easier readability and calculate achievement based on curr quarter
   df_achv <- df_achv %>%
     gophr::clean_agency() %>%
     gophr::adorn_achievement(qtr = meta$curr_qtr)
 
   #create a quarter indicator achievement table
-  # df_sum <- selfdestruct::make_mdb_df(df_msk, FALSE)
-  # df_tbl  <- selfdestruct::reshape_mdb_df(df_sum)
-  # selfdestruct::create_mdb(df_tbl, ou = "Minoria", type = "main")
+  selfdestructin5::set_metadata(meta)
+  df_sum <- selfdestructin5::make_mdb_df(df_msk, FALSE)
+  df_tbl  <- selfdestructin5::reshape_mdb_df(df_sum)
+  selfdestructin5::create_mdb(df_tbl, ou = "Minoria", type = "main")
 
   #visualize achievement with a faceted column chart
   df_achv %>%
@@ -178,33 +180,17 @@
   df_vl %>% gisr::gview()
 
   #map VLS geographically in Minoria
-  # df_vl %>%
-  #   ggplot() +
-  #   geom_sf(data = minoria_shp_psnu, aes(geometry = geometry)) +
-  #   geom_sf(aes(geometry = geometry, fill = value)) +
-  #   geom_sf_text(aes(geometry = geometry, label = psnu_lab), size = 7/.pt) +
-  #   glitr::scale_fill_si(palette = "lavender_haze_c", discrete = FALSE, label = percent_format(1),
-  #                 na.value = glitr::si_palettes$slate_t[5]) +
-  #   si_style_map() +
-  #   labs(x = NULL, y = NULL, fill = NULL,
-  #        title = "Hillsboro is the only PSNU below 95% VLS" %>% toupper,
-  #        subtitle = glue("{unique(df_vl$indicator)} | Minoria | {meta$curr_pd}"),
-  #        caption = meta$caption) +
-  #   theme(panel.background = element_rect(fill = "#edf5fc", color = "white"),
-  #         legend.position = "none")
-  
   df_vl %>%
     ggplot() +
     geom_sf(aes(fill = value)) +
     geom_sf_text(aes(label = psnu_lab), size = 7/.pt) +
     glitr::scale_fill_si(palette = "lavender_haze_c", discrete = FALSE, label = percent_format(1),
                          na.value = glitr::si_palettes$slate_t[5]) +
-    si_style_map() +
+    glitr::si_style_map() +
     labs(x = NULL, y = NULL, fill = NULL,
          title = "Hillsboro is the only PSNU below 95% VLS" %>% toupper,
          subtitle = glue("{unique(df_vl$indicator)} | Minoria | {meta$curr_pd}"),
          caption = meta$caption) +
-    theme(panel.background = element_rect(fill = "#edf5fc", color = "white"),
-          legend.position = "none")
+    theme(panel.background = element_rect(fill = "#edf5fc", color = "white"))
   
 
