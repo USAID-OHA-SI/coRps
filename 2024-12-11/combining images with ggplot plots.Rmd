@@ -1,0 +1,503 @@
+---
+layout: "post"
+title: "Combining images with ggplot plots"
+author: "Baboyma Kagniniwa"
+date: "`r Sys.Date()`"
+categories: [corps]
+tags: [ggplot, cowplot, patchwork, logo]
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    fig_width: 10
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+![](https://unsplash.com/photos/gxGtqG5ul2g/download?ixid=M3wxMjA3fDB8MXxhbGx8fHx8fHx8fHwxNzMzMjQ1MjQxfA&force=true&w=1920)
+
+## Background
+
+This post was developed in response to an inquiry / suggestion to add a new function to `glitr` package that will be used to add **logos** to ggplot plots. After review of the inquiry, we decided it was best to show examples of ggplot plotting where [`cowplot Package`](https://wilkelab.org/cowplot/index.html) and other plotting packages ([patchwork](https://www.tidyverse.org/tags/patchwork/)) could be used to accomplish the same goal.
+
+## Objectives
+
+We will cover 4 main points: 
+
+1) Visualize data with ggplot
+2) Combine multiple plot into 1
+3) Add ggplot plots to images (png files)
+4) Add images (png files) to ggplot plots
+
+
+## Requirements
+
+For the demo, we will be using `tidyverse`, `patchwork`, `cowplot` and other core OHA Packages. 
+
+```{r message=FALSE, warning=FALSE}
+  library(tidyverse)
+  library(gagglr)    # Used to read MSD and and plot viz
+  library(tidytext)
+  library(ggtext)    # Used for rich text formating
+  library(scales)    # Used to format labels and scales
+  library(patchwork) # Combine and arrange multiple plots
+  library(cowplot)   # use ggdraw to add plots on top of each other
+  library(glue)      # Used to replace variable values in text
+```
+
+Let's start by defining our data path and other reference parameters.
+We will also need to download or get the links to publicly available images / logos. 
+
+```{r}
+  ## Directory holding all the MSDs files
+  dir_mer <- glamr::si_path("path_msd")
+  dir_mer <- file.path("..", dir_mer) # The .. is only needed in this case because the markdown file is not in the current directory of the project. Skip if you are running this from a R file.
+  
+  # Params 
+  ref_id <- "0ca8dae2"
+  cntry <- "Minoria"
+  agency <- "USAID"
+```
+
+For this demo, we will be using training data sets (PSNU x IM) from [themask](https://usaid-oha-si.github.io/themask/) package.
+
+```{r}
+  # Check data availability
+  themask::msk_available()
+```
+
+```{r eval=FALSE}
+  # Download the latest available dataset - ONLY IF NEEDED
+  themask::msk_download(folderpath = dir_mer, tag = "latest")
+```
+
+
+```{r message=FALSE, eval=FALSE}
+  # Check list of files within the directory
+  dir_mer %>%  fs::dir_ls() 
+```
+Let's retrieve the full path of the training data set.
+
+```{r}
+  file_training <- return_latest(
+    folderpath = dir_mer,
+    pattern = "TRAINING"
+  )
+
+```
+
+Now that we have the path of our data set, let's grab all the metadata. 
+These will be used, later on, for data munging and visualization.
+
+```{r warning=FALSE, info=FALSE}
+  meta <- get_metadata(path = file_training)
+
+  meta
+```
+For images, let's get links of `glitr` logo, and World AIDS Day images from [Care Resource](https://careresource.org/) and [iStockPhoto](https://www.istockphoto.com/). These will be used as logo and or backgrounds.
+
+```{r}
+  # Glitr Logo
+  file_logo <- "https://usaid-oha-si.github.io/glitr/reference/figures/logo.png"
+  # AIDS Day
+  file_aids <- "https://careresource.org/wp-content/uploads/2023/11/WAD-2023-300x300.png"
+  # AIDS Robban
+  file_aids_rubon <- "https://media.istockphoto.com/id/855766998/vector/world-aids-day.jpg?s=612x612&w=0&k=20&c=yDXRBawjxGBhwJumB6QOHsYg2_r0IYEL1gcRqatvODQ="
+```
+
+## Load and Explore Data 
+
+`gophr::read_psd()` is still our go to function for all **PEPFAR Structured Datasets**
+
+```{r}
+  # Read content of the PSNU x IM as a data frame
+  df_msd <- file_training %>% read_psd()
+```
+
+
+```{r}
+  # Explore content of the data - countries and funding agency
+  df_msd %>% distinct(country, funding_agency)
+```
+
+```{r}
+  # Explore content of the data - indicators
+  df_msd %>% 
+    filter(fiscal_year == meta$curr_fy,
+           str_detect(indicator, "HTS_TST")) %>% 
+    distinct(indicator, standardizeddisaggregate) %>% 
+    arrange(indicator)
+```
+
+## Data Munging
+
+For this case, we will focus on HTS Results. Let's summarize testing data by psnu and for `r meta$curr_fy`
+
+```{r}
+  # Summary of HTS Indicator
+  df_hts <- df_msd %>% 
+    filter(fiscal_year == meta$curr_fy,
+           country == cntry,
+           funding_agency == agency,
+           indicator %in% c("HTS_TST", "HTS_TST_POS"),
+           standardizeddisaggregate == "Total Numerator") %>% 
+    summarise(value = sum(cumulative, na.rm = T),
+              .by = c(country, psnu, indicator))
+  
+  # Calculate positivity rates at PSNU level
+  df_hts <- df_hts %>% 
+    summarise(value = value[indicator == "HTS_TST_POS"] / value[indicator == "HTS_TST"],
+              .by = c(country, psnu)) %>% 
+    mutate(indicator = "HTS_TST_YIELD") %>% 
+    bind_rows(df_hts, .)
+```
+
+## Visualization
+
+ggplot works well with `tidy datasets` but there are situation where we go back to a `wider format` to simplify the code. It's common to see 2 or more version of the same datasets in the same script.
+
+### Reshaping data based on the type of visual
+
+Reshaping the data wide allows use to use 
+
+```{r}
+  df_viz <- df_hts %>% 
+      pivot_wider(
+        names_from = indicator,
+        values_from = value
+      )
+```
+
+### 1) Visualize data with ggplot
+
+Let's plot all 3 indicators into a single visual. We will use `faceting` along with free y scale for clarity. This is a common technique when dealing with multiple indicators.
+
+```{r warning=FALSE}
+  viz_hts <- 
+    df_hts %>% 
+      mutate(
+        label = case_when(
+          indicator == "HTS_TST_YIELD" ~ percent(value, 0.01),
+          TRUE ~ comma(value, 1)
+        )
+      ) %>% 
+      ggplot(aes(x = value, y = reorder(psnu, value), fill = indicator)) +
+      geom_col(show.legend = F) +
+      geom_text(aes(label = label, hjust = -0.2)) +
+      scale_fill_manual(
+        values = c(
+          "HTS_TST" = trolley_grey, 
+          "HTS_TST_POS" = burnt_sienna, 
+          "HTS_TST_YIELD" = burnt_sienna_light
+        )
+      ) +
+      scale_x_continuous(position = "top", expand = c(0.2,0)) +
+      facet_wrap(~str_replace(indicator, "HTS_", ""), 
+                 nrow = 1, scales = "free_x") +
+      labs(x = "", y = "",
+           title = glue("{meta$curr_pd} - {toupper(cntry)} HIV TESTING SERVICES"),
+           subtitle = glue("As of **{meta$curr_pd}**, {cntry} reported **{comma(sum(df_viz$HTS_TST_POS))} HIV+** from **{length(unique(df_viz$psnu))} PSNUs**"),
+           caption = meta$caption) +
+      si_style_xgrid() +
+      theme(legend.title = element_blank(),
+            plot.title = element_markdown(),
+            plot.subtitle = element_markdown(),
+            strip.placement = "outside",
+            strip.text = element_text(face = "bold", hjust = .1),
+            strip.clip = "off") 
+  
+  viz_hts
+```
+We could also drop the calculated indicator (HTS_TST_YIELD) and focus only on HTS_TST and HTS_TST_POS, given that these are absolute numbers.
+
+```{r warning=FALSE}
+  viz_hts_pos <- 
+    df_viz %>% 
+      ggplot(aes(y = reorder(psnu, HTS_TST))) +
+      geom_col(aes(x = HTS_TST), fill = trolley_grey_light, show.legend = T) +
+      geom_col(aes(x = HTS_TST_POS), fill = burnt_sienna, show.legend = T) +
+      geom_text(aes(x = HTS_TST_POS, label = comma(HTS_TST_POS)), hjust = -0.2) +
+      scale_x_continuous(labels = comma, position = "top") +
+      labs(x = "", y = "",
+           title = glue("{meta$curr_pd} - {toupper(cntry)} HIV TESTING SERVICES"),
+           #title = glue("<span style='line-height:50px;display:inline-block;border-width:3px;border-color:red;'></span>{meta$curr_pd} - {toupper(cntry)} HIV TESTING SERVICES"),
+           subtitle = glue("As of **{meta$curr_pd}**, {cntry} reported **{comma(sum(df_viz$HTS_TST_POS))} HIV+** from **{length(unique(df_viz$psnu))} PSNUs**"),
+           caption = meta$caption) +
+      si_style_xgrid() +
+      theme(legend.title = element_blank(),
+            plot.title = element_markdown(),
+            plot.subtitle = element_markdown()) 
+  
+  viz_hts_pos
+```
+In preparation of the next steps, we will try to remove the background of some of the plots so that the overlay is clear. 
+
+Below we leverage `si_style_transparent()` on a bar chart of TST_POS. We've also use `facet_wrap()` also with margin adjustments to add the psnu names on top of the bar.
+
+```{r warning=FALSE}
+  
+  viz_hts_pos2 <- 
+    df_viz %>% 
+    mutate(psnu = fct_reorder(psnu, -HTS_TST_POS)) %>% 
+    ggplot(aes(y = psnu)) +
+    geom_col(aes(x = HTS_TST_POS), fill = burnt_sienna, width = 1, show.legend = T) +
+    geom_text(aes(x = HTS_TST_POS, label = comma(HTS_TST_POS, 1)), 
+              fontface = "bold", color = "#FFF", size = 3, hjust = 1.2) +
+    scale_x_continuous(labels = percent, position = "top", expand = c(0, 0)) +
+    scale_y_discrete(guide = "none") +
+    facet_wrap(~psnu, ncol = 1, scales = "free_y") +
+    labs(x = "", y = "") +
+    si_style_transparent() +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.major.y = element_blank(),
+          panel.spacing = unit(.2, "lines"),
+          axis.text = element_blank(),
+          plot.title = element_markdown(),
+          plot.subtitle = element_markdown(),
+          strip.text = element_text(
+            hjust = 0,
+            margin = margin(1, 0, 1, 0),
+            size = rel(1.1), 
+            face = "bold"
+          ))
+  
+  viz_hts_pos2
+  
+```
+Same plot as above, but using the % TST positivity instead of the absolute HIV+ numbers.
+
+```{r warning=F}
+
+  viz_hts_yield <- 
+    df_viz %>% 
+    mutate(psnu = fct_reorder(psnu, -HTS_TST_YIELD)) %>% 
+    ggplot(aes(y = psnu)) +
+    geom_col(aes(x = HTS_TST_YIELD), fill = burnt_sienna, width = 1, show.legend = T) +
+    geom_text(aes(x = HTS_TST_YIELD, label = percent(HTS_TST_YIELD, .01)), 
+              fontface = "bold", color = "#FFF", size = 3, hjust = 1.2) +
+    scale_x_continuous(labels = percent, position = "top", expand = c(0, 0)) +
+    scale_y_discrete(guide = "none") +
+    facet_wrap(~psnu, ncol = 1, scales = "free_y") +
+    labs(x = "", y = "") +
+    si_style_transparent() +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.major.y = element_blank(),
+          panel.spacing = unit(.2, "lines"),
+          axis.text = element_blank(),
+          plot.title = element_markdown(),
+          plot.subtitle = element_markdown(),
+          strip.text = element_text(
+            hjust = 0,
+            margin = margin(1, 0, 1, 0),
+            size = rel(1.1), 
+            face = "bold"
+          ))
+  
+  viz_hts_yield
+
+```
+
+### 2) Combine multiple plot into 1
+
+There are multiple ways of combining plots. We will focus on 2 packages that we've used on a regular basis: `patchwork` and `cowplot`.
+
+#### a) Combine plot with `PATCHWORK`
+
+With patchwork, we can use **+** and **/** to combine plots by row or column. This package will also help with all sort of `plot annotations`.
+
+```{r warning=FALSE}
+  
+  (viz_hts_pos + viz_hts_yield) +
+    plot_annotation(tag_levels = "A")
+
+```
+Noticed that the enumeration tag is above the header of the plot #A? Let fix that by removing the header from the first plot and additing it back on top of the combined plot.
+
+```{r warning=FALSE}
+(viz_hts_pos + theme(plot.title = element_blank(), 
+                     plot.subtitle = element_blank(),
+                     plot.caption = element_blank()) +
+  viz_hts_yield) +
+    plot_annotation(tag_levels = "A") +
+    plot_annotation(title = "HIV TESTING SERVICES",
+                    subtitle = "Plot #A shows the testing results while Plot #B ...",
+                    caption = meta$caption,
+                    theme = theme(plot.title = element_text(face = "bold")))
+
+```
+Let's now combine 3 plots while making sure the last 2 are on the second row.
+
+```{r warning=FALSE}
+  
+  (
+    viz_hts_pos + 
+     theme(plot.title = element_blank(),
+           plot.subtitle = element_blank())
+  ) / 
+  (viz_hts_pos2 + viz_hts_yield) +
+    plot_annotation(tag_levels = "A")
+
+```
+#### b) Combine plot with `COWPLOT`
+
+With `COWPLOT` we can use `ggdraw()` & `draw_plot()` to combine plots. The draw_plot() will overlay plots on top of each other. This is why we needed to apply some transparency. 
+
+
+```{r warning=FALSE}
+  
+  ggdraw() +
+    draw_plot(viz_hts_pos) +
+    draw_plot(viz_hts_yield)
+```
+The overlay was successful but not really useful for the users / readers. To fix this, we will use the location  and size parameters to adjust the overlap.
+
+```{r warning=FALSE}
+  ggdraw() +
+    draw_plot(viz_hts_pos) +
+    draw_plot(viz_hts_yield,
+              x = .55, y = 0.02,
+              width = .4, height = .8)
+
+```
+We can also leverage `plot_grid()`. This is similar to pathwork package.
+
+```{r warning=FALSE}
+  plot_grid(viz_hts_pos + 
+              theme(plot.title = element_blank(),
+                    plot.subtitle = element_blank(),
+                    plot.caption = element_blank(),
+                    axis.text.x = element_blank()), 
+            viz_hts_yield)
+
+```
+
+### 3) Add ggplot plots to images (png files)
+
+
+#### a) Read and Visualize Image
+
+```{r warning=FALSE}
+  ## Read Log as a raster data
+  logo <- png::readPNG("../figures/logo.png") %>% 
+    grid::rasterGrob()
+
+  ggdraw() + draw_grob(logo)
+
+```
+
+```{r warning=FALSE}
+  ggdraw() +
+    draw_image("../figures/logo.png")
+```
+
+```{r warning=FALSE}
+  ggdraw() +
+    draw_image(file_logo)
+```
+#### b) Adding ggplot plot to image
+
+```{r warning=FALSE}
+  
+  ggdraw() +
+    draw_image("../figures/logo.png") +
+    draw_plot(viz_hts_yield,
+              x = 0, y = 0,
+              width = 1, height = 1)
+```
+
+```{r warning=FALSE}
+  
+  ggdraw() +
+    draw_image(file_aids) +
+    draw_plot(viz_hts_yield,
+              x = 0, y = 0,
+              width = 1, height = 1)
+```
+
+
+```{r warning=FALSE}
+  ggdraw() +
+    draw_image(file_aids_rubon) +
+    draw_plot(viz_hts_yield,
+              x = .32, y = .05,
+              width = .6, height = 1)
+```
+
+### 4) Add images (png files) to ggplot plots
+
+```{r warning=FALSE}
+  viz_hts_pos +
+    annotation_custom(
+      grob = logo,
+      xmin = max(df_viz$HTS_TST) - 10000, 
+      xmax = max(df_viz$HTS_TST) + (10000 - 1000),
+      ymin = 1, ymax = 3) +
+    theme()
+  
+  viz_hts_pos +
+    annotation_custom(
+      grob = logo,
+      xmin = max(df_viz$HTS_TST) /2 - 10000, 
+      xmax = max(df_viz$HTS_TST) /2 + (10000 - 1000),
+      ymin = 4, ymax = 6
+    ) +
+    theme()
+  
+  viz_hts_pos +
+    annotation_custom(
+      grob = logo,
+      xmin = max(df_viz$HTS_TST) - 10000, 
+      xmax = max(df_viz$HTS_TST) + (10000 - 1000),
+      ymin = 8, ymax = Inf
+    ) +
+    theme()
+```
+
+
+```{r warning=FALSE}
+
+viz_hts_pos_shift_header <- viz_hts_pos +
+  theme(plot.title = element_markdown(hjust = .35),
+        plot.subtitle = element_markdown(hjust = .5))
+
+ggdraw() +
+    draw_plot(viz_hts_pos_shift_header) +
+    draw_image("../figures/logo.png",
+              x = .04, y = .82,
+              width = .15, height = .15) +
+    theme(#plot.title = element_markdown(margin = margin(t = 5, l = 1, unit = "lines")),
+          plot.title = element_markdown(hjust = 0))
+```
+
+## Additional notes
+
+
+```{r}
+  fa_meta <- fontawesome::fa_metadata()
+  #fa_meta$icon_names
+  fa_meta$icon_count
+```
+
+
+```{r}
+  fontawesome::fa(name = "r-project")
+
+  fontawesome::fa_png(name = "r-project")
+  
+  ggdraw() + draw_image("r-project.png")
+  ggdraw() + draw_image(fontawesome::fa(name = "r-project"))
+```
+
+```{r}
+  fontawesome::fa(name = "fab fa-youtube")
+  
+  fontawesome::fa_png(name = "fab fa-youtube", fill = usaid_red)
+  
+  ggdraw() + draw_image("youtube.png")
+```
+
+
+
+
