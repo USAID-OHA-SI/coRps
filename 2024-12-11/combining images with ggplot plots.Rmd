@@ -172,14 +172,18 @@ Reshaping data wide allows use to use
 Let's plot all 3 indicators into a single visual. We will use `faceting` along with free y scale for clarity. This is a common technique when dealing with multiple indicators.
 
 ```{r warning=FALSE}
-  
   # Title & Subtitle
   plot_title <- glue("{meta$curr_pd} - {toupper(cntry)} HIV TESTING SERVICES")
   plot_subtitle <- glue("As of **{meta$curr_pd}**, {cntry} reported **{comma(sum(df_viz$HTS_TST_POS))} HIV+** out of **{comma(sum(df_viz$HTS_TST))}** from **{length(unique(df_viz$psnu))} PSNUs**")
+  
+  plot_subtitle
+```
 
+```{r warning=FALSE, fig.width=10}
   # VIZ - HTS POS
   viz_hts <- 
     df_hts %>% 
+      # pre-format labels before facet_wrap()
       mutate(
         label = case_when(
           indicator == "HTS_TST_YIELD" ~ percent(value, 0.01),
@@ -216,9 +220,7 @@ Let's plot all 3 indicators into a single visual. We will use `faceting` along w
 
 We could also drop the calculated indicator (HTS_TST_YIELD) and focus only on HTS_TST and HTS_TST_POS, given that these are absolute numbers.
 
-```{r warning=FALSE}
-  
-  
+```{r warning=FALSE, fig.width=10}
   # VIZ - HTS POS
   viz_hts_pos <- 
     df_viz %>% 
@@ -244,7 +246,7 @@ In preparation of the next steps, we will try to remove the background of some o
 
 Below we leverage `si_style_transparent()` on a bar chart of HTS_TST_POS. We've also used `facet_wrap()` with margin and spacing adjustments to add the PSNU names on top of the bar.
 
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=10}
   
   viz_hts_pos2 <- 
     df_viz %>% 
@@ -275,7 +277,7 @@ Below we leverage `si_style_transparent()` on a bar chart of HTS_TST_POS. We've 
 
 Same plot as above, but using the % HTS_TST_POS instead of the absolute HIV+ numbers.
 
-```{r warning=F}
+```{r warning=F, fig.width=10}
 
   viz_hts_yield <- 
     df_viz %>% 
@@ -305,6 +307,37 @@ Same plot as above, but using the % HTS_TST_POS instead of the absolute HIV+ num
   viz_hts_yield
 
 ```
+```{r warning=F, fig.width=10}
+  ## Change the psnu names to white for image overlay
+  viz_hts_yield2 <- 
+    df_viz %>% 
+    mutate(psnu = fct_reorder(psnu, -HTS_TST_YIELD)) %>% 
+    ggplot(aes(y = psnu)) +
+    geom_col(aes(x = HTS_TST_YIELD), fill = burnt_sienna, width = 1, show.legend = T) +
+    geom_text(aes(x = HTS_TST_YIELD, label = percent(HTS_TST_YIELD, .01)), 
+              fontface = "bold", color = "#FFF", size = 3, hjust = 1.2) +
+    scale_x_continuous(labels = percent, position = "top", expand = c(0, 0)) +
+    scale_y_discrete(guide = "none") +
+    facet_wrap(~psnu, ncol = 1, scales = "free_y") +
+    labs(x = "", y = "") +
+    si_style_transparent() +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.major.y = element_blank(),
+          panel.spacing = unit(.2, "lines"),
+          axis.text = element_blank(),
+          plot.title = element_markdown(),
+          plot.subtitle = element_markdown(),
+          strip.text = element_text(
+            hjust = 0,
+            margin = margin(1, 0, 1, 0),
+            size = rel(1.1), 
+            face = "bold",
+            color = "#fff"
+          ))
+  
+  viz_hts_yield2
+
+```
 
 ### 2) Combine multiple plot into 1
 
@@ -314,7 +347,7 @@ There are multiple ways of combining plots. We will focus on 2 packages that we'
 
 With patchwork, we can use **+** and **/** to combine plots by row or column. This package will also help with all sort of `plot annotations`.
 
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=10}
   
   (viz_hts_pos + viz_hts_yield) +
     plot_annotation(tag_levels = "A")
@@ -323,7 +356,7 @@ With patchwork, we can use **+** and **/** to combine plots by row or column. Th
 
 Noticed that the enumeration tags are above the header of plot #A? Let fix that by removing the header from the first plot and adding it back on top of the combined plot.
 
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=10}
 (viz_hts_pos + theme(plot.title = element_blank(), 
                      plot.subtitle = element_blank(),
                      plot.caption = element_blank()) +
@@ -338,7 +371,7 @@ Noticed that the enumeration tags are above the header of plot #A? Let fix that 
 
 Let's now combine 3 plots while making sure the last 2 are on the second row.
 
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=10, fig.height=10}
   
   (
     viz_hts_pos + 
@@ -355,7 +388,7 @@ Let's now combine 3 plots while making sure the last 2 are on the second row.
 
 With `COWPLOT` we can use `ggdraw()` & `draw_plot()` to combine plots. The draw_plot() will overlay plots on top of each other. This is why we needed to apply some transparency to some of the initial plots.
 
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=10}
   ggdraw() +
     draw_plot(viz_hts_pos) +
     draw_plot(viz_hts_yield)
@@ -363,17 +396,17 @@ With `COWPLOT` we can use `ggdraw()` & `draw_plot()` to combine plots. The draw_
 
 The overlay was successful but not really useful for the users / readers. To fix this, we will use the location and size parameters to adjust the overlap.
 
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=10}
   
-  ggdraw() +
-    draw_plot(viz_hts_pos) +
+  ggdraw(viz_hts_pos) +
+    #draw_plot() +
     draw_plot(viz_hts_yield,
               x = .55, y = 0.02,
-              width = .4, height = .8) 
+              width = .4, height = .75) 
 
 ```
 
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=10}
   
   viz_hts_viz <- ggdraw() +
     draw_plot(viz_hts_pos +
@@ -391,16 +424,17 @@ The overlay was successful but not really useful for the users / readers. To fix
 
 ```
 
-The overlay is looking better now. How do we put back out title? Cowplot has a `plot_grid()` function we can leverage. This is similar to pathwork.
+The overlay is looking better now. How do we put back out title? 
+`Cowplot` has a `plot_grid()` function we can leverage. This is similar to `pathwork`.
 
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=10}
   plot_grid(viz_hts_pos + 
               theme(plot.title = element_blank(),
                     plot.subtitle = element_blank(),
                     plot.caption = element_blank(),
                     axis.text.x = element_blank()), 
             viz_hts_yield,
-            rel_widths = c(3, 1))
+            rel_widths = c(2, 1))
 
 ```
 
@@ -417,7 +451,7 @@ title <- ggdraw() +
 title
 ```
 
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=10}
  plot_grid(title, 
            viz_hts_viz,
            ncol = 1,
@@ -429,7 +463,7 @@ title
 
 #### a) Read and Visualize Images
 
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=10}
   ## Read image file as a raster data
   logo <- png::readPNG("../figures/logo.png") %>% 
     grid::rasterGrob()
@@ -438,21 +472,26 @@ title
 
 ```
 
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=10}
   # Visualize an image
   ggdraw() +
     draw_image("../figures/logo.png")
 ```
 
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=10}
   # Visualize an image hosted online
   ggdraw() +
     draw_image(file_logo)
 ```
+```{r warning=FALSE, fig.width=10}
+  # Visualize an image hosted online
+  ggdraw() +
+    draw_image("usaid-pptx-header.png")
+```
 
 #### b) Adding ggplot plot on top of image
 
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=10}
   # Image will be place at the center of canvas by default
   ggdraw() +
     draw_image("../figures/logo.png") +
@@ -461,7 +500,7 @@ title
               width = 1, height = 1)
 ```
 
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=10}
   ## Re-position of the image
   ggdraw() +
     draw_image("../figures/logo.png",
@@ -472,7 +511,7 @@ title
               width = 1, height = 1)
 ```
 
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=10}
   # Adjust both image and plot to ideal locations
   ggdraw() +
     draw_image(file_aids, halign = 1, valign = .5) +
@@ -481,28 +520,28 @@ title
               width = .7, height = 1)
 ```
 
-```{r warning=FALSE}
-  # 
+```{r warning=FALSE, fig.width=10}
+  # Playing attention to color combination / contrast
   ggdraw() +
-    draw_image(file_aids_rubon, halign = 0, valign = .5) +
-    draw_plot(viz_hts_yield,
-              x = 0, y = .05,
-              width = .8, height = 1)
+    draw_image("usaid-pptx-header.png", 
+               halign = 0, valign = .5) +
+    draw_plot(viz_hts_yield2,
+              x = .45, y = .08,
+              width = .55, height = .8)
 ```
 
 ### 4) Add images (png files) to ggplot plots
 
 Using ggplot `annotation_custom()` we could also add raw images to specific areas of a plot.
 
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=10}
   # Logo at the bottom right
   viz_hts_pos +
     annotation_custom(
       grob = logo,
       xmin = max(df_viz$HTS_TST) - 10000, 
       xmax = max(df_viz$HTS_TST) + (10000 - 1000),
-      ymin = 1, ymax = 3) +
-    theme()
+      ymin = 1, ymax = 3) 
 ```
 
 ```{r warning=FALSE}
@@ -544,7 +583,8 @@ ggdraw() +
     theme(plot.title = element_markdown(hjust = 0, linewidth = unit(20, "lines")))
 ```
 
-```{r warning=FALSE}
+```{r warning=FALSE, fig.width=12}
+  # use of image as label
   logo <- ggdraw() +
     draw_image("../figures/corps.png", scale = 1, width = .5)
 
@@ -556,7 +596,8 @@ ggdraw() +
       hjust = 0
     ) +
     theme(plot.margin = margin(0, 0, 0, 0)) # No spaces
-
+  
+  # Image and title together
   header <- plot_grid(logo, title2, rel_widths = c(1,4))
 
   plot_grid(header, 
