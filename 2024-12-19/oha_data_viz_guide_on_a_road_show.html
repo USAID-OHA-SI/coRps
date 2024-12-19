@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="c(“Baboyma Kagniniwa”, “Tim Essam”)">
+<meta name="dcterms.date" content="2024-12-19">
+
+<title>DEMO - OHA Data Viz Guide on a Road Show</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="oha_data_viz_guide_on_a_road_show_files/libs/clipboard/clipboard.min.js"></script>
+<script src="oha_data_viz_guide_on_a_road_show_files/libs/quarto-html/quarto.js"></script>
+<script src="oha_data_viz_guide_on_a_road_show_files/libs/quarto-html/popper.min.js"></script>
+<script src="oha_data_viz_guide_on_a_road_show_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="oha_data_viz_guide_on_a_road_show_files/libs/quarto-html/anchor.min.js"></script>
+<link href="oha_data_viz_guide_on_a_road_show_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="oha_data_viz_guide_on_a_road_show_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="oha_data_viz_guide_on_a_road_show_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="oha_data_viz_guide_on_a_road_show_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="oha_data_viz_guide_on_a_road_show_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">DEMO - OHA Data Viz Guide on a Road Show</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>c(“Baboyma Kagniniwa”, “Tim Essam”) </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">December 19, 2024</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="great-data-visualization-aid" class="level1">
+<h1>GREAT DATA VISUALIZATION AID</h1>
+<p>A blank canvas is always a good start for good data visualization. Start with a simple sketch on a white board, notepad or napkin, and it will be easier to implement.</p>
+<p><img src="https://unsplash.com/photos/gxGtqG5ul2g/download?ixid=M3wxMjA3fDB8MXxhbGx8fHx8fHx8fHwxNzMzMjQ1MjQxfA&amp;force=true&amp;w=1920.png" class="img-fluid"></p>
+<section id="why-use-an-r-package" class="level2">
+<h2 class="anchored" data-anchor-id="why-use-an-r-package">Why use an R Package?</h2>
+<p>We needed a way to implement the entire style guide in our routine data visualization tasks while avoiding repetition and keeping products consistent.</p>
+<p><img src="https://usaid-oha-si.github.io/assets/img/styleguide/chart-elements.png" class="img-fluid" width="1200"></p>
+</section>
+<section id="quarto" class="level2">
+<h2 class="anchored" data-anchor-id="quarto">Quarto</h2>
+<p>Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <a href="https://quarto.org" class="uri">https://quarto.org</a>.</p>
+</section>
+<section id="key-components-of-glitr" class="level2">
+<h2 class="anchored" data-anchor-id="key-components-of-glitr">Key Components of <code>glitr</code></h2>
+<p>The style guide has been implemented in <code>glitr</code> through 3 key components:</p>
+<ol type="1">
+<li><p><code>Plot Elements</code>,</p></li>
+<li><p><code>Typeface</code>,</p></li>
+<li><p><code>Colors</code>.</p></li>
+</ol>
+<p>We use tidyverse, key data viz libraries, plus our own grown packages</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(gagglr)    <span class="co"># Used to read MSD and and plot viz</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(tidytext)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(ggtext)    <span class="co"># Used for rich text formatting</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(scales)    <span class="co"># Used to format labels and scales</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(patchwork) <span class="co"># Combine and arrange multiple plots</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(cowplot)   <span class="co"># use ggdraw to add plots on top of each other</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(glue)      <span class="co"># Used to replace variable values in text</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">library</span>(systemfonts)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Reading standard structured data sets are make easy with our internal workflow</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>  <span class="do">## Directory holding all the MSDs files</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  dir_mer <span class="ot">&lt;-</span> glamr<span class="sc">::</span><span class="fu">si_path</span>(<span class="st">"path_msd"</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  dir_mer <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="st">".."</span>, dir_mer) </span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Params </span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  cntry <span class="ot">&lt;-</span> <span class="st">"Minoria"</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  agency <span class="ot">&lt;-</span> <span class="st">"USAID"</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Full path of data file</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  file_training <span class="ot">&lt;-</span> <span class="fu">return_latest</span>(</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">folderpath =</span> dir_mer,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">pattern =</span> <span class="st">"TRAINING.*.zip"</span>,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">recursive =</span> <span class="cn">TRUE</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ Latest file in 'TRAINING' matching 'TRAINING.*.zip':
+'MER_Structured_TRAINING_Datasets_PSNU_IM_FY59-62_20240816_v1_1.zip'</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Metadata</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  meta <span class="ot">&lt;-</span> <span class="fu">get_metadata</span>(<span class="at">path =</span> file_training)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: metadata is NO LONGER (v3.2.3) exported by default as a global object.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>ℹ You must store the output as an object to use, e.g. `meta &lt;- get_metadata()`</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Read content of the PSNU x IM as a data frame</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  df_msd <span class="ot">&lt;-</span> file_training <span class="sc">%&gt;%</span> <span class="fu">read_psd</span>()</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  df_msd <span class="sc">%&gt;%</span> <span class="fu">glimpse</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 57,980
+Columns: 48
+$ operatingunit            &lt;chr&gt; "Minoria", "Minoria", "Minoria", "Minoria", "…
+$ operatingunituid         &lt;chr&gt; "kAYJjRwuXG6", "kAYJjRwuXG6", "kAYJjRwuXG6", …
+$ country                  &lt;chr&gt; "Minoria", "Minoria", "Minoria", "Minoria", "…
+$ snu1                     &lt;chr&gt; "Midwest", "Midwest", "Midwest", "Midwest", "…
+$ snu1uid                  &lt;chr&gt; "Dh3xiXWw0Z7", "Dh3xiXWw0Z7", "Dh3xiXWw0Z7", …
+$ cop22_psnu               &lt;chr&gt; "Quad Cities", "Great Lakes", "Peoria", "Peor…
+$ cop22_psnuuid            &lt;chr&gt; "FBzC1U92lJn", "gwmjspIcLT4", "icPkb3tE61B", …
+$ cop22_snuprioritization  &lt;chr&gt; "1 - Scale-Up: Saturation", "1 - Scale-Up: Sa…
+$ psnu                     &lt;chr&gt; "Quad Cities", "Great Lakes", "Peoria", "Peor…
+$ psnuuid                  &lt;chr&gt; "FBzC1U92lJn", "gwmjspIcLT4", "icPkb3tE61B", …
+$ snuprioritization        &lt;chr&gt; "1 - Scale-Up: Saturation", "1 - Scale-Up: Sa…
+$ typemilitary             &lt;chr&gt; "N", "N", "N", "N", "N", "N", "N", "N", "N", …
+$ dreams                   &lt;chr&gt; "N", "N", "N", "N", "N", "N", "N", "N", "N", …
+$ prime_partner_name       &lt;chr&gt; "Captains", "Captains", "Crawdads", "Crawdads…
+$ funding_agency           &lt;chr&gt; "HHS/CDC", "HHS/CDC", "USAID", "USAID", "USAI…
+$ mech_code                &lt;chr&gt; "01498", "01498", "01568", "01568", "01441", …
+$ mech_name                &lt;chr&gt; "Captains", "Captains", "Crawdads", "Crawdads…
+$ local_prime_partner      &lt;chr&gt; "Local", "Local", "Local", "Local", "Local", …
+$ indicator                &lt;chr&gt; "HTS_TST", "TX_CURR", "HTS_TST", "HTS_TST", "…
+$ numeratordenom           &lt;chr&gt; "N", "N", "N", "N", "N", "N", "N", "N", "D", …
+$ indicatortype            &lt;chr&gt; "DSD", "DSD", "DSD", "DSD", "DSD", "DSD", "DS…
+$ standardizeddisaggregate &lt;chr&gt; "Modality/Age/Sex/Result", "Total Numerator",…
+$ categoryoptioncomboname  &lt;chr&gt; "1-9, Female, Newly Tested Positives", "defau…
+$ use_for_age              &lt;chr&gt; "Y", "N", "Y", "Y", "Y", "Y", "Y", "Y", "Y", …
+$ ageasentered             &lt;chr&gt; "01-09", NA, "20-24", "35-39", "40-44", "40-4…
+$ age_2018                 &lt;chr&gt; "01-09", NA, "20-24", "35-39", "40-49", "40-4…
+$ age_2019                 &lt;chr&gt; "Newer Age Band", "N/A", "20-24", "35-39", "4…
+$ target_age_2024          &lt;chr&gt; "01-09", "N/A", "15-24", "35-49", "35-49", "3…
+$ trendscoarse             &lt;chr&gt; "&lt;15", NA, "15+", "15+", "15+", "15+", "15+",…
+$ sex                      &lt;chr&gt; "Female", NA, "Female", "Male", "Female", "Fe…
+$ statushiv                &lt;chr&gt; "Positive", "Positive", "Negative", "Negative…
+$ statustb                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…
+$ statuscx                 &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…
+$ hiv_treatment_status     &lt;chr&gt; NA, "Already", NA, NA, NA, "New", NA, NA, NA,…
+$ otherdisaggregate        &lt;chr&gt; "Newly Identified", NA, NA, "Newly Identified…
+$ otherdisaggregate_sub    &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…
+$ modality                 &lt;chr&gt; "TBClinic", NA, "Post ANC1", "TBClinic", "PMT…
+$ target_modality_2024     &lt;chr&gt; "TBClinic", "N/A", "Post ANC1", "TBClinic", "…
+$ fiscal_year              &lt;int&gt; 2062, 2061, 2059, 2059, 2060, 2060, 2062, 205…
+$ targets                  &lt;dbl&gt; 1, NA, NA, NA, NA, 15, 979, 22, 9, 34, 2, NA,…
+$ qtr1                     &lt;dbl&gt; NA, 752, 43, 8, NA, NA, NA, 52, NA, NA, NA, 5…
+$ qtr2                     &lt;dbl&gt; NA, 757, 33, 13, NA, NA, NA, 31, NA, NA, NA, …
+$ qtr3                     &lt;dbl&gt; NA, 770, NA, 9, 1, NA, NA, 46, NA, NA, NA, 4,…
+$ qtr4                     &lt;dbl&gt; NA, NA, NA, 8, NA, NA, NA, 42, NA, NA, NA, NA…
+$ cumulative               &lt;dbl&gt; NA, 770, NA, 39, 1, NA, NA, 171, NA, NA, NA, …
+$ safe_for_net_new         &lt;chr&gt; "N", "Y", "Y", "Y", "Y", "N", "N", "N", "N", …
+$ safe_for_vlc             &lt;chr&gt; "N", "Y", "N", "Y", "Y", "N", "N", "N", "N", …
+$ source_name              &lt;chr&gt; "Derived", "Derived", "DATIM", "Derived", "De…</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Explore content of the data - countries and funding agency</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  df_msd <span class="sc">%&gt;%</span> <span class="fu">distinct</span>(country, funding_agency)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 2
+  country funding_agency
+  &lt;chr&gt;   &lt;chr&gt;         
+1 Minoria HHS/CDC       
+2 Minoria USAID         
+3 Minoria Dedup         </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Explore content of the data - indicators</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  df_msd <span class="sc">%&gt;%</span> </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(fiscal_year <span class="sc">==</span> meta<span class="sc">$</span>curr_fy,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>           <span class="fu">str_detect</span>(indicator, <span class="st">"HTS_TST"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">distinct</span>(indicator, standardizeddisaggregate) <span class="sc">%&gt;%</span> </span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(indicator)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 2
+  indicator   standardizeddisaggregate
+  &lt;chr&gt;       &lt;chr&gt;                   
+1 HTS_TST     Modality/Age/Sex/Result 
+2 HTS_TST     KeyPop/Result           
+3 HTS_TST     Total Numerator         
+4 HTS_TST_POS Modality/Age/Sex/Result 
+5 HTS_TST_POS KeyPop/Result           
+6 HTS_TST_POS Total Numerator         </code></pre>
+</div>
+</div>
+<p>Summary of HTS Indicators by PSNU &amp; Agencies</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Summary of HTS Indicator</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  df_hts_agency <span class="ot">&lt;-</span> df_msd <span class="sc">%&gt;%</span> </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(fiscal_year <span class="sc">==</span> meta<span class="sc">$</span>curr_fy,</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>           country <span class="sc">==</span> cntry,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>           indicator <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"HTS_TST"</span>, <span class="st">"HTS_TST_POS"</span>),</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>           standardizeddisaggregate <span class="sc">==</span> <span class="st">"Total Numerator"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">clean_agency</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">value =</span> <span class="fu">sum</span>(cumulative, <span class="at">na.rm =</span> T),</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>              <span class="at">.by =</span> <span class="fu">c</span>(country, psnu, funding_agency, indicator))</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Calculate positivity rates at PSNU level</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  df_hts_agency <span class="ot">&lt;-</span> df_hts_agency <span class="sc">%&gt;%</span> </span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">value =</span> value[indicator <span class="sc">==</span> <span class="st">"HTS_TST_POS"</span>] <span class="sc">/</span> value[indicator <span class="sc">==</span> <span class="st">"HTS_TST"</span>],</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>              <span class="at">.by =</span> <span class="fu">c</span>(country, psnu, funding_agency)) <span class="sc">%&gt;%</span> </span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">indicator =</span> <span class="st">"HTS_TST_YIELD"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind_rows</span>(df_hts_agency, .)</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>  df_hts_agency <span class="sc">%&gt;%</span> <span class="fu">glimpse</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 57
+Columns: 5
+$ country        &lt;chr&gt; "Minoria", "Minoria", "Minoria", "Minoria", "Minoria", …
+$ psnu           &lt;chr&gt; "Great Lakes", "Wisconsin", "Quad Cities", "Great Lakes…
+$ funding_agency &lt;chr&gt; "CDC", "USAID", "CDC", "USAID", "USAID", "USAID", "CDC"…
+$ indicator      &lt;chr&gt; "HTS_TST", "HTS_TST", "HTS_TST", "HTS_TST_POS", "HTS_TS…
+$ value          &lt;dbl&gt; 3874, 88390, 8608, 385, 477, 288, 59, 755, 38862, 20, 7…</code></pre>
+</div>
+</div>
+<p>Summary of HTS Indicators by PSNU</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Summary of HTS Indicator</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  df_hts <span class="ot">&lt;-</span> df_msd <span class="sc">%&gt;%</span> </span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="co">#fiscal_year == meta$curr_fy,</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>           country <span class="sc">==</span> cntry,</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>           funding_agency <span class="sc">==</span> agency,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>           indicator <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"HTS_TST"</span>, <span class="st">"HTS_TST_POS"</span>),</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>           standardizeddisaggregate <span class="sc">==</span> <span class="st">"Total Numerator"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">value =</span> <span class="fu">sum</span>(cumulative, <span class="at">na.rm =</span> T),</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>              <span class="at">.by =</span> <span class="fu">c</span>(country, psnu, indicator))</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Calculate positivity rates at PSNU level</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>  df_hts <span class="ot">&lt;-</span> df_hts <span class="sc">%&gt;%</span> </span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">value =</span> value[indicator <span class="sc">==</span> <span class="st">"HTS_TST_POS"</span>] <span class="sc">/</span> value[indicator <span class="sc">==</span> <span class="st">"HTS_TST"</span>],</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>              <span class="at">.by =</span> <span class="fu">c</span>(country, psnu)) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">indicator =</span> <span class="st">"HTS_TST_YIELD"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind_rows</span>(df_hts, .)</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Reshape for data viz</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>  df_viz <span class="ot">&lt;-</span> df_hts <span class="sc">%&gt;%</span> </span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">pivot_wider</span>(</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">names_from =</span> indicator,</span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">values_from =</span> value</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>  df_viz <span class="sc">%&gt;%</span> <span class="fu">glimpse</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 9
+Columns: 5
+$ country       &lt;chr&gt; "Minoria", "Minoria", "Minoria", "Minoria", "Minoria", "…
+$ psnu          &lt;chr&gt; "Great Lakes", "Peoria", "Wisconsin", "Quad Cities", "Sp…
+$ HTS_TST_POS   &lt;dbl&gt; 1599, 2080, 3244, 1072, 1897, 2757, 391, 573, 728
+$ HTS_TST       &lt;dbl&gt; 115706, 136190, 284209, 71715, 143429, 141659, 21180, 19…
+$ HTS_TST_YIELD &lt;dbl&gt; 0.01381951, 0.01527278, 0.01141414, 0.01494806, 0.013226…</code></pre>
+</div>
+</div>
+<section id="plot-elements" class="level3">
+<h3 class="anchored" data-anchor-id="plot-elements">Plot Elements</h3>
+<p>Plot headers should be written in way that helps the readers pickup on key points quickly</p>
+<p>Here we pre-define the title and subtitle. Our subtitle contains some key stats on TST Results. Caption will contain some metadata + additional info on the production.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Title &amp; Subtitle</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  plot_title <span class="ot">&lt;-</span> <span class="fu">glue</span>(<span class="st">"{meta$curr_pd} - {toupper(cntry)} HIV TESTING SERVICES"</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  plot_subtitle <span class="ot">&lt;-</span> <span class="fu">glue</span>(<span class="st">"As of **{meta$curr_pd}**, {cntry} reported **{comma(sum(df_viz$HTS_TST_POS))} HIV+** out of **{comma(sum(df_viz$HTS_TST))}** from **{length(unique(df_viz$psnu))} PSNUs**"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Example #1 - HIV+ with default ggplot plotting</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>  df_hts <span class="sc">%&gt;%</span> </span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">label =</span> <span class="fu">case_when</span>(</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>          indicator <span class="sc">==</span> <span class="st">"HTS_TST_YIELD"</span> <span class="sc">~</span> <span class="fu">percent</span>(value, <span class="fl">0.01</span>),</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>          <span class="cn">TRUE</span> <span class="sc">~</span> <span class="fu">comma</span>(value, <span class="dv">1</span>)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">%&gt;%</span> </span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> value, <span class="at">y =</span> <span class="fu">reorder</span>(psnu, value), <span class="at">fill =</span> indicator)) <span class="sc">+</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_col</span>() <span class="sc">+</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> label, <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.2</span>)) <span class="sc">+</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_x_continuous</span>(<span class="at">expand =</span> <span class="fu">c</span>(<span class="fl">0.2</span>,<span class="dv">0</span>), <span class="at">labels =</span> comma) <span class="sc">+</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">facet_wrap</span>(<span class="sc">~</span><span class="fu">str_replace</span>(indicator, <span class="st">"HTS_"</span>, <span class="st">""</span>), <span class="co"># Splitting each ind</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>                 <span class="at">nrow =</span> <span class="dv">1</span>, <span class="at">scales =</span> <span class="st">"free_x"</span>) <span class="sc">+</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> <span class="st">""</span>,</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>           <span class="at">title =</span> plot_title,</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>           <span class="at">subtitle =</span> plot_subtitle,</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>           <span class="at">caption =</span> meta<span class="sc">$</span>caption) <span class="sc">+</span></span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme</span>(<span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>            <span class="at">plot.title =</span> <span class="fu">element_markdown</span>(<span class="at">face =</span> <span class="st">"bold"</span>), <span class="co"># Need the font to be bold</span></span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>            <span class="at">plot.subtitle =</span> <span class="fu">element_markdown</span>(),</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>            <span class="at">strip.placement =</span> <span class="st">"outside"</span>,</span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>            <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">hjust =</span> .<span class="dv">1</span>),</span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>            <span class="at">strip.clip =</span> <span class="st">"off"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Example #2 - HIV+ with ggplot plotting &amp; the base style</p>
+<p><code>si_style()</code> is our base style and it comes with pre-set font family, color, and location of legend</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Font family defaults to: Source Sans Pro/Arial</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ggplot2::theme(</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   plot.title = ggplot2::element_text(</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="co">#     family = font_title,</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="co">#     size = 14 * text_scale,</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="co">#     face = "bold",</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="co">#     color = color_title,</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="co">#     margin = ggplot2::margin(b = half_line),</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="co">#     hjust = 0),</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a><span class="co">#   ...)</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span>(<span class="st">"(si_style)"</span>, <span class="fu">ls</span>(<span class="st">'package:glitr'</span>), <span class="at">value =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "si_style"             "si_style_map"         "si_style_nolines"    
+ [4] "si_style_transparent" "si_style_void"        "si_style_xgrid"      
+ [7] "si_style_xline"       "si_style_xyline"      "si_style_ygrid"      
+[10] "si_style_yline"      </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>  df_hts <span class="sc">%&gt;%</span> </span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">label =</span> <span class="fu">case_when</span>(</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>          indicator <span class="sc">==</span> <span class="st">"HTS_TST_YIELD"</span> <span class="sc">~</span> <span class="fu">percent</span>(value, <span class="fl">0.01</span>),</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>          <span class="cn">TRUE</span> <span class="sc">~</span> <span class="fu">comma</span>(value, <span class="dv">1</span>)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">%&gt;%</span> </span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> value, <span class="at">y =</span> <span class="fu">reorder</span>(psnu, value), <span class="at">fill =</span> indicator)) <span class="sc">+</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_col</span>() <span class="sc">+</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> label, <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.2</span>)) <span class="sc">+</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_x_continuous</span>(<span class="at">position =</span> <span class="st">"top"</span>, <span class="at">expand =</span> <span class="fu">c</span>(<span class="fl">0.2</span>,<span class="dv">0</span>), <span class="at">labels =</span> comma) <span class="sc">+</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">facet_wrap</span>(<span class="sc">~</span><span class="fu">str_replace</span>(indicator, <span class="st">"HTS_"</span>, <span class="st">""</span>), </span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>                 <span class="at">nrow =</span> <span class="dv">1</span>, <span class="at">scales =</span> <span class="st">"free_x"</span>) <span class="sc">+</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> <span class="st">""</span>,</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>           <span class="at">title =</span> plot_title,</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>           <span class="at">subtitle =</span> plot_subtitle,</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>           <span class="at">caption =</span> meta<span class="sc">$</span>caption) <span class="sc">+</span></span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">si_style</span>() <span class="sc">+</span></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme</span>(<span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>            <span class="at">plot.title =</span> <span class="fu">element_markdown</span>(), <span class="co"># Title is not bold</span></span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>            <span class="at">plot.subtitle =</span> <span class="fu">element_markdown</span>(),</span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>            <span class="at">strip.placement =</span> <span class="st">"outside"</span>,</span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>            <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">hjust =</span> .<span class="dv">1</span>),</span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>            <span class="at">strip.clip =</span> <span class="st">"off"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Example #3 - HIV+ with ggplot plotting &amp; specific style &amp; color</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a> df_hts <span class="sc">%&gt;%</span> </span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">label =</span> <span class="fu">case_when</span>(</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>          indicator <span class="sc">==</span> <span class="st">"HTS_TST_YIELD"</span> <span class="sc">~</span> <span class="fu">percent</span>(value, <span class="fl">0.01</span>),</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>          <span class="cn">TRUE</span> <span class="sc">~</span> <span class="fu">comma</span>(value, <span class="dv">1</span>)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> value, <span class="at">y =</span> <span class="fu">reorder</span>(psnu, value), <span class="at">fill =</span> indicator)) <span class="sc">+</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_col</span>(<span class="at">show.legend =</span> F) <span class="sc">+</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> label, <span class="at">hjust =</span> <span class="sc">-</span>.<span class="dv">05</span>)) <span class="sc">+</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_fill_manual</span>(</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">values =</span> <span class="fu">c</span>(</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>          <span class="st">"HTS_TST"</span> <span class="ot">=</span> trolley_grey, </span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>          <span class="st">"HTS_TST_POS"</span> <span class="ot">=</span> burnt_sienna, </span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>          <span class="st">"HTS_TST_YIELD"</span> <span class="ot">=</span> burnt_sienna_light</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">+</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_x_continuous</span>(<span class="at">position =</span> <span class="st">"top"</span>, <span class="at">labels =</span> comma, <span class="at">expand =</span> <span class="fu">c</span>(.<span class="dv">2</span>,<span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">facet_wrap</span>(<span class="sc">~</span><span class="fu">str_replace</span>(indicator, <span class="st">"HTS_"</span>, <span class="st">""</span>), </span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>                 <span class="at">nrow =</span> <span class="dv">1</span>, <span class="at">scales =</span> <span class="st">"free_x"</span>) <span class="sc">+</span></span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> <span class="st">""</span>,</span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>           <span class="at">title =</span> plot_title,</span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>           <span class="at">subtitle =</span> <span class="fu">glue</span>(<span class="st">"As of **{meta$curr_pd}**, {cntry} reported &lt;span style='color:{burnt_sienna}'&gt;**{comma(sum(df_viz$HTS_TST_POS))} HIV+**&lt;/span&gt; out of **{comma(sum(df_viz$HTS_TST))}** from **{length(unique(df_viz$psnu))} PSNUs**"</span>),</span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>           <span class="at">caption =</span> meta<span class="sc">$</span>caption) <span class="sc">+</span></span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>      <span class="fu">si_style_xgrid</span>() <span class="sc">+</span></span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme</span>(<span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>            <span class="at">plot.title =</span> <span class="fu">element_markdown</span>(),</span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>            <span class="at">plot.subtitle =</span> <span class="fu">element_markdown</span>(),</span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>            <span class="at">strip.placement =</span> <span class="st">"outside"</span>,</span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>            <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">hjust =</span> .<span class="dv">1</span>),</span>
+<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>            <span class="at">strip.clip =</span> <span class="st">"off"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Example #4 - HIV+ with ggplot plotting &amp; <code>si_style_xgrid()</code> alternative</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>  df_viz <span class="sc">%&gt;%</span> </span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="fu">reorder</span>(psnu, HTS_TST))) <span class="sc">+</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">x =</span> HTS_TST), <span class="at">fill =</span> trolley_grey_light, <span class="at">show.legend =</span> T) <span class="sc">+</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">x =</span> HTS_TST_POS), <span class="at">fill =</span> burnt_sienna, <span class="at">show.legend =</span> T) <span class="sc">+</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">color =</span> grey90k) <span class="sc">+</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">x =</span> HTS_TST_POS, <span class="at">label =</span> <span class="fu">comma</span>(HTS_TST_POS)), <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_x_continuous</span>(<span class="at">labels =</span> comma, <span class="at">position =</span> <span class="st">"top"</span>) <span class="sc">+</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> <span class="st">""</span>,</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>           <span class="at">title =</span> plot_title,</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>           <span class="at">subtitle =</span> plot_subtitle,</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>           <span class="at">caption =</span> meta<span class="sc">$</span>caption) <span class="sc">+</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">si_style_xgrid</span>() <span class="sc">+</span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>      <span class="fu">theme</span>(<span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>            <span class="at">plot.title =</span> <span class="fu">element_markdown</span>(),</span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>            <span class="at">plot.subtitle =</span> <span class="fu">element_markdown</span>()) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Let’s now apply different SI THEMES to the same plot …</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>viz <span class="ot">&lt;-</span> df_viz <span class="sc">%&gt;%</span> </span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="fu">reorder</span>(psnu, HTS_TST))) <span class="sc">+</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">x =</span> HTS_TST), <span class="at">fill =</span> trolley_grey_light, <span class="at">show.legend =</span> T) <span class="sc">+</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">x =</span> HTS_TST_POS), <span class="at">fill =</span> burnt_sienna, <span class="at">show.legend =</span> T) <span class="sc">+</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">color =</span> grey90k) <span class="sc">+</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">x =</span> HTS_TST_POS, <span class="at">label =</span> <span class="fu">comma</span>(HTS_TST_POS)), <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">labels =</span> comma, <span class="at">position =</span> <span class="st">"top"</span>) <span class="sc">+</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> <span class="st">""</span>,</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">caption =</span> meta<span class="sc">$</span>caption)  </span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>themes <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">'si_style()'</span> <span class="ot">=</span> <span class="fu">si_style</span>(), </span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>   <span class="st">'si_style_xline()'</span> <span class="ot">=</span> <span class="fu">si_style_xline</span>(), </span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>   <span class="st">'si_style_xgrid()'</span> <span class="ot">=</span> <span class="fu">si_style_xgrid</span>(),</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>   <span class="st">'si_style_xyline()'</span> <span class="ot">=</span> <span class="fu">si_style_xyline</span>(), </span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>   <span class="st">'si_style_yline()'</span> <span class="ot">=</span> <span class="fu">si_style_yline</span>(), </span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>   <span class="st">'si_style_ygrid()'</span> <span class="ot">=</span> <span class="fu">si_style_ygrid</span>(), </span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>   <span class="st">'si_style_nolines()'</span> <span class="ot">=</span> <span class="fu">si_style_nolines</span>(), </span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>   <span class="st">'si_style_void()'</span> <span class="ot">=</span> <span class="fu">si_style_void</span>()</span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>   )</span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a><span class="do">## si_style_map() and si_style_transparent() themes are also available for special cases</span></span>
+<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a><span class="fu">map2</span>(themes, <span class="fu">names</span>(themes), \(.x, .y) viz <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> .y) <span class="sc">+</span> .x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$`si_style()`</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+$`si_style_xline()`</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-13-2.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+$`si_style_xgrid()`</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-13-3.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+$`si_style_xyline()`</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-13-4.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+$`si_style_yline()`</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-13-5.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+$`si_style_ygrid()`</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-13-6.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+$`si_style_nolines()`</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-13-7.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+$`si_style_void()`</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-13-8.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Example #5 - HIV+ with ggplot plotting &amp; highlighting specific areas …</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>df_viz <span class="sc">%&gt;%</span> </span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">psnu =</span> <span class="fu">fct_reorder</span>(psnu, <span class="sc">-</span>HTS_TST_YIELD),</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">fill_color =</span> <span class="fu">case_when</span>(</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>           HTS_TST_YIELD <span class="sc">&gt;=</span> .<span class="dv">02</span> <span class="sc">~</span> burnt_sienna, <span class="co"># Districts with more than 2% HIV+ Rates </span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>           <span class="cn">TRUE</span> <span class="sc">~</span> burnt_sienna_light</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>         ),</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">text_color =</span> <span class="fu">case_when</span>(</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>           HTS_TST_YIELD <span class="sc">&gt;=</span> .<span class="dv">02</span> <span class="sc">~</span> <span class="st">"#FFF"</span>, </span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>           <span class="cn">TRUE</span> <span class="sc">~</span> usaid_black <span class="do">## USAID Colors</span></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>         )) <span class="sc">%&gt;%</span> </span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">y =</span> psnu)) <span class="sc">+</span></span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">x =</span> HTS_TST_YIELD, <span class="at">fill =</span> fill_color), <span class="at">width =</span> <span class="dv">1</span>, <span class="at">show.legend =</span> T) <span class="sc">+</span></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">x =</span> HTS_TST_YIELD, <span class="at">label =</span> <span class="fu">percent</span>(HTS_TST_YIELD, .<span class="dv">01</span>), <span class="at">color =</span> text_color), </span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>            <span class="at">fontface =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="dv">5</span>, <span class="at">hjust =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_identity</span>() <span class="sc">+</span></span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_identity</span>() <span class="sc">+</span></span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">labels =</span> percent, <span class="at">position =</span> <span class="st">"top"</span>, <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)) <span class="sc">+</span></span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_discrete</span>(<span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>psnu, <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span></span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> <span class="st">""</span>) <span class="sc">+</span></span>
+<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">si_style_transparent</span>() <span class="sc">+</span></span>
+<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">panel.grid.major.x =</span> <span class="fu">element_blank</span>(), <span class="co"># Additional theme options can be added</span></span>
+<span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb33-24"><a href="#cb33-24" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.spacing =</span> <span class="fu">unit</span>(.<span class="dv">2</span>, <span class="st">"lines"</span>),</span>
+<span id="cb33-25"><a href="#cb33-25" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb33-26"><a href="#cb33-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_markdown</span>(),</span>
+<span id="cb33-27"><a href="#cb33-27" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.subtitle =</span> <span class="fu">element_markdown</span>(),</span>
+<span id="cb33-28"><a href="#cb33-28" aria-hidden="true" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(</span>
+<span id="cb33-29"><a href="#cb33-29" aria-hidden="true" tabindex="-1"></a>          <span class="at">hjust =</span> <span class="dv">0</span>,</span>
+<span id="cb33-30"><a href="#cb33-30" aria-hidden="true" tabindex="-1"></a>          <span class="at">margin =</span> <span class="fu">margin</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb33-31"><a href="#cb33-31" aria-hidden="true" tabindex="-1"></a>          <span class="at">size =</span> <span class="fu">rel</span>(<span class="fl">1.1</span>), </span>
+<span id="cb33-32"><a href="#cb33-32" aria-hidden="true" tabindex="-1"></a>          <span class="at">face =</span> <span class="st">"bold"</span></span>
+<span id="cb33-33"><a href="#cb33-33" aria-hidden="true" tabindex="-1"></a>        )) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="colors" class="level3">
+<h3 class="anchored" data-anchor-id="colors">Colors</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>df_hts_agency <span class="sc">%&gt;%</span> </span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(indicator <span class="sc">==</span> <span class="st">"HTS_TST_POS"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> funding_agency, <span class="at">y =</span> psnu, <span class="at">fill =</span> value)) <span class="sc">+</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"#FFF"</span>) <span class="sc">+</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_si</span>(<span class="at">palette =</span> <span class="st">"tango_c"</span>, <span class="at">reverse =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>hts_pos <span class="ot">&lt;-</span> df_hts_agency <span class="sc">%&gt;%</span> </span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(indicator <span class="sc">==</span> <span class="st">"HTS_TST_POS"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(value)</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>df_hts_agency <span class="sc">%&gt;%</span> </span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(indicator <span class="sc">==</span> <span class="st">"HTS_TST_POS"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> funding_agency, <span class="at">y =</span> psnu, <span class="at">fill =</span> value)) <span class="sc">+</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"#FFF"</span>) <span class="sc">+</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">ifelse</span>(value <span class="sc">&gt;</span> <span class="dv">200</span>, value, <span class="cn">NA_integer_</span>)), <span class="at">color =</span> grey10k) <span class="sc">+</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_discrete</span>(<span class="at">position =</span> <span class="st">"top"</span>) <span class="sc">+</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_si</span>(<span class="at">palette =</span> <span class="st">"tango_c"</span>, <span class="at">reverse =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>                <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">50</span>, <span class="fu">max</span>(hts_pos), <span class="dv">200</span>), </span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>                <span class="at">labels =</span> comma, <span class="at">name =</span> <span class="st">"Results"</span>) <span class="sc">+</span></span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">""</span>, <span class="at">y =</span> <span class="st">""</span>) <span class="sc">+</span></span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">si_style_nolines</span>() <span class="sc">+</span></span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.key.width =</span> ggplot2<span class="sc">::</span><span class="fu">unit</span>(<span class="fl">1.5</span>, <span class="st">"cm"</span>),</span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_blank</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ls</span>(<span class="st">'package:glitr'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  [1] "%&gt;%"                     "burnt_sienna"           
+  [3] "burnt_sienna_light"      "cascade"                
+  [5] "color_caption"           "color_gridline"         
+  [7] "color_plot_text"         "color_title"            
+  [9] "denim"                   "denim_light"            
+ [11] "electric_indigo"         "electric_indigo_100"    
+ [13] "electric_indigo_20"      "electric_indigo_40"     
+ [15] "electric_indigo_60"      "electric_indigo_80"     
+ [17] "genoa"                   "genoa_light"            
+ [19] "golden_sand"             "golden_sand_light"      
+ [21] "grey10k"                 "grey20k"                
+ [23] "grey30k"                 "grey40k"                
+ [25] "grey50k"                 "grey60k"                
+ [27] "grey70k"                 "grey80k"                
+ [29] "grey90k"                 "hfr_mmd"                
+ [31] "hts"                     "hts_geo"                
+ [33] "hunter"                  "hunter_100"             
+ [35] "hunter_20"               "hunter_40"              
+ [37] "hunter_60"               "hunter_80"              
+ [39] "hw_electric_indigo"      "hw_hunter"              
+ [41] "hw_lavender_haze"        "hw_midnight_blue"       
+ [43] "hw_orchid_bloom"         "hw_slate"               
+ [45] "hw_sun_kissed"           "hw_tango"               
+ [47] "hw_viking"               "lavender_haze"          
+ [49] "lavender_haze_100"       "lavender_haze_20"       
+ [51] "lavender_haze_40"        "lavender_haze_60"       
+ [53] "lavender_haze_80"        "light_grey"             
+ [55] "matterhorn"              "midnight_blue"          
+ [57] "midnight_blue_100"       "midnight_blue_20"       
+ [59] "midnight_blue_40"        "midnight_blue_60"       
+ [61] "midnight_blue_80"        "moody_blue"             
+ [63] "moody_blue_light"        "nero"                   
+ [65] "old_rose"                "old_rose_light"         
+ [67] "orchid_bloom"            "orchid_bloom_100"       
+ [69] "orchid_bloom_20"         "orchid_bloom_40"        
+ [71] "orchid_bloom_60"         "orchid_bloom_80"        
+ [73] "pantone_aqua_sky"        "pantone_blue_iris"      
+ [75] "pantone_blue_turquoise"  "pantone_cerulean"       
+ [77] "pantone_chili_pepper"    "pantone_classic_blue"   
+ [79] "pantone_emerald"         "pantone_fuchsia_rose"   
+ [81] "pantone_greenery"        "pantone_honeysuckle"    
+ [83] "pantone_illuminating"    "pantone_living_coral"   
+ [85] "pantone_marsala"         "pantone_mimosa"         
+ [87] "pantone_mocha_mousse"    "pantone_peach_fuzz"     
+ [89] "pantone_radiant_orchid"  "pantone_rose_quartz"    
+ [91] "pantone_sand_dollar"     "pantone_serenity"       
+ [93] "pantone_tangerine_tango" "pantone_tigerlily"      
+ [95] "pantone_true_red"        "pantone_turquoise"      
+ [97] "pantone_ultimate_gray"   "pantone_ultra_violet"   
+ [99] "pantone_very_peri"       "pantone_viva_magenta"   
+[101] "scale_color_si"          "scale_fill_si"          
+[103] "scooter"                 "scooter_light"          
+[105] "scooter_med"             "si_clear_preview"       
+[107] "si_legend_color"         "si_legend_fill"         
+[109] "si_palettes"             "si_preview"             
+[111] "si_rampr"                "si_save"                
+[113] "si_style"                "si_style_map"           
+[115] "si_style_nolines"        "si_style_transparent"   
+[117] "si_style_void"           "si_style_xgrid"         
+[119] "si_style_xline"          "si_style_xyline"        
+[121] "si_style_ygrid"          "si_style_yline"         
+[123] "slate"                   "slate_100"              
+[125] "slate_20"                "slate_40"               
+[127] "slate_60"                "slate_80"               
+[129] "sun_kissed"              "sun_kissed_100"         
+[131] "sun_kissed_20"           "sun_kissed_40"          
+[133] "sun_kissed_60"           "sun_kissed_80"          
+[135] "suva_grey"               "tango"                  
+[137] "tango_100"               "tango_20"               
+[139] "tango_40"                "tango_60"               
+[141] "tango_80"                "trolley_grey"           
+[143] "trolley_grey_light"      "usaid_black"            
+[145] "usaid_blue"              "usaid_darkgrey"         
+[147] "usaid_lightblue"         "usaid_lightgrey"        
+[149] "usaid_medblue"           "usaid_medgrey"          
+[151] "usaid_red"               "viking"                 
+[153] "viking_100"              "viking_20"              
+[155] "viking_40"               "viking_60"              
+[157] "viking_80"               "wapo_dblue"             
+[159] "wapo_dmauve"             "wapo_dorange"           
+[161] "wapo_lblue"              "wapo_lgreen"            
+[163] "wapo_lmauve"             "wapo_lorange"           
+[165] "wapo_lorange2"           "wapo_lpurple"           
+[167] "wapo_pushpop"            "whisper"                </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Colors belonging to greys, usaid_, wapo_ or siei_.</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span>(<span class="st">"(grey|siei_|wapo_|usaid_)"</span>, <span class="fu">ls</span>(<span class="st">'package:glitr'</span>), <span class="at">value =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "grey10k"            "grey20k"            "grey30k"           
+ [4] "grey40k"            "grey50k"            "grey60k"           
+ [7] "grey70k"            "grey80k"            "grey90k"           
+[10] "light_grey"         "suva_grey"          "trolley_grey"      
+[13] "trolley_grey_light" "usaid_black"        "usaid_blue"        
+[16] "usaid_darkgrey"     "usaid_lightblue"    "usaid_lightgrey"   
+[19] "usaid_medblue"      "usaid_medgrey"      "usaid_red"         
+[22] "wapo_dblue"         "wapo_dmauve"        "wapo_dorange"      
+[25] "wapo_lblue"         "wapo_lgreen"        "wapo_lmauve"       
+[28] "wapo_lorange"       "wapo_lorange2"      "wapo_lpurple"      
+[31] "wapo_pushpop"      </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">show_col</span>(<span class="fu">c</span>(electric_indigo, orchid_bloom, sun_kissed, hunter, lavender_haze, tango), <span class="at">borders =</span> F, <span class="at">ncol =</span> <span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Returns the recommended paired colors with hunter as the base</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>si_palettes<span class="sc">$</span>siei <span class="sc">%&gt;%</span> <span class="fu">show_col</span>(<span class="at">labels =</span> F, <span class="at">borders =</span> F, <span class="at">ncol =</span> <span class="fu">length</span>(si_palettes<span class="sc">$</span>siei)<span class="sc">/</span><span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Returns the recommended paired colors with hunter as the base</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>si_palettes<span class="sc">$</span>hunter_d <span class="sc">%&gt;%</span> <span class="fu">show_col</span>(<span class="at">labels =</span> F, <span class="at">borders =</span> F, <span class="at">ncol =</span> <span class="fu">length</span>(si_palettes<span class="sc">$</span>hunter_d))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Returns an set of vector of color values that increase the amount of lightness/white</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>si_palettes<span class="sc">$</span>hunter_t <span class="sc">%&gt;%</span> <span class="fu">show_col</span>(<span class="at">labels =</span> F, <span class="at">borders =</span> F,  <span class="at">ncol =</span> <span class="fu">length</span>(si_palettes<span class="sc">$</span>hunter_t))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># si_rampr takes a palette name and the number of interpolated colors (n) you wish to return as arguments. </span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>tango_c_pal <span class="ot">&lt;-</span> <span class="fu">si_rampr</span>(<span class="at">pal_name =</span> <span class="st">"tango_c"</span>, <span class="at">n =</span> <span class="dv">25</span>)</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>tango_c_pal</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "#65331E" "#6F371F" "#793B20" "#833F22" "#8D4425" "#964828" "#A04D2B"
+ [8] "#A9532F" "#B25934" "#BA5F39" "#C2653E" "#CA6C44" "#D1734B" "#D87952"
+[15] "#DE815A" "#E48962" "#EB916B" "#EF9975" "#F4A17F" "#F7AA8A" "#FAB396"
+[22] "#FDBCA2" "#FDC5AF" "#FDCFBD" "#FDD9CB"</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">show_col</span>(tango_c_pal, <span class="at">labels =</span> F, <span class="at">borders =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="oha_data_viz_guide_on_a_road_show_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

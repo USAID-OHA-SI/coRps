@@ -12,14 +12,15 @@ library(fs)
 #library(git2r)
 
 # Inputs ----
-input_dir <- "2024-01-24"
-corps_session <- "coRps_query_datim_through_dhis2_api.Rmd"
+input_dir <- "2024-12-11"
+corps_session <- "combining images with ggplot plots.Rmd"
 
 # Config / Files ---
 input_file <- file.path(input_dir, corps_session)
 
 output_file <- input_file %>% 
   str_replace("Rmd$", "md") %>% 
+  str_replace_all("[:space:]", "-") %>% 
   str_replace("\\/", "-")
 
 output_dir_repo <- "../usaid-oha-si.github.io/"
@@ -30,13 +31,15 @@ output_file <- paste0(output_dir_repo, output_dir_posts, output_file)
 
 # Generate md file ----
 rmarkdown::render(
-  input = input_file,
+  input = str_replace_all(input_file, "[:space:]", "-"),
+  output_dir = input_dir,
   clean = TRUE,
   run_pandoc = FALSE
 )
 
 # rename and move md file to github page repo
 input_file %>% 
+  str_replace_all("[:space:]", "-") %>% 
   str_replace(".Rmd", ".knit.md") %>% 
   file_move(path = ., new_path = output_file)
 
@@ -58,7 +61,9 @@ input_dir %>%
       output_image_link <- paste0("/", output_dir_images, img_name)
       
       # move file to github pages assets/img/posts
-      file_copy(path = paste0(input_dir, "/", .x), new_path = output_image)
+      file_copy(path = paste0(input_dir, "/", .x), 
+                new_path = output_image,
+                overwrite = TRUE)
                 
       # update images paths
       xfun::gsub_file(file = output_file, .x, output_image_link)

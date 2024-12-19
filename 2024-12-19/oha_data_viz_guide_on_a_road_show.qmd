@@ -1,0 +1,418 @@
+---
+title: "DEMO - OHA Data Viz Guide on a Road Show"
+author: "Baboyma Kagniniwa & Tim Essam"
+date: "2024-12-19"
+format: html
+---
+
+# GLITR - GREAT DATA VIZ AID
+
+A blank canvas is always a good start for good data visualization. Start with a simple sketch on a white board, notepad or napkin, and it will be easier to implement. **glitr** package helps with consistency and reproducibility.
+
+![](https://unsplash.com/photos/gxGtqG5ul2g/download?ixid=M3wxMjA3fDB8MXxhbGx8fHx8fHx8fHwxNzMzMjQ1MjQxfA&force=true&w=1920)
+
+## Why use an R Package?
+
+We needed a way to implement the entire style guide in our routine data visualization tasks while avoiding repetition and keeping products consistent.
+
+![](https://usaid-oha-si.github.io/assets/img/styleguide/chart-elements.png){width="1200"}
+
+## Key Components of `glitr`
+
+The style guide has been implemented in `glitr` through 3 key components:
+
+1.  `Plot Elements`,
+
+2.  `Typeface`,
+
+3.  `Colors`.
+
+We use `tidyverse`, key `data viz libraries`, plus our `home grown packages`
+
+```{r message=FALSE, warning=FALSE}
+  library(tidyverse)
+  library(gagglr)    # glamr, gophr, glitr, etc
+  library(tidytext)
+  library(ggtext)    # Used for rich text formatting
+  library(scales)    # Used to format labels and scales
+  library(patchwork) # Combine and arrange multiple plots
+  library(cowplot)   # use ggdraw to add plots on top of each other
+  library(glue)      # Used to replace variable values in text
+  library(systemfonts) # fonts
+```
+
+Reading standard structured data sets are make easy with our internal workflow
+
+```{r}
+  ## Directory holding all the MSDs files
+  dir_mer <- glamr::si_path("path_msd")
+  dir_mer <- file.path("..", dir_mer) 
+  
+  # Params 
+  cntry <- "Minoria"
+  agency <- "USAID"
+  
+  # Full path of data file
+  file_training <- return_latest(
+    folderpath = dir_mer,
+    pattern = "TRAINING.*.zip",
+    recursive = TRUE
+  )
+  
+  # Metadata
+  meta <- get_metadata(path = file_training)
+  
+  # Read content of the PSNU x IM as a data frame
+  df_msd <- file_training %>% read_psd()
+  
+  df_msd %>% glimpse()
+```
+
+```{r}
+  # Explore content of the data - countries and funding agency
+  df_msd %>% distinct(country, funding_agency)
+```
+
+```{r}
+  # Explore content of the data - indicators
+  df_msd %>% 
+    filter(fiscal_year == meta$curr_fy,
+           str_detect(indicator, "HTS_TST")) %>% 
+    distinct(indicator, standardizeddisaggregate) %>% 
+    arrange(indicator)
+```
+
+Summary of HTS Indicators by PSNU & Agencies
+
+```{r }
+  # Summary of HTS Indicator
+  df_hts_agency <- df_msd %>% 
+    filter(fiscal_year == meta$curr_fy,
+           country == cntry,
+           indicator %in% c("HTS_TST", "HTS_TST_POS"),
+           standardizeddisaggregate == "Total Numerator") %>% 
+    clean_agency() %>% 
+    summarise(value = sum(cumulative, na.rm = T),
+              .by = c(country, psnu, funding_agency, indicator))
+  
+  # Calculate positivity rates at PSNU level
+  df_hts_agency <- df_hts_agency %>% 
+    summarise(value = value[indicator == "HTS_TST_POS"] / value[indicator == "HTS_TST"],
+              .by = c(country, psnu, funding_agency)) %>% 
+    mutate(indicator = "HTS_TST_YIELD") %>% 
+    bind_rows(df_hts_agency, .)
+  
+  df_hts_agency %>% glimpse()
+```
+
+Summary of HTS Indicators by PSNU
+
+```{r }
+  # Summary of HTS Indicator
+  df_hts <- df_msd %>% 
+    filter(#fiscal_year == meta$curr_fy,
+           country == cntry,
+           funding_agency == agency,
+           indicator %in% c("HTS_TST", "HTS_TST_POS"),
+           standardizeddisaggregate == "Total Numerator") %>% 
+    summarise(value = sum(cumulative, na.rm = T),
+              .by = c(country, psnu, indicator))
+  
+  # Calculate positivity rates at PSNU level
+  df_hts <- df_hts %>% 
+    summarise(value = value[indicator == "HTS_TST_POS"] / value[indicator == "HTS_TST"],
+              .by = c(country, psnu)) %>% 
+    mutate(indicator = "HTS_TST_YIELD") %>% 
+    bind_rows(df_hts, .)
+  
+  # Reshape for data viz
+  df_viz <- df_hts %>% 
+      pivot_wider(
+        names_from = indicator,
+        values_from = value
+      )
+  
+  df_viz %>% glimpse()
+```
+
+### Plot Elements
+
+Plot headers should be written in way that helps readers pickup on key points quickly.
+
+Here we pre-define the title and subtitle. Our subtitle contains some key stats on TST Results. Caption will contain some metadata + additional info on the production.
+
+```{r warning=FALSE}
+  # Title & Subtitle
+  plot_title <- glue("{meta$curr_pd} - {toupper(cntry)} HIV TESTING SERVICES")
+  plot_subtitle <- glue("As of **{meta$curr_pd}**, {cntry} reported **{comma(sum(df_viz$HTS_TST_POS))} HIV+** out of **{comma(sum(df_viz$HTS_TST))}** from **{length(unique(df_viz$psnu))} PSNUs**")
+```
+
+Example #1 - HIV+ with default ggplot plotting
+
+```{r warning=F, fig.width=12}
+  df_hts %>% 
+      mutate(
+        label = case_when(
+          indicator == "HTS_TST_YIELD" ~ percent(value, 0.01),
+          TRUE ~ comma(value, 1)
+        )
+      ) %>% 
+      ggplot(aes(x = value, y = reorder(psnu, value), fill = indicator)) +
+      geom_col() +
+      geom_text(aes(label = label, hjust = -0.2)) +
+      scale_x_continuous(expand = c(0.2,0), labels = comma) +
+      facet_wrap(~str_replace(indicator, "HTS_", ""), # Splitting each ind
+                 nrow = 1, scales = "free_x") +
+      labs(x = "", y = "",
+           title = plot_title,
+           subtitle = plot_subtitle,
+           caption = meta$caption) +
+      theme(legend.title = element_blank(),
+            plot.title = element_markdown(face = "bold"), # Need the font to be bold
+            plot.subtitle = element_markdown(),
+            strip.placement = "outside",
+            strip.text = element_text(face = "bold", hjust = .1),
+            strip.clip = "off") 
+```
+
+Example #2 - HIV+ with ggplot plotting & the base style
+
+`si_style()` is our base style and it comes with pre-set font family, color, and location of legend
+
+```{r}
+# Font family defaults to: Source Sans Pro/Arial
+
+# ggplot2::theme(
+#   plot.title = ggplot2::element_text(
+#     family = font_title,
+#     size = 14 * text_scale,
+#     face = "bold",
+#     color = color_title,
+#     margin = ggplot2::margin(b = half_line),
+#     hjust = 0),
+#   ...)
+
+grep("(si_style)", ls('package:glitr'), value = T)
+```
+
+```{r warning=F, fig.width=12}
+
+  df_hts %>% 
+      mutate(
+        label = case_when(
+          indicator == "HTS_TST_YIELD" ~ percent(value, 0.01),
+          TRUE ~ comma(value, 1)
+        )
+      ) %>% 
+      ggplot(aes(x = value, y = reorder(psnu, value), fill = indicator)) +
+      geom_col() +
+      geom_text(aes(label = label, hjust = -0.2)) +
+      scale_x_continuous(position = "top", expand = c(0.2,0), labels = comma) +
+      facet_wrap(~str_replace(indicator, "HTS_", ""), 
+                 nrow = 1, scales = "free_x") +
+      labs(x = "", y = "",
+           title = plot_title,
+           subtitle = plot_subtitle,
+           caption = meta$caption) +
+      si_style() +
+      theme(legend.title = element_blank(),
+            plot.title = element_markdown(), # Title is not bold
+            plot.subtitle = element_markdown(),
+            strip.placement = "outside",
+            strip.text = element_text(face = "bold", hjust = .1),
+            strip.clip = "off") 
+
+```
+
+Example #3 - HIV+ with ggplot plotting & specific style & color
+
+```{r warning=FALSE, fig.width=12}
+ df_hts %>% 
+      mutate(
+        label = case_when(
+          indicator == "HTS_TST_YIELD" ~ percent(value, 0.01),
+          TRUE ~ comma(value, 1)
+        )
+      ) %>% 
+      ggplot(aes(x = value, y = reorder(psnu, value), fill = indicator)) +
+      geom_col(show.legend = F) +
+      geom_text(aes(label = label, hjust = -.05)) +
+      scale_fill_manual(
+        values = c(
+          "HTS_TST" = trolley_grey, 
+          "HTS_TST_POS" = tango, 
+          "HTS_TST_YIELD" = tango_40
+        )
+      ) +
+      scale_x_continuous(position = "top", labels = comma, expand = c(.2,0)) +
+      facet_wrap(~str_replace(indicator, "HTS_", ""), 
+                 nrow = 1, scales = "free_x") +
+      labs(x = "", y = "",
+           title = plot_title,
+           subtitle = glue("As of **{meta$curr_pd}**, {cntry} reported <span style='color:{tango}'>**{comma(sum(df_viz$HTS_TST_POS))} HIV+**</span> out of **{comma(sum(df_viz$HTS_TST))}** from **{length(unique(df_viz$psnu))} PSNUs**"),
+           caption = meta$caption) +
+      si_style_xgrid() +
+      theme(legend.title = element_blank(),
+            plot.title = element_markdown(),
+            plot.subtitle = element_markdown(),
+            strip.placement = "outside",
+            strip.text = element_text(face = "bold", hjust = .1),
+            strip.clip = "off") 
+```
+
+Example #4 - HIV+ with ggplot plotting & `si_style_xgrid()` alternative
+
+```{r warning=F, fig.width=12}
+  df_viz %>% 
+      ggplot(aes(y = reorder(psnu, HTS_TST))) +
+      geom_col(aes(x = HTS_TST), fill = trolley_grey_light, show.legend = T) +
+      geom_col(aes(x = HTS_TST_POS), fill = tango, show.legend = T) +
+      geom_vline(xintercept = 0, color = grey90k) +
+      geom_text(aes(x = HTS_TST_POS, label = comma(HTS_TST_POS)), hjust = -0.2) +
+      scale_x_continuous(labels = comma, position = "top") +
+      labs(x = "", y = "",
+           title = plot_title,
+           subtitle = plot_subtitle,
+           caption = meta$caption) +
+      si_style_xgrid() +
+      theme(legend.title = element_blank(),
+            plot.title = element_markdown(),
+            plot.subtitle = element_markdown()) 
+```
+
+Let's now apply different SI THEMES to the same plot ...
+
+```{r warning=F, fig.width=12}
+
+viz <- df_viz %>% 
+  ggplot(aes(y = reorder(psnu, HTS_TST))) +
+  geom_col(aes(x = HTS_TST), fill = trolley_grey_light, show.legend = T) +
+  geom_col(aes(x = HTS_TST_POS), fill = tango, show.legend = T) +
+  geom_vline(xintercept = 0, color = grey90k) +
+  geom_text(aes(x = HTS_TST_POS, label = comma(HTS_TST_POS)), hjust = -0.2) +
+  scale_x_continuous(labels = comma, position = "top") +
+  labs(x = "", y = "",
+       caption = meta$caption)  
+
+themes <- list(
+  'si_style()' = si_style(), 
+   'si_style_xline()' = si_style_xline(), 
+   'si_style_xgrid()' = si_style_xgrid(),
+   'si_style_xyline()' = si_style_xyline(), 
+   'si_style_yline()' = si_style_yline(), 
+   'si_style_ygrid()' = si_style_ygrid(), 
+   'si_style_nolines()' = si_style_nolines(), 
+   'si_style_void()' = si_style_void()
+   )
+
+## si_style_map() and si_style_transparent() themes are also available for special cases
+
+map2(themes, names(themes), \(.x, .y) viz + labs(title = .y) + .x)
+
+```
+
+Example #5 - HIV+ with ggplot plotting & highlighting specific areas ...
+
+```{r warning=F, fig.width=12}
+df_viz %>% 
+  mutate(psnu = fct_reorder(psnu, -HTS_TST_YIELD),
+         fill_color = case_when(
+           HTS_TST_YIELD >= .02 ~ burnt_sienna, # Districts with more than 2% HIV+ Rates 
+           TRUE ~ burnt_sienna_light
+         ),
+         text_color = case_when(
+           HTS_TST_YIELD >= .02 ~ "#FFF", 
+           TRUE ~ usaid_black ## USAID Colors
+         )) %>% 
+  ggplot(aes(y = psnu)) +
+  geom_col(aes(x = HTS_TST_YIELD, fill = fill_color), width = 1, show.legend = T) +
+  geom_text(aes(x = HTS_TST_YIELD, label = percent(HTS_TST_YIELD, .01), color = text_color), 
+            fontface = "bold", size = 5, hjust = 1.2) +
+  scale_fill_identity() +
+  scale_color_identity() +
+  scale_x_continuous(labels = percent, position = "top", expand = c(0, 0)) +
+  scale_y_discrete(guide = "none") +
+  facet_wrap(~psnu, ncol = 1, scales = "free_y") +
+  labs(x = "", y = "") +
+  si_style_transparent() +
+  theme(panel.grid.major.x = element_blank(), # Additional theme options can be added
+        panel.grid.major.y = element_blank(),
+        panel.spacing = unit(.2, "lines"),
+        axis.text = element_blank(),
+        plot.title = element_markdown(),
+        plot.subtitle = element_markdown(),
+        strip.text = element_text(
+          hjust = 0,
+          margin = margin(1, 0, 1, 0),
+          size = rel(1.1), 
+          face = "bold"
+        )) 
+```
+
+### Colors
+
+```{r warning=FALSE}
+df_hts_agency %>% 
+  filter(indicator == "HTS_TST_POS") %>% 
+  ggplot(aes(x = funding_agency, y = psnu, fill = value)) +
+  geom_tile(color = "#FFF") +
+  scale_fill_si(palette = "tango_c", reverse = TRUE)
+
+```
+
+```{r warning=FALSE}
+hts_pos <- df_hts_agency %>% 
+  filter(indicator == "HTS_TST_POS") %>% 
+  pull(value)
+
+df_hts_agency %>% 
+  filter(indicator == "HTS_TST_POS") %>% 
+  ggplot(aes(x = funding_agency, y = psnu, fill = value)) +
+  geom_tile(color = "#FFF") +
+  geom_text(aes(label = ifelse(value > 200, value, NA_integer_)), color = grey10k) +
+  scale_x_discrete(position = "top") +
+  scale_fill_si(palette = "tango_c", reverse = TRUE,
+                breaks = seq(50, max(hts_pos), 200), 
+                labels = comma, name = "Results") +
+  labs(x = "", y = "") +
+  si_style_nolines() +
+  theme(legend.key.width = ggplot2::unit(1.5, "cm"),
+        legend.title = element_blank())
+
+```
+
+```{r}
+ls('package:glitr')
+```
+
+```{r}
+# Colors belonging to greys, usaid_, wapo_ or siei_.
+grep("(grey|siei_|wapo_|usaid_)", ls('package:glitr'), value = T)
+```
+
+```{r}
+show_col(c(electric_indigo, orchid_bloom, sun_kissed, hunter, lavender_haze, tango), borders = F, ncol = 6)
+```
+
+```{r}
+# Returns the recommended paired colors with hunter as the base
+si_palettes$siei %>% show_col(labels = F, borders = F, ncol = length(si_palettes$siei)/3)
+```
+
+```{r}
+# Returns the recommended paired colors with hunter as the base
+si_palettes$hunter_d %>% show_col(labels = F, borders = F, ncol = length(si_palettes$hunter_d))
+```
+
+```{r}
+# Returns an set of vector of color values that increase the amount of lightness/white
+si_palettes$hunter_t %>% show_col(labels = F, borders = F,  ncol = length(si_palettes$hunter_t))
+```
+
+```{r}
+# si_rampr takes a palette name and the number of interpolated colors (n) you wish to return as arguments. 
+tango_c_pal <- si_rampr(pal_name = "tango_c", n = 25)
+tango_c_pal
+
+show_col(tango_c_pal, labels = F, borders = F)
+```
