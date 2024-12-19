@@ -37,7 +37,7 @@ For the demo, we will be using `tidyverse`, `patchwork`, `cowplot` and other cor
   library(tidyverse)
   library(gagglr)    # Used to read MSD and and plot viz
   library(tidytext)
-  library(ggtext)    # Used for rich text formating
+  library(ggtext)    # Used for rich text formatting
   library(scales)    # Used to format labels and scales
   library(patchwork) # Combine and arrange multiple plots
   library(cowplot)   # use ggdraw to add plots on top of each other
